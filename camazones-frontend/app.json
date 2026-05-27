@@ -6,36 +6,67 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FF6B35"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+
+    "assetBundlePatterns": ["**/*"],
+
     "ios": {
-      "supportsTabletMode": true
+      "supportsTabletMode": false,
+      "bundleIdentifier": "com.camazones.app"
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FF6B35"
       },
-      "package": "com.camazones.app"
+      "package": "com.camazones.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
+
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#FF6B35"
     },
+
     "plugins": [
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Camazones to access your location to show nearby sellers."
+          "locationAlwaysAndWhenInUsePermission": "Camazones utilise votre position pour vous montrer les vendeurs les plus proches.",
+          "locationAlwaysPermission":             "Camazones utilise votre position pour vous montrer les vendeurs les plus proches.",
+          "locationWhenInUsePermission":          "Camazones utilise votre position pour vous montrer les vendeurs les plus proches."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FF6B35",
+          "image":           "./assets/splash.png",
+          "imageWidth":      200
         }
       ]
     ],
-    "scheme": "camazones",
-    "description": "Le marché africain dans votre poche"
+
+    "scheme":      "camazones",
+    "description": "Le marché africain dans votre poche 🌙",
+
+    "extra": {
+      "eas": {
+        "projectId": "camazones-app"
+      }
+    }
   }
 }
