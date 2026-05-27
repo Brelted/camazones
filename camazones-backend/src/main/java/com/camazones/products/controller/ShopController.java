@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * POST /shops              → créer une boutique      (JWT)
- * GET  /shops/:id          → voir une boutique       (public)
- * GET  /shops/:id/products → produits d'une boutique (public)
+ * POST /shops              → créer une boutique           (JWT)
+ * GET  /shops/mine         → boutique du vendeur connecté (JWT)
+ * GET  /shops/:id          → voir une boutique             (public)
+ * GET  /shops/:id/products → produits d'une boutique       (public)
  */
 @RestController
 @RequestMapping("/shops")
@@ -35,6 +36,12 @@ public class ShopController {
             @Valid @RequestBody CreateShopRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(shopService.createShop(user.getUsername(), request));
+    }
+
+    /** Boutique du vendeur connecté — utilisé par SellerScreen (frontend) */
+    @GetMapping("/mine")
+    ResponseEntity<ShopResponse> getMine(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(shopService.getMyShop(user.getUsername()));
     }
 
     @GetMapping("/{id}")
