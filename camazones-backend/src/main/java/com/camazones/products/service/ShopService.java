@@ -51,4 +51,16 @@ public class ShopService {
                 .orElseThrow(() -> new IllegalArgumentException("Boutique introuvable"));
         return mapper.toShopResponse(shop);
     }
+
+    /** GET /shops/mine — boutique du vendeur connecté (null si pas de boutique) */
+    public ShopResponse getMyShop(String ownerEmail) {
+        User owner = userRepository.findByEmail(ownerEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+
+        return shopRepository.findByOwnerIdAndDeletedAtIsNull(owner.getId())
+                .stream()
+                .findFirst()
+                .map(mapper::toShopResponse)
+                .orElseThrow(() -> new IllegalArgumentException("Vous n'avez pas encore de boutique"));
+    }
 }
