@@ -1,0 +1,17 @@
+# Normalise les fins de ligne automatiquement
+# → Plus de warnings LF/CRLF entre Windows et Mac/Linux
+* text=auto
+
+# Java et XML : LF dans le repo
+*.java text eol=lf
+*.xml  text eol=lf
+*.json text eol=lf
+*.js   text eol=lf
+*.md   text eol=lf
+*.properties text eol=lf
+
+# Fichiers binaires : pas de conversion
+*.png  binary
+*.jpg  binary
+*.jar  binary
+*.class binary

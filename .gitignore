@@ -1,0 +1,28 @@
+# ── IDE & Editors ─────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── Claude Code (outil de dev local, pas utile pour l'équipe) ─
+.claude/
+CLAUDE.md
+RESUME_PROJET.md
+STATUS.md
+
+# ── Backend Java / Maven ───────────────────────────────────────
+camazones-backend/target/
+camazones-backend/*.class
+camazones-backend/.mvn/wrapper/maven-wrapper.jar
+
+# ── Frontend React Native / Expo ──────────────────────────────
+camazones-frontend/node_modules/
+camazones-frontend/.expo/
+camazones-frontend/dist/
+camazones-frontend/build/
+camazones-frontend/.env
+camazones-frontend/.env.local
+
+# ── Fichiers système ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
