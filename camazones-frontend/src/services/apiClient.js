@@ -1,8 +1,8 @@
 import axios from 'axios';
 import store from '../store';
-import { logout } from './slices/authSlice';
-
-const API_BASE_URL = 'http://localhost:8080/api';
+import { logout } from '../store/slices/authSlice';
+import { API_BASE_URL, AUTH_STORAGE_KEY } from './apiConfig';
+import { storage } from './storage';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,9 +12,11 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = store.getState().auth.token;
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -22,11 +24,12 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Token expiré → déconnecter l'utilisateur
+      await storage.removeItem(AUTH_STORAGE_KEY);
       store.dispatch(logout());
     }
+
     return Promise.reject(error);
   }
 );

@@ -1,24 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Provider } from 'react-native-paper';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Provider as ReduxProvider } from 'react-redux';
+import { Provider as ReduxProvider, useDispatch } from 'react-redux';
 import store from './src/store';
 import RootNavigator from './src/navigation/RootNavigator';
 import { theme } from './src/theme';
+import { restoreAuth } from './src/store/slices/authSlice';
 
-const Stack = createNativeStackNavigator();
+function Bootstrapper() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(restoreAuth());
+  }, [dispatch]);
+
+  return <RootNavigator />;
+}
 
 export default function App() {
   return (
     <ReduxProvider store={store}>
-      <Provider theme={theme}>
-        <NavigationContainer>
-          <StatusBar barStyle="dark-content" />
-          <RootNavigator />
-        </NavigationContainer>
-      </Provider>
+      <StatusBar style="dark" backgroundColor={theme.colors.background} />
+      <Bootstrapper />
     </ReduxProvider>
   );
 }

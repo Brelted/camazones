@@ -1,46 +1,36 @@
-# Camazones - Documentation Partagée
+# Camazones - Documentation
 
-Bienvenue dans la documentation centrale du projet Camazones ! 🌍
+Documentation centrale du projet Camazones.
 
-## 📋 Structure
+## Fichiers principaux
 
-- **API.md** → Spécification complète des endpoints
-- **SCHEMA.md** → Modèle de données / Base de données
-- **ARCHITECTURE.md** → Architecture générale du projet
-- **GIT_WORKFLOW.md** → Guide Git pour l'équipe
-- **SETUP.md** → Instructions de setup pour chaque environnement
+- `PROJECT_SUMMARY.md` : resume global du projet.
+- `FRONTEND_SUMMARY.md` : resume du frontend Expo / React Native.
+- `BACKEND_SUMMARY.md` : resume du backend Spring Boot.
+- `API.md` : specification des endpoints prevus.
+- `SCHEMA.md` : modele de donnees.
+- `SETUP.md` : instructions de lancement.
+- `GIT_WORKFLOW.md` : workflow Git.
+- `TASKS.md` : suivi des taches.
 
-## 🎯 Modules
+## Structure projet
 
-| Module | Backend Dev | Frontend Dev | API Owner |
-|--------|------------|-------------|-----------|
-| **Auth** | Chef | - | Chef |
-| **Products** | Dev 1 | Dev 4 | Dev 1 |
-| **Payments** | Dev 2 | Dev 4 | Dev 2 |
-| **Social** | Dev 3 | Dev 4 | Dev 3 |
+```text
+camazones/
+|-- camazones-frontend/
+|-- camazones-backend/
+|-- camazones-docs/
+|-- Lean-Canva/
+|-- README.md
+|-- REQUIREMENTS.md
+```
 
-## 🔗 Repos
+## Etat rapide
 
-- **Backend**: `camazones-backend/`
-- **Frontend**: `camazones-frontend/`
-- **Docs**: `camazones-docs/` (ce repo)
+- Frontend : application mobile Expo SDK 54 fonctionnelle.
+- Backend : socle Spring Boot avec health check.
+- Documentation : resumes front, back et projet ajoutes.
 
-## 📞 Communication
+## Derniere mise a jour
 
-Pour les questions sur :
-- **Endpoints API** → Contactez le Dev responsable du module
-- **Screens UI** → Contactez Dev 4 (Frontend)
-- **Architecture générale** → Contactez le Chef
-
-## 🚀 Prochaines Étapes
-
-1. ✅ Setup Git repos (fait)
-2. ✅ Créer structure skeleton (fait)
-3. → Initialiser les repos Git localement
-4. → Chaque dev clone son repo
-5. → Define API contracts (Chef + Devs)
-6. → Start development on feature branches
-
----
-
-**Dernière mise à jour**: 2026-05-27
+2026-05-28

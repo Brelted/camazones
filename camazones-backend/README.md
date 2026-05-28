@@ -1,93 +1,89 @@
 # Camazones Backend
 
-API REST pour la plateforme Camazones - Le marché africain dans votre poche 🌍
+API REST Spring Boot pour la plateforme Camazones.
 
-## Stack Technique
+## Stack
 
-- **Framework**: Spring Boot 3.1.5
-- **Language**: Java 17
-- **Build**: Maven
-- **Database**: H2 (dev) / PostgreSQL (prod)
-- **Auth**: JWT
-- **API**: RESTful
+- Spring Boot 3.1.5
+- Java 17
+- Maven
+- Spring Web
+- Spring Security
+- Spring Data JPA
+- Spring Validation
+- JWT avec JJWT
+- H2 en developpement
+- PostgreSQL prevu pour production
 
-## Architecture Modulaire
+## Architecture actuelle
 
-```
+```text
 src/main/java/com/camazones/
-├── core/              # Configurations, health check, utils
-├── auth/              # Authentication & Authorization
-├── products/          # Produits & Boutiques
-├── payments/          # Portefeuille, Mobile Money, Escrow
-├── social/            # Vidéos, Reels, Négociation de prix
-└── shared/            # Entités partagées, exceptions, constants
+|-- CamazonesBackendApplication.java
+|-- auth/
+|   |-- config/JwtProperties.java
+|-- core/
+|   |-- controller/HealthController.java
+src/main/resources/
+|-- application.properties
 ```
 
-## Setup Local
+## Etat actuel
 
-### Prérequis
+- Application Spring Boot initialisee.
+- Base URL configuree sous `/api`.
+- Endpoint de sante disponible.
+- Configuration JWT externalisable.
+- H2 configure pour le developpement local.
+- Dependances pretes pour l'auth, les produits, les boutiques et le paiement.
+
+## Endpoint disponible
+
+```http
+GET http://localhost:8080/api/health
+```
+
+## Setup local
+
+### Prerequis
+
 - Java 17+
 - Maven 3.8+
 
 ### Installation
 
-```bash
-# Clone le repo
-git clone <repo-url>
-cd camazones-backend
-
-# Build
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
 mvn clean install
-
-# Run
 mvn spring-boot:run
 ```
 
-Server démarre sur `http://localhost:8080/api`
+Le serveur demarre sur :
 
-## API Endpoints (À définir par module)
-
-Voir `../camazones-docs/API.md` pour la spec complète
-
-## Branching Strategy
-
-- `main` → Production (protégée, PR required)
-- `develop` → Intégration (base pour features)
-- `feature/*` → Nouvelles features (de `develop`)
-- `fix/*` → Bug fixes (de `develop`)
-
-## Git Workflow
-
-```bash
-# 1. Clone & create feature branch
-git clone <repo>
-git checkout -b feature/auth-login
-
-# 2. Commit & push
-git add .
-git commit -m "feat: add JWT login endpoint"
-git push origin feature/auth-login
-
-# 3. Create Pull Request on GitHub
-
-# 4. Review + Merge to develop
+```text
+http://localhost:8080/api
 ```
 
-## Modules & Responsables
+## Configuration
 
-| Module | Dev | Tâches |
-|--------|-----|--------|
-| **Auth** | Chef | User registration, Login, JWT |
-| **Products** | Dev 1 | Products CRUD, Shops, Categories |
-| **Payments** | Dev 2 | Wallet, Mobile Money, Escrow |
-| **Social** | Dev 3 | Videos, Reels, Price Negotiation |
+```properties
+server.port=8080
+server.servlet.context-path=/api
+spring.datasource.url=jdbc:h2:mem:camazones
+jwt.secret=${JWT_SECRET:local-dev-only-secret-minimum-256bits-camazones-2026}
+```
+
+## Modules prevus
+
+- Auth : inscription, connexion, JWT, profil utilisateur.
+- Products : produits, categories, recherche.
+- Shops : boutiques, vitrines, produits de boutique.
+- Payments : wallet, mobile money, escrow.
+- Social : DM, videos, negociation.
 
 ## Documentation
 
-- [API Specification](../camazones-docs/API.md)
-- [Database Schema](../camazones-docs/SCHEMA.md)
-- [Architecture](../camazones-docs/ARCHITECTURE.md)
-
-## Questions?
-
-Contact le chef du projet pour clarifications sur l'API ou l'architecture.
+- `../camazones-docs/BACKEND_SUMMARY.md`
+- `../camazones-docs/API.md`
+- `../camazones-docs/SCHEMA.md`
+- `../REQUIREMENTS.md`

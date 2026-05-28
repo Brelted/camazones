@@ -1,121 +1,99 @@
 # Camazones Frontend
 
-Application mobile React Native pour Camazones - Le marché africain dans votre poche 🌍
+Application mobile Expo / React Native pour connecter acheteurs, vendeurs independants et boutiques professionnelles.
 
-## Stack Technique
+## Stack
 
-- **Framework**: React Native 0.73
-- **Runtime**: Expo 50.0
-- **State Management**: Redux Toolkit
-- **UI Library**: React Native Paper
-- **Navigation**: React Navigation
-- **API Client**: Axios
-- **Maps**: Expo Location
+- Expo SDK 54
+- React Native 0.81.5
+- React 19.1.0
+- Redux Toolkit
+- React Redux
+- Axios
+- AsyncStorage
 
 ## Architecture
 
-```
+```text
 src/
-├── screens/          # Écrans de l'app
-│   ├── auth/        # Login/Register
-│   ├── home/        # Accueil
-│   ├── products/    # Catalogue produits
-│   ├── seller/      # Gestion boutique
-│   └── wallet/      # Portefeuille
-├── components/       # Composants réutilisables
-├── services/         # API calls (axios)
-├── navigation/       # Stack, Tab, Navigation
-├── store/           # Redux store
-├── theme/           # Design system
-└── utils/           # Utilities
+|-- components/       Logo, badges, cartes boutique/produit, UI de base
+|-- data/             Donnees marketplace de demonstration
+|-- navigation/       RootNavigator et navigation par onglets
+|-- screens/
+|   |-- auth/         Login / Register
+|   |-- home/         Accueil marketplace
+|   |-- messages/     DM vendeur
+|   |-- products/     Recherche globale
+|   |-- seller/       Profil, photo, mode sombre, deconnexion
+|   |-- wallet/       Paiement
+|-- services/         API, auth, stockage et client axios
+|-- store/            Redux slices
+|-- theme/            Palette marketplace beige/kaki/orange
 ```
 
-## Setup Local
+## Fonctionnalites
 
-### Prérequis
-- Node.js 18+
-- npm ou yarn
-- Expo CLI (`npm install -g expo-cli`)
+- Authentification Login / Register.
+- Token JWT persiste avec AsyncStorage.
+- Logout automatique sur reponse API 401.
+- Accueil inspire marketplace mobile : header orange, categories, banner et grille deux colonnes.
+- Images locales de vetements et gadgets.
+- Vitrines boutiques avec produits.
+- Recherche globale.
+- Badges premium et reconnu AP.
+- DM vendeur.
+- Paiement Orange Money, MTN MoMo, carte et wallet en parcours simule.
+- Profil modifiable, photo de profil, mode sombre et deconnexion.
 
-### Installation
+## Lancement Expo Go
 
-```bash
-# Clone le repo
-git clone <repo-url>
-cd camazones-frontend
-
-# Install dependencies
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
 npm install
-
-# Start Expo
-npm start
+$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
+npx expo start --go --clear --lan
 ```
 
-## Lancer l'App
+## Lancement Android Studio
 
-```bash
-# Android
-npm run android
-
-# iOS
-npm run ios
-
-# Web
-npm run web
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
+npx expo start --go --clear
 ```
 
-## Branching Strategy
+Puis appuyer sur :
 
-- `main` → Production
-- `develop` → Intégration
-- `feature/*` → Features
-- `fix/*` → Bug fixes
-
-## Git Workflow
-
-```bash
-# Create feature branch from develop
-git checkout develop
-git pull
-git checkout -b feature/login-screen
-
-# Make changes & commit
-git add .
-git commit -m "feat: add login screen with validation"
-
-# Push & create PR
-git push origin feature/login-screen
+```text
+a
 ```
 
-## Modules & Responsables
+## Notes mobile
 
-| Module | Dev | Focus |
-|--------|-----|-------|
-| **Auth Screens** | Dev 4 | Login, Register, Profile |
-| **Home & Feed** | Dev 4 | Main UI, Product feed |
-| **Products & Search** | Dev 4 | Browse, Filter, Details |
-| **Seller Tools** | Dev 4 | Create shop, List products |
-| **Wallet & Payments** | Dev 4 | Easy Wallet, Transactions |
-| **Chat/Negotiation** | Dev 4 | Price negotiation rooms |
+- Ne pas utiliser `localhost` sur telephone physique.
+- Le telephone et le PC doivent etre sur le meme Wi-Fi.
+- Android 9+ est vise avec Expo Go SDK 54.
+- Le point d'entree Expo est `index.js`.
 
-## API Integration
+## API
 
-API Base: `http://localhost:8080/api`
+La base API est lue depuis :
 
-See `../camazones-docs/API.md` for endpoint specs.
-
-## Design System
-
-Primary Color: `#FF6B35` (Orange)
-Accent Color: `#F7931E`
-Text: `#2C3E50`
-
-## Testing
-
-```bash
-npm test
+```text
+EXPO_PUBLIC_API_BASE_URL
 ```
 
-## Questions?
+Fallback local :
 
-Contact le chef du projet.
+```text
+http://localhost:8080/api
+```
+
+## Palette
+
+- Fond : `#E8DCC8`
+- Surface : `#F1DFC0`
+- Carte : `#F6E7CA`
+- Orange principal : `#FF5A00`
+- Vert badge : `#20C76A`
+- Bleu promo : `#3478F6`
+- Violet promo : `#A100FF`
