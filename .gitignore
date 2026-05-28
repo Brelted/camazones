@@ -26,3 +26,6 @@ camazones-frontend/.env.local
 .DS_Store
 Thumbs.db
 *.log
+
+# ── Clone accidentel à la racine (git clone camazones dans le projet) ──
+/camazones
