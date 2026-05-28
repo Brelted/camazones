@@ -1,121 +1,62 @@
 # Camazones Frontend
 
-Application mobile React Native pour Camazones - Le marché africain dans votre poche 🌍
+Application mobile Expo / React Native pour connecter acheteurs, vendeurs indépendants et boutiques professionnelles.
 
-## Stack Technique
+## Stack
 
-- **Framework**: React Native 0.73
-- **Runtime**: Expo 50.0
-- **State Management**: Redux Toolkit
-- **UI Library**: React Native Paper
-- **Navigation**: React Navigation
-- **API Client**: Axios
-- **Maps**: Expo Location
+- React Native 0.81.5
+- Expo SDK 54
+- React 19.1
+- Redux Toolkit
+- React Navigation
+- React Native Paper
+- Axios
+- AsyncStorage
 
 ## Architecture
 
-```
+```text
 src/
-├── screens/          # Écrans de l'app
-│   ├── auth/        # Login/Register
-│   ├── home/        # Accueil
-│   ├── products/    # Catalogue produits
-│   ├── seller/      # Gestion boutique
-│   └── wallet/      # Portefeuille
-├── components/       # Composants réutilisables
-├── services/         # API calls (axios)
-├── navigation/       # Stack, Tab, Navigation
-├── store/           # Redux store
-├── theme/           # Design system
-└── utils/           # Utilities
+├── components/       # Logo, badges, cartes boutique/produit
+├── data/             # Données marketplace de démonstration
+├── navigation/       # RootNavigator + Tabs
+├── screens/
+│   ├── auth/         # Login / Register
+│   ├── home/         # Boutiques et vitrines
+│   ├── messages/     # DM vendeur
+│   ├── products/     # Recherche globale
+│   ├── seller/       # Types de profils
+│   └── wallet/       # Paiement
+├── services/         # API, auth, client axios
+├── store/            # Redux slices
+└── theme/            # Palette premium
 ```
 
-## Setup Local
+## Lancement Expo Go
 
-### Prérequis
-- Node.js 18+
-- npm ou yarn
-- Expo CLI (`npm install -g expo-cli`)
-
-### Installation
-
-```bash
-# Clone le repo
-git clone <repo-url>
-cd camazones-frontend
-
-# Install dependencies
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
 npm install
-
-# Start Expo
-npm start
+$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
+npx expo start --go --clear --lan
 ```
 
-## Lancer l'App
+## Notes mobile
 
-```bash
-# Android
-npm run android
+- Ne pas utiliser `localhost` sur téléphone physique.
+- Le téléphone et le PC doivent être sur le même Wi-Fi.
+- Android 9+ est couvert par Expo Go SDK 54.
+- Le point d’entrée Expo est `index.js`.
 
-# iOS
-npm run ios
+## API
 
-# Web
-npm run web
-```
+La base API est lue depuis `EXPO_PUBLIC_API_BASE_URL`.
 
-## Branching Strategy
+Fallback local : `http://localhost:8080/api`.
 
-- `main` → Production
-- `develop` → Intégration
-- `feature/*` → Features
-- `fix/*` → Bug fixes
+## Palette
 
-## Git Workflow
-
-```bash
-# Create feature branch from develop
-git checkout develop
-git pull
-git checkout -b feature/login-screen
-
-# Make changes & commit
-git add .
-git commit -m "feat: add login screen with validation"
-
-# Push & create PR
-git push origin feature/login-screen
-```
-
-## Modules & Responsables
-
-| Module | Dev | Focus |
-|--------|-----|-------|
-| **Auth Screens** | Dev 4 | Login, Register, Profile |
-| **Home & Feed** | Dev 4 | Main UI, Product feed |
-| **Products & Search** | Dev 4 | Browse, Filter, Details |
-| **Seller Tools** | Dev 4 | Create shop, List products |
-| **Wallet & Payments** | Dev 4 | Easy Wallet, Transactions |
-| **Chat/Negotiation** | Dev 4 | Price negotiation rooms |
-
-## API Integration
-
-API Base: `http://localhost:8080/api`
-
-See `../camazones-docs/API.md` for endpoint specs.
-
-## Design System
-
-Primary Color: `#FF6B35` (Orange)
-Accent Color: `#F7931E`
-Text: `#2C3E50`
-
-## Testing
-
-```bash
-npm test
-```
-
-## Questions?
-
-Contact le chef du projet.
+- Fond : `#F6F1EA`
+- Texte : `#1F1F1F`
+- Principal : `#2F3A56`
+- Accent : `#B98C5A`

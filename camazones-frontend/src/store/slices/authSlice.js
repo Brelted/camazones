@@ -1,32 +1,134 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { AUTH_STORAGE_KEY } from '../../services/apiConfig';
+import { loginRequest, registerRequest } from '../../services/authService';
+import { storage } from '../../services/storage';
 
 const initialState = {
   user: null,
   token: null,
+  isAuthenticated: false,
   isLoading: false,
+  isBootstrapping: true,
   error: null,
 };
+
+const normalizeAuthPayload = (payload) => {
+  const data = payload?.data ?? payload ?? {};
+  const token = data.token ?? null;
+  const user = data.user ?? (
+    data.id || data.email
+      ? {
+          id: data.id ?? null,
+          email: data.email ?? null,
+          role: data.role ?? null,
+          firstName: data.firstName ?? null,
+          lastName: data.lastName ?? null,
+          phone: data.phone ?? null,
+        }
+      : null
+  );
+
+  return { token, user };
+};
+
+const getErrorMessage = (error) => error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Authentication failed';
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    loginStart: (state) => { state.isLoading = true; },
-    loginSuccess: (state, action) => {
+    authStart: (state) => {
+      state.isLoading = true;
+      state.error = null;
+    },
+    authSuccess: (state, action) => {
       state.isLoading = false;
+      state.isBootstrapping = false;
       state.user = action.payload.user;
       state.token = action.payload.token;
+      state.isAuthenticated = Boolean(action.payload.token);
+      state.error = null;
     },
-    loginFailure: (state, action) => {
+    authFailure: (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     },
-    logout: (state) => {
+    authBootstrapComplete: (state) => {
+      state.isBootstrapping = false;
+    },
+    clearAuth: (state) => {
       state.user = null;
       state.token = null;
+      state.isAuthenticated = false;
+      state.isLoading = false;
+      state.isBootstrapping = false;
+      state.error = null;
     },
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
+export const restoreAuth = () => async (dispatch) => {
+  try {
+    const serializedAuth = await storage.getItem(AUTH_STORAGE_KEY);
+
+    if (serializedAuth) {
+      const parsedAuth = JSON.parse(serializedAuth);
+      dispatch(authSuccess(parsedAuth));
+      return;
+    }
+
+    dispatch(authBootstrapComplete());
+  } catch (error) {
+    await storage.removeItem(AUTH_STORAGE_KEY);
+    dispatch(clearAuth());
+  }
+};
+
+export const login = (credentials) => async (dispatch) => {
+  dispatch(authStart());
+
+  try {
+    const response = await loginRequest(credentials);
+    const authData = normalizeAuthPayload(response);
+
+    if (!authData.token) {
+      throw new Error('Missing token in login response');
+    }
+
+    await storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    dispatch(authSuccess(authData));
+    return authData;
+  } catch (error) {
+    dispatch(authFailure(getErrorMessage(error)));
+    throw error;
+  }
+};
+
+export const register = (credentials) => async (dispatch) => {
+  dispatch(authStart());
+
+  try {
+    const response = await registerRequest(credentials);
+    const authData = normalizeAuthPayload(response);
+
+    if (!authData.token) {
+      throw new Error('Missing token in register response');
+    }
+
+    await storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    dispatch(authSuccess(authData));
+    return authData;
+  } catch (error) {
+    dispatch(authFailure(getErrorMessage(error)));
+    throw error;
+  }
+};
+
+export const logout = () => async (dispatch) => {
+  await storage.removeItem(AUTH_STORAGE_KEY);
+  dispatch(clearAuth());
+};
+
+export const { authStart, authSuccess, authFailure, authBootstrapComplete, clearAuth } = authSlice.actions;
+
 export default authSlice.reducer;
