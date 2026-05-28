@@ -1,69 +1,50 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Surface, Text } from '../../components/ui';
-import BrandLogo from '../../components/BrandLogo';
-import { Badge, Metric, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
-import { getRankedProducts, shops } from '../../data/marketplace';
-import { darkPalette, overlay, palette } from '../../theme';
+import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Surface, Text } from '../../components/ui';
+import { Badge, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
+import { categories, getRankedProducts, shops } from '../../data/marketplace';
+import { overlay, palette } from '../../theme';
 
-export default function HomeScreen({ navigation, appSettings }) {
+export default function HomeScreen({ navigation }) {
   const [selectedShopId, setSelectedShopId] = useState(null);
-  const [notice, setNotice] = useState('');
   const rankedProducts = useMemo(() => getRankedProducts(), []);
   const selectedShop = shops.find((shop) => shop.id === selectedShopId);
-  const darkMode = Boolean(appSettings?.darkMode);
-  const colors = appSettings?.colors ?? palette;
-  const muted = darkMode ? darkPalette.muted : overlay.muted;
-  const screenStyle = [styles.screen, { backgroundColor: colors.background }];
 
   const openMessages = (sellerName) => {
-    setNotice(`DM prepare avec ${sellerName}.`);
     navigation.navigate('Messages', { sellerName });
   };
 
   const openPayment = (productTitle) => {
-    setNotice(`Paiement pret pour ${productTitle}.`);
     navigation.navigate('Wallet', { productTitle });
   };
 
   if (selectedShop) {
     return (
-      <SafeAreaView style={screenStyle}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <SafeAreaView style={styles.screen}>
+        <ScrollView contentContainerStyle={styles.detailContent} showsVerticalScrollIndicator={false}>
           <Pressable onPress={() => setSelectedShopId(null)} style={styles.backLink}>
-            <Text style={[styles.backIcon, { color: colors.green ?? palette.green }]}>‹</Text>
-            <Text style={[styles.backText, { color: colors.primary }]}>Toutes les vitrines</Text>
+            <Text style={styles.backIcon}>‹</Text>
+            <Text style={styles.backText}>Back to marketplace</Text>
           </Pressable>
 
           <Surface style={styles.shopHero} elevation={0}>
-            <View style={styles.heroGlowOrange} />
-            <View style={styles.heroGlowGreen} />
-            <View style={styles.shopHeroTop}>
-              <View style={[styles.shopMark, { backgroundColor: selectedShop.premium ? palette.orange : palette.primary }]}>
-                <Text style={styles.shopMarkText}>{selectedShop.name.slice(0, 1)}</Text>
+            <Image source={selectedShop.cover} style={styles.shopHeroImage} resizeMode="cover" />
+            <View style={styles.shopHeroCopy}>
+              <View style={styles.nameRow}>
+                <Text style={styles.shopName}>{selectedShop.name}</Text>
+                {selectedShop.premium ? <Text style={styles.shopStar}>★</Text> : null}
               </View>
-              <View style={styles.shopHeroTitle}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.shopName}>{selectedShop.name}</Text>
-                  {selectedShop.premium ? <Text style={styles.shopStar}>★</Text> : null}
-                </View>
-                <Text style={styles.shopMeta}>{selectedShop.city} · {selectedShop.speciality}</Text>
+              <Text style={styles.shopMeta}>{selectedShop.city} · {selectedShop.speciality}</Text>
+              <Text style={styles.shopText}>{selectedShop.tagline}</Text>
+              <View style={styles.badges}>
+                <Badge type="professional" />
+                {selectedShop.certifiedByAp ? <Badge type="ap" /> : null}
+                {selectedShop.premium ? <Badge type="premium" /> : null}
               </View>
-            </View>
-            <Text style={styles.shopText}>{selectedShop.tagline}</Text>
-            <View style={styles.badges}>
-              <Badge type="professional" />
-              {selectedShop.certifiedByAp ? <Badge type="ap" /> : null}
-              {selectedShop.premium ? <Badge type="premium" /> : null}
-            </View>
-            <View style={styles.metricGrid}>
-              <Metric label="Articles reels" value={String(selectedShop.products.length)} />
-              <Metric label="Compte" value="Boutique" />
-              <Metric label="Visibilite" value={selectedShop.premium ? 'Premium' : 'Claire'} />
             </View>
           </Surface>
 
-          <SectionHeader title="Produits de la boutique" description="Dans une vitrine, seuls les produits de cette boutique sont affiches." />
+          <SectionHeader title="Store products" description="Clothes, gadgets and offers from this boutique only." />
           <View style={styles.stack}>
             {selectedShop.products.map((product) => (
               <ProductCard
@@ -80,50 +61,57 @@ export default function HomeScreen({ navigation, appSettings }) {
   }
 
   return (
-    <SafeAreaView style={screenStyle}>
+    <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <BrandLogo caption="Vitrines, recherche globale et paiement fluide" />
-          <Text style={[styles.title, { color: colors.text }]}>Des boutiques fiables, des produits visibles.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>
-            Des l entree, Camazones affiche uniquement les vitrines, puis les produits premium les mieux classes.
-          </Text>
+        <View style={styles.topBar}>
+          <View style={styles.logoRow}>
+            <View style={styles.logoMark}>
+              <Text style={styles.logoText}>C</Text>
+            </View>
+            <View>
+              <Text style={styles.logoName}>CAMAZONE</Text>
+              <Text style={styles.logoSub}>Mobile marketplace</Text>
+            </View>
+            <Text style={styles.cartIcon}>🛍️</Text>
+          </View>
+
+          <Pressable onPress={() => navigation.navigate('Products')} style={styles.searchBar}>
+            <Text style={styles.searchIcon}>⌕</Text>
+            <Text style={styles.searchPlaceholder}>Search clothes, gadgets...</Text>
+          </Pressable>
         </View>
 
-        <Surface style={styles.searchHint} elevation={0}>
-          <View style={styles.heroGlowOrange} />
-          <View style={styles.heroGlowGreen} />
-          <View style={styles.searchIcon}>
-            <Text style={styles.searchIconText}>⌕</Text>
-          </View>
-          <View style={styles.searchCopy}>
-            <Text style={styles.searchTitle}>Recherche globale hors boutique</Text>
-            <Text style={styles.searchText}>Cherchez un produit et voyez toutes les boutiques qui le vendent.</Text>
-          </View>
-          <Button
-            mode="contained"
-            compact
-            onPress={() => navigation.navigate('Products')}
-            buttonColor={palette.green}
-            textColor={palette.background}
-          >
-            Voir
-          </Button>
-        </Surface>
+        <View style={styles.sectionInline}>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <Text style={styles.viewAll}>View all</Text>
+        </View>
 
-        {notice ? <Text style={[styles.notice, { color: colors.green ?? palette.green }]}>{notice}</Text> : null}
-
-        <SectionHeader title="Vitrines selectionnees" description="La zone boutique ne contient que des boutiques professionnelles." />
-        <View style={styles.stack}>
-          {[...shops].sort((left, right) => Number(right.premium) - Number(left.premium)).map((shop) => (
-            <ShopCard key={shop.id} shop={shop} onPress={() => setSelectedShopId(shop.id)} />
+        <View style={styles.categoryRow}>
+          {categories.map((category) => (
+            <Pressable key={category.id} onPress={() => navigation.navigate('Products')} style={styles.categoryItem}>
+              <View style={styles.categoryIcon}>
+                <Text style={styles.categoryEmoji}>{category.icon}</Text>
+              </View>
+              <Text style={styles.categoryLabel}>{category.label}</Text>
+            </Pressable>
           ))}
         </View>
 
-        <SectionHeader title="Produits premium" description="Les offres premium et reconnues remontent plus souvent dans les listes." />
-        <View style={styles.stack}>
-          {rankedProducts.slice(0, 6).map((item) => (
-            <ProductCard
+        <Surface style={styles.banner} elevation={0}>
+          <View style={styles.bannerBlue} />
+          <View style={styles.bannerPurple} />
+          <Text style={styles.bannerTitle}>⚡ New arrivals, big deals</Text>
+          <Text style={styles.bannerText}>Fresh clothes, sneakers and gadgets with premium stores first.</Text>
+        </Surface>
+
+        <View style={styles.sectionInline}>
+          <Text style={styles.sectionTitle}>Featured products</Text>
+          <Text style={styles.viewAll}>View all</Text>
+        </View>
+
+        <View style={styles.productGrid}>
+          {rankedProducts.slice(0, 8).map((item) => (
+            <GridProductCard
               key={item.product.id}
               item={item}
               onMessage={() => openMessages(item.seller.name)}
@@ -131,89 +119,313 @@ export default function HomeScreen({ navigation, appSettings }) {
             />
           ))}
         </View>
+
+        <View style={styles.sectionInline}>
+          <Text style={styles.sectionTitle}>Stores</Text>
+          <Text style={styles.viewAll}>View all</Text>
+        </View>
+        <View style={styles.stack}>
+          {shops.slice(0, 3).map((shop) => (
+            <ShopCard key={shop.id} shop={shop} onPress={() => setSelectedShopId(shop.id)} />
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function GridProductCard({ item, onMessage, onBuy }) {
+  const { product, seller } = item;
+
+  return (
+    <Surface style={styles.gridCard} elevation={0}>
+      <View style={styles.gridImageWrap}>
+        <Image source={product.image} style={styles.gridImage} resizeMode="cover" />
+        <View style={styles.badgeTopLeft}>
+          <Text style={styles.badgeTopText}>⭐ {seller.premium ? 'Top' : 'New'}</Text>
+        </View>
+        <View style={styles.badgeTopRight}>
+          <Text style={styles.badgeTopText}>-{product.premium ? '35' : '20'}%</Text>
+        </View>
+      </View>
+      <Text numberOfLines={2} style={styles.gridTitle}>{product.title}</Text>
+      <Text numberOfLines={1} style={styles.gridSeller}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
+      <View style={styles.gridFooter}>
+        <Text style={styles.gridPrice}>{product.price}</Text>
+        <View style={styles.gridActions}>
+          <Pressable onPress={onMessage} style={styles.gridMiniButton}>
+            <Text style={styles.gridMiniText}>💬</Text>
+          </Pressable>
+          <Pressable onPress={onBuy} style={styles.gridBuyButton}>
+            <Text style={styles.gridBuyText}>Buy</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: palette.background,
   },
   content: {
-    padding: 20,
     paddingBottom: 108,
-    gap: 18,
+    gap: 16,
   },
-  header: {
+  detailContent: {
+    padding: 18,
+    paddingBottom: 108,
+    gap: 16,
+  },
+  topBar: {
+    paddingTop: 18,
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+    backgroundColor: palette.orange,
     gap: 14,
   },
-  title: {
-    fontSize: 34,
-    lineHeight: 39,
-    fontWeight: '900',
-    letterSpacing: -1.1,
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  searchHint: {
-    position: 'relative',
-    overflow: 'hidden',
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: overlay.line,
-    backgroundColor: palette.surface,
+    gap: 10,
   },
-  heroGlowOrange: {
-    position: 'absolute',
-    top: -38,
-    right: -32,
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    backgroundColor: overlay.orange,
-  },
-  heroGlowGreen: {
-    position: 'absolute',
-    bottom: -48,
-    left: -24,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: overlay.green,
-  },
-  searchIcon: {
-    width: 38,
-    height: 38,
+  logoMark: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
-    backgroundColor: palette.primary,
+    backgroundColor: palette.card,
   },
-  searchCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  searchTitle: {
-    color: palette.text,
+  logoText: {
+    color: palette.orange,
+    fontSize: 19,
     fontWeight: '900',
   },
-  searchText: {
+  logoName: {
+    color: palette.card,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  logoSub: {
+    color: '#FFE1C4',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  cartIcon: {
+    marginLeft: 'auto',
+    color: palette.card,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  searchBar: {
+    minHeight: 40,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: palette.card,
+  },
+  searchIcon: {
+    color: palette.khaki,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  searchPlaceholder: {
     color: overlay.muted,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    fontWeight: '800',
   },
-  notice: {
+  sectionInline: {
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    color: palette.text,
+    fontSize: 18,
     fontWeight: '900',
-    paddingHorizontal: 2,
+    letterSpacing: -0.2,
+  },
+  viewAll: {
+    color: palette.orange,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  categoryRow: {
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  categoryItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.card,
+    borderWidth: 1,
+    borderColor: 'rgba(31,31,31,0.06)',
+  },
+  categoryEmoji: {
+    fontSize: 19,
+    lineHeight: 22,
+  },
+  categoryLabel: {
+    color: palette.text,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  banner: {
+    minHeight: 76,
+    marginHorizontal: 18,
+    borderRadius: 12,
+    padding: 14,
+    overflow: 'hidden',
+    backgroundColor: palette.blue,
+  },
+  bannerBlue: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '55%',
+    backgroundColor: palette.blue,
+  },
+  bannerPurple: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: '55%',
+    backgroundColor: palette.purple,
+    opacity: 0.9,
+  },
+  bannerTitle: {
+    color: palette.card,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  bannerText: {
+    color: '#EDE3D1',
+    marginTop: 5,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+  },
+  productGrid: {
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  gridCard: {
+    width: '48%',
+    minHeight: 236,
+    borderRadius: 10,
+    padding: 8,
+    backgroundColor: palette.card,
+    borderWidth: 1,
+    borderColor: overlay.line,
+    gap: 7,
+  },
+  gridImageWrap: {
+    height: 126,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: palette.khaki,
+  },
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  badgeTopLeft: {
+    position: 'absolute',
+    top: 7,
+    left: 7,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: palette.blue,
+  },
+  badgeTopRight: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: palette.green,
+  },
+  badgeTopText: {
+    color: palette.card,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: '900',
+  },
+  gridTitle: {
+    color: palette.text,
+    minHeight: 34,
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '900',
+  },
+  gridSeller: {
+    color: overlay.muted,
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  gridFooter: {
+    gap: 8,
+  },
+  gridPrice: {
+    color: palette.orange,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  gridActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  gridMiniButton: {
+    width: 34,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: overlay.soft,
+  },
+  gridMiniText: {
+    fontSize: 12,
+    lineHeight: 15,
+  },
+  gridBuyButton: {
+    flex: 1,
+    height: 30,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.orange,
+  },
+  gridBuyText: {
+    color: palette.card,
+    fontSize: 11,
+    fontWeight: '900',
   },
   stack: {
+    paddingHorizontal: 18,
     gap: 12,
   },
   backLink: {
@@ -222,82 +434,57 @@ const styles = StyleSheet.create({
     gap: 7,
     alignSelf: 'flex-start',
   },
+  backIcon: {
+    color: palette.orange,
+    fontSize: 24,
+    fontWeight: '900',
+  },
   backText: {
+    color: palette.orange,
     fontWeight: '900',
   },
   shopHero: {
-    position: 'relative',
+    borderRadius: 18,
     overflow: 'hidden',
-    gap: 14,
-    padding: 16,
-    borderRadius: 24,
+    backgroundColor: palette.card,
     borderWidth: 1,
     borderColor: overlay.line,
-    backgroundColor: palette.surface,
   },
-  shopHeroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  shopHeroImage: {
+    width: '100%',
+    height: 180,
+    backgroundColor: palette.khaki,
   },
-  shopMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: palette.secondary,
-  },
-  shopMarkText: {
-    color: palette.background,
-    fontSize: 28,
-    fontWeight: '900',
-  },
-  shopHeroTitle: {
-    flex: 1,
-    gap: 3,
+  shopHeroCopy: {
+    padding: 14,
+    gap: 9,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 6,
   },
   shopName: {
     color: palette.text,
-    fontSize: 24,
+    fontSize: 23,
     fontWeight: '900',
-    letterSpacing: -0.6,
   },
   shopStar: {
     color: palette.orange,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
   },
   shopMeta: {
     color: overlay.muted,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   shopText: {
     color: overlay.muted,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-  },
-  metricGrid: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  backIcon: {
-    fontSize: 24,
-    fontWeight: '900',
-  },
-  searchIconText: {
-    color: palette.background,
-    fontSize: 20,
-    fontWeight: '900',
   },
 });

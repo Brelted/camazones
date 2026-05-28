@@ -1,11 +1,15 @@
 export const palette = {
-  background: '#F6F1EA',
-  surface: '#FFF8F0',
+  background: '#E8DCC8',
+  surface: '#F1DFC0',
+  card: '#F6E7CA',
+  khaki: '#B7A37A',
   text: '#1F1F1F',
-  primary: '#2F3A56',
-  secondary: '#B98C5A',
-  orange: '#D8793A',
-  green: '#3F7D5A',
+  primary: '#FF5A00',
+  secondary: '#5468FF',
+  purple: '#A100FF',
+  orange: '#FF5A00',
+  green: '#20C76A',
+  blue: '#3478F6',
   dark: '#14161B',
   darkSurface: '#20242B',
 };
@@ -23,14 +27,15 @@ export const darkPalette = {
 };
 
 export const overlay = {
-  surface: 'rgba(255, 248, 240, 0.94)',
-  soft: 'rgba(47, 58, 86, 0.08)',
+  surface: 'rgba(246, 231, 202, 0.96)',
+  soft: 'rgba(183, 163, 122, 0.20)',
   muted: 'rgba(31, 31, 31, 0.62)',
-  line: 'rgba(31, 31, 31, 0.12)',
-  primary: 'rgba(47, 58, 86, 0.9)',
-  secondary: 'rgba(185, 140, 90, 0.16)',
-  orange: 'rgba(216, 121, 58, 0.14)',
-  green: 'rgba(63, 125, 90, 0.14)',
+  line: 'rgba(31, 31, 31, 0.10)',
+  primary: 'rgba(255, 90, 0, 0.92)',
+  secondary: 'rgba(84, 104, 255, 0.16)',
+  purple: 'rgba(161, 0, 255, 0.18)',
+  orange: 'rgba(255, 90, 0, 0.16)',
+  green: 'rgba(32, 199, 106, 0.16)',
 };
 
 export const theme = {

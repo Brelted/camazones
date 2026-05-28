@@ -11,11 +11,11 @@ import { Text } from '../components/ui';
 import { darkPalette, overlay, palette, theme } from '../theme';
 
 const tabs = [
-  { name: 'Home', title: 'Boutiques', icon: 'B', component: HomeScreen },
-  { name: 'Products', title: 'Recherche', icon: 'R', component: ProductsScreen },
-  { name: 'Seller', title: 'Profil', icon: 'P', component: SellerScreen },
-  { name: 'Messages', title: 'DM', icon: 'M', component: MessagesScreen },
-  { name: 'Wallet', title: 'Paiement', icon: 'C', component: WalletScreen },
+  { name: 'Home', title: 'Home', icon: '🏠', component: HomeScreen },
+  { name: 'Products', title: 'Search', icon: '🔎', component: ProductsScreen },
+  { name: 'Seller', title: 'Profile', icon: '👤', component: SellerScreen },
+  { name: 'Messages', title: 'Chat', icon: '💬', component: MessagesScreen },
+  { name: 'Wallet', title: 'Pay', icon: '💳', component: WalletScreen },
 ];
 
 export default function RootNavigator() {
@@ -133,13 +133,14 @@ const styles = StyleSheet.create({
   tabIcon: {
     width: 38,
     height: 38,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   tabIconText: {
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 17,
     fontWeight: '900',
   },
   tabText: {
