@@ -47,11 +47,27 @@ src/
 
 ## Lancement Expo Go
 
+Lancer d'abord le backend :
+
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
+mvn spring-boot:run
+```
+
+Puis lancer Expo :
+
 ```powershell
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
 npm install
-$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 npx expo start --go --clear --lan
+```
+
+L'app detecte automatiquement l'IP LAN Expo et appelle le backend sur `http://IP_DU_PC:8080/api`.
+
+Si besoin, forcer l'URL :
+
+```powershell
+$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 ```
 
 ## Lancement Android Studio
@@ -82,10 +98,12 @@ La base API est lue depuis :
 EXPO_PUBLIC_API_BASE_URL
 ```
 
-Fallback local :
+Fallback automatique :
 
 ```text
-http://localhost:8080/api
+Expo LAN: http://IP_DU_PC:8080/api
+Android Emulator: http://10.0.2.2:8080/api
+Localhost: http://localhost:8080/api
 ```
 
 ## Palette

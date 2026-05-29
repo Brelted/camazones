@@ -68,6 +68,7 @@ http://localhost:8080/api
 
 ```properties
 server.port=8080
+server.address=0.0.0.0
 server.servlet.context-path=/api
 spring.datasource.url=jdbc:h2:mem:camazones
 jwt.secret=${JWT_SECRET:local-dev-only-secret-minimum-256bits-camazones-2026}

@@ -31,7 +31,13 @@ const normalizeAuthPayload = (payload) => {
   return { token, user };
 };
 
-const getErrorMessage = (error) => error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Authentication failed';
+const getErrorMessage = (error) => {
+  if (error?.message === 'Network Error' || error?.code === 'ECONNABORTED') {
+    return 'Connexion backend impossible. Verifiez que le backend tourne sur le PC et que le telephone est sur le meme Wi-Fi.';
+  }
+
+  return error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Authentication failed';
+};
 
 const authSlice = createSlice({
   name: 'auth',

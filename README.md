@@ -29,10 +29,24 @@ Application mobile Expo SDK 54 avec :
 Lancement :
 
 ```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
+mvn spring-boot:run
+```
+
+Puis dans un deuxieme terminal :
+
+```powershell
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
 npm install
-$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 npx expo start --go --clear --lan
+```
+
+L'app detecte automatiquement l'IP LAN Expo et appelle `http://IP_DU_PC:8080/api`.
+
+Si besoin, forcer l'URL :
+
+```powershell
+$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 ```
 
 ## Backend
@@ -70,5 +84,5 @@ http://localhost:8080/api/health
 ## Notes importantes
 
 - Sur telephone physique, ne pas utiliser `localhost` pour l'API.
-- Utiliser l'adresse IP du PC dans `EXPO_PUBLIC_API_BASE_URL`.
+- Utiliser l'adresse IP du PC dans `EXPO_PUBLIC_API_BASE_URL` seulement si l'auto-detection LAN ne suffit pas.
 - Android 9+ est vise avec Expo Go SDK 54.

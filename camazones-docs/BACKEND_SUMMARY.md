@@ -72,6 +72,7 @@ mvn spring-boot:run
 ## Configuration importante
 
 - Port : `8080`
+- Bind LAN : `0.0.0.0`
 - Context path : `/api`
 - H2 dev : `jdbc:h2:mem:camazones`
 - Variable production recommandee : `JWT_SECRET`

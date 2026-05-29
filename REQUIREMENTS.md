@@ -26,6 +26,8 @@
 
 ### Variable d'environnement
 
+Optionnelle en mode Expo LAN, car l'application detecte l'IP du serveur Expo.
+
 ```powershell
 $env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 ```
@@ -72,4 +74,4 @@ $env:JWT_SECRET="cle-secrete-production-256-bits-minimum"
 - Expo Go SDK 54.
 - Android 9+.
 - Backend local sur `http://localhost:8080/api`.
-- Frontend mobile vers API via l'adresse IP du PC, pas `localhost`.
+- Frontend mobile vers API via auto-detection LAN ou adresse IP du PC, pas `localhost`.

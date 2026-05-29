@@ -64,9 +64,10 @@ camazones-frontend/
 ```powershell
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
 npm install
-$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
 npx expo start --go --clear --lan
 ```
+
+L'URL API est auto-detectee depuis l'IP LAN Expo. `EXPO_PUBLIC_API_BASE_URL` reste disponible pour forcer une adresse.
 
 ## Compatibilite mobile
 

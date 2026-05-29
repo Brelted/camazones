@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, USE_DEMO_AUTH } from './apiConfig';
 
 const authClient = axios.create({
   baseURL: API_BASE_URL,
@@ -53,7 +53,7 @@ const createDemoPayload = (user) => ({
 });
 
 const shouldUseDemoFallback = (error) =>
-  !error.response || [404, 405, 501].includes(error.response?.status) || error.message === 'Network Error';
+  USE_DEMO_AUTH && (!error.response || [404, 405, 501].includes(error.response?.status) || error.message === 'Network Error');
 
 export const loginRequest = async (payload) => {
   try {
