@@ -14,6 +14,8 @@ public record AuthResponse(
             UUID   id,
             String email,
             String firstName,
+            String lastName,
+            String phone,
             UserRole role
     ) {}
 }

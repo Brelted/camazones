@@ -78,5 +78,6 @@ mila@camazones.demo
 ## Branches attendues
 
 - `main` : projet complet.
+- `alan-dev` : copie de travail finale synchronisee avec `main`.
 - `front` : frontend uniquement.
 - `back` : backend uniquement.

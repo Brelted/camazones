@@ -124,7 +124,7 @@ public class AuthService implements UserDetailsService {
     private AuthResponse buildResponse(String token, User u) {
         return new AuthResponse(
                 token,
-                new AuthResponse.UserInfo(u.getId(), u.getEmail(), u.getFirstName(), u.getRole())
+                new AuthResponse.UserInfo(u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(), u.getPhoneNumber(), u.getRole())
         );
     }
 }

@@ -24,59 +24,47 @@ export default function ProductsScreen({ navigation, appSettings }) {
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
   const line = darkMode ? darkPalette.line : overlay.line;
-  const screenStyle = [styles.screen, { backgroundColor: colors.background }];
+  const surface = darkMode ? darkPalette.surface : palette.surface;
+  const t = appSettings?.t ?? ((key) => key);
 
-  const openMessages = (sellerName) => {
-    navigation.navigate('Messages', { sellerName });
-  };
-
-  const openPayment = (productTitle) => {
-    navigation.navigate('Wallet', { productTitle });
-  };
+  const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
+  const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
 
   return (
-    <SafeAreaView style={screenStyle}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { color: colors.secondary }]}>Recherche globale</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Un produit, toutes les boutiques pertinentes.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>
-            Hors d une boutique, la recherche rassemble les vitrines qui vendent reellement le produit demande.
-          </Text>
+          <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('globalSearch')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('searchTitle')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{t('searchSubtitle')}</Text>
         </View>
 
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Ex: sac, lampe, tech, cafe..."
-          style={styles.input}
-          autoCapitalize="none"
-        />
+        <TextInput value={query} onChangeText={setQuery} placeholder={t('searchExample')} style={styles.input} autoCapitalize="none" />
 
         {isOffline || error ? (
-          <Surface style={styles.rankingNote} elevation={0}>
-            <Text style={styles.rankingTitle}>{isOffline ? 'Cache offline' : 'API'}</Text>
-            <Text style={styles.rankingText}>{isOffline ? 'Les derniers resultats sauvegardes restent visibles.' : error}</Text>
+          <Surface style={styles.rankingNote}>
+            <Text style={styles.rankingTitle}>{isOffline ? t('offlineCache') : 'API'}</Text>
+            <Text style={styles.rankingText}>{isOffline ? t('offlineResults') : error}</Text>
           </Surface>
         ) : null}
 
         <SectionHeader
-          title={normalizedQuery ? 'Boutiques qui vendent ce produit' : 'Boutiques disponibles'}
-          description={normalizedQuery ? `${shopResults.length} boutique(s) trouvee(s).` : `${shops.length} vitrines visibles des l entree.`}
+          title={normalizedQuery ? t('shopsSellingProduct') : t('availableShops')}
+          description={normalizedQuery ? `${shopResults.length} ${t('shopsFound')}` : `${shops.length} ${t('visibleStorefronts')}`}
         />
 
         <View style={styles.stack}>
           {shopResults.length ? (
             shopResults.map((shop) => (
-              <Surface key={shop.id} style={[styles.resultCard, { borderColor: line }]} elevation={0}>
+              <Surface key={shop.id} style={[styles.resultCard, { backgroundColor: surface, borderColor: line }]}>
                 <View style={styles.resultTop}>
                   <Image source={shop.cover} style={styles.resultImage} resizeMode="cover" />
                   <View style={styles.resultCopy}>
                     <View style={styles.resultNameRow}>
-                      <Text style={styles.resultName}>{shop.name}</Text>
+                      <Text style={[styles.resultName, { color: colors.text }]}>{shop.name}</Text>
                       {shop.premium ? <Text style={styles.resultStar}>★</Text> : null}
                     </View>
-                    <Text style={styles.resultMeta}>{shop.city} · {shop.speciality}</Text>
+                    <Text style={[styles.resultMeta, { color: muted }]}>{shop.city} · {shop.speciality}</Text>
                   </View>
                 </View>
                 <View style={styles.badgeRow}>
@@ -86,42 +74,34 @@ export default function ProductsScreen({ navigation, appSettings }) {
                 </View>
                 <View style={styles.productChips}>
                   {shop.products.slice(0, 5).map((product) => (
-                    <View key={product.id} style={styles.productChip}>
-                      <Text style={styles.productChipTitle}>{product.title}</Text>
-                      <Text style={styles.productChipPrice}>{product.price}</Text>
+                    <View key={product.id} style={[styles.productChip, { backgroundColor: darkMode ? palette.dark : overlay.soft }]}>
+                      <Text style={[styles.productChipTitle, { color: colors.text }]}>{product.title}</Text>
+                      <Text style={[styles.productChipPrice, { color: colors.primary }]}>{product.price}</Text>
                     </View>
                   ))}
-                  <Text style={styles.moreText}>{shop.products.length} articles disponibles dans cette boutique.</Text>
+                  <Text style={[styles.moreText, { color: muted }]}>{shop.products.length} {t('articlesInShop')}</Text>
                 </View>
               </Surface>
             ))
           ) : (
-            <EmptyState title="Aucune boutique trouvee" description="Essayez un autre mot-cle ou une categorie plus large." />
+            <EmptyState title={t('noShopFound')} description={t('tryAnotherKeyword')} />
           )}
         </View>
 
-        <SectionHeader
-          title={normalizedQuery ? 'Produits correspondants' : 'Produits mis en avant'}
-          description="Les produits premium et reconnus sont mieux classes sans masquer les autres offres."
-        />
+        <SectionHeader title={normalizedQuery ? t('matchingProducts') : t('featuredProducts')} description={t('premiumRanking')} />
         <View style={styles.stack}>
           {productResults.length ? (
             productResults.map((item) => (
-              <ProductCard
-                key={item.product.id}
-                item={item}
-                onMessage={() => openMessages(item.seller.name)}
-                onBuy={() => openPayment(item.product.title)}
-              />
+              <ProductCard key={item.product.id} item={item} onMessage={() => openMessages(item.seller.name)} onBuy={() => openPayment(item.product.title)} />
             ))
           ) : (
-            <EmptyState title="Aucun produit trouve" description="La recherche reste globale et affichera les boutiques des qu un produit correspond." />
+            <EmptyState title={t('noProductFound')} description={t('globalSearchKeepsShowing')} />
           )}
         </View>
 
-        <Surface style={styles.rankingNote} elevation={0}>
-          <Text style={styles.rankingTitle}>Regle de visibilite</Text>
-          <Text style={styles.rankingText}>Premium + certification AP = apparition prioritaire dans la decouverte et les resultats.</Text>
+        <Surface style={styles.rankingNote}>
+          <Text style={styles.rankingTitle}>{t('visibilityRule')}</Text>
+          <Text style={styles.rankingText}>{t('visibilityRuleText')}</Text>
         </Surface>
       </ScrollView>
     </SafeAreaView>
@@ -167,7 +147,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     borderWidth: 1,
-    backgroundColor: palette.surface,
   },
   resultTop: {
     flexDirection: 'row',
@@ -190,7 +169,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   resultName: {
-    color: palette.text,
     fontSize: 17,
     fontWeight: '900',
   },
@@ -200,7 +178,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   resultMeta: {
-    color: overlay.muted,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -218,18 +195,14 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 11,
     borderRadius: 14,
-    backgroundColor: overlay.soft,
   },
   productChipTitle: {
-    color: palette.text,
     fontWeight: '900',
   },
   productChipPrice: {
-    color: palette.primary,
     fontWeight: '900',
   },
   moreText: {
-    color: overlay.muted,
     fontSize: 12,
     fontWeight: '700',
   },

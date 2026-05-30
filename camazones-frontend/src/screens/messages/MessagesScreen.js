@@ -3,9 +3,9 @@ import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-nat
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, SectionHeader } from '../../components/MarketplaceCards';
 import { conversations } from '../../data/marketplace';
-import { overlay, palette } from '../../theme';
+import { darkPalette, overlay, palette } from '../../theme';
 
-export default function MessagesScreen({ route }) {
+export default function MessagesScreen({ route, appSettings }) {
   const [selectedId, setSelectedId] = useState(conversations[0]?.id);
   const [draft, setDraft] = useState('');
   const [threadMessages, setThreadMessages] = useState(() =>
@@ -30,6 +30,12 @@ export default function MessagesScreen({ route }) {
   );
 
   const messages = threadMessages[selectedConversation?.id] ?? [];
+  const darkMode = Boolean(appSettings?.darkMode);
+  const colors = appSettings?.colors ?? palette;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const surface = darkMode ? darkPalette.surface : overlay.surface;
+  const t = appSettings?.t ?? ((key) => key);
 
   const sendMessage = () => {
     const cleanDraft = draft.trim();
@@ -49,30 +55,34 @@ export default function MessagesScreen({ route }) {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>DM vendeur</Text>
-          <Text style={styles.title}>Une discussion claire avant l achat.</Text>
-          <Text style={styles.subtitle}>L acheteur peut contacter une boutique directement depuis un produit.</Text>
+          <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('sellerDm')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('chatTitle')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{t('chatSubtitle')}</Text>
         </View>
 
-        <SectionHeader title="Conversations" description="Acces rapide aux vendeurs et boutiques." />
+        <SectionHeader title={t('conversations')} description={t('conversationAccess')} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conversationRow}>
           {conversations.map((conversation) => (
             <Pressable
               key={conversation.id}
               onPress={() => setSelectedId(conversation.id)}
-              style={[styles.conversationCard, selectedId === conversation.id && styles.conversationCardActive]}
+              style={[
+                styles.conversationCard,
+                { backgroundColor: surface, borderColor: line },
+                selectedId === conversation.id && { backgroundColor: colors.primary, borderColor: colors.primary },
+              ]}
             >
               <View style={styles.conversationTop}>
-                <Text style={[styles.messageIcon, selectedId === conversation.id && styles.messageIconActive]}>DM</Text>
+                <Text style={[styles.messageIcon, { color: colors.green ?? palette.green }, selectedId === conversation.id && { color: colors.background }]}>DM</Text>
                 {conversation.unread ? <Text style={styles.unread}>{conversation.unread}</Text> : null}
               </View>
-              <Text style={[styles.conversationName, selectedId === conversation.id && styles.conversationNameActive]}>
+              <Text style={[styles.conversationName, { color: colors.text }, selectedId === conversation.id && { color: colors.background }]}>
                 {conversation.sellerName}
               </Text>
-              <Text style={[styles.conversationProduct, selectedId === conversation.id && styles.conversationProductActive]}>
+              <Text style={[styles.conversationProduct, { color: muted }, selectedId === conversation.id && { color: colors.background }]}>
                 {conversation.product}
               </Text>
             </Pressable>
@@ -80,11 +90,11 @@ export default function MessagesScreen({ route }) {
         </ScrollView>
 
         {selectedConversation ? (
-          <Surface style={styles.chatPanel} elevation={0}>
+          <Surface style={[styles.chatPanel, { backgroundColor: surface, borderColor: line }]} elevation={0}>
             <View style={styles.chatHeader}>
               <View>
-                <Text style={styles.chatTitle}>{selectedConversation.sellerName}</Text>
-                <Text style={styles.chatMeta}>{selectedConversation.product}</Text>
+                <Text style={[styles.chatTitle, { color: colors.text }]}>{selectedConversation.sellerName}</Text>
+                <Text style={[styles.chatMeta, { color: muted }]}>{selectedConversation.product}</Text>
               </View>
               <Badge type={selectedConversation.status === 'Premium' ? 'premium' : 'ap'} />
             </View>
@@ -94,17 +104,17 @@ export default function MessagesScreen({ route }) {
                 const isBuyer = message.from === 'buyer';
 
                 return (
-                  <View key={message.id} style={[styles.messageBubble, isBuyer && styles.messageBubbleBuyer]}>
-                    <Text style={[styles.messageText, isBuyer && styles.messageTextBuyer]}>{message.text}</Text>
+                  <View key={message.id} style={[styles.messageBubble, { backgroundColor: darkMode ? palette.dark : overlay.soft }, isBuyer && { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.messageText, { color: colors.text }, isBuyer && { color: colors.background }]}>{message.text}</Text>
                   </View>
                 );
               })}
             </View>
 
             <View style={styles.composer}>
-              <TextInput value={draft} onChangeText={setDraft} placeholder="Ecrire un message..." style={styles.input} />
-              <Button mode="contained" onPress={sendMessage} buttonColor={palette.green} textColor={palette.background}>
-                Envoyer
+              <TextInput value={draft} onChangeText={setDraft} placeholder={t('writeMessage')} style={styles.input} />
+              <Button mode="contained" onPress={sendMessage} buttonColor={colors.green ?? palette.green} textColor={colors.background}>
+                {t('send')}
               </Button>
             </View>
           </Surface>

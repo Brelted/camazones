@@ -12,7 +12,7 @@
 
 ## Frontend
 
-- Expo `~54.0.34`
+- Expo `~54.0.33`
 - React `19.1.0`
 - React Native `0.81.5`
 - React Native Web `~0.21.2`

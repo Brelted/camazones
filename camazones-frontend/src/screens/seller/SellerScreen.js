@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -26,18 +26,18 @@ export default function SellerScreen({ navigation, appSettings }) {
   const [activeType, setActiveType] = useState('professional');
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const savedProfile = settings.savedProfile;
-  const initialFirstName = savedProfile?.firstName ?? user?.firstName ?? 'Alan';
-  const initialLastName = savedProfile?.lastName ?? user?.lastName ?? 'Camazones';
+  const userEmail = user?.email ?? 'client@camazones.demo';
+  const savedProfile = settings.profilesByEmail?.[userEmail];
+  const savedPhoto = settings.photosByEmail?.[userEmail];
   const [profile, setProfile] = useState({
-    firstName: initialFirstName,
-    lastName: initialLastName,
-    email: user?.email ?? savedProfile?.email ?? 'client@camazones.demo',
+    firstName: savedProfile?.firstName ?? user?.firstName ?? 'Alan',
+    lastName: savedProfile?.lastName ?? user?.lastName ?? 'Camazones',
+    email: userEmail,
     phone: savedProfile?.phone ?? user?.phone ?? '+237 6 90 00 00 00',
     city: savedProfile?.city ?? 'Douala',
     bio: savedProfile?.bio ?? 'Acheteur et vendeur actif sur Camazones.',
     address: savedProfile?.address ?? 'Camazones',
-    profilePictureUrl: settings.profilePhotoUri ?? savedProfile?.profilePictureUrl ?? null,
+    profilePictureUrl: savedPhoto ?? savedProfile?.profilePictureUrl ?? null,
   });
 
   const darkMode = Boolean(settings.darkMode);
@@ -49,14 +49,31 @@ export default function SellerScreen({ navigation, appSettings }) {
   const avatarSource = profile.profilePictureUrl ? { uri: profile.profilePictureUrl } : profilePhotos[0];
   const t = appSettings?.t ?? ((key) => key);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
+  const changeHistory = settings.historyByEmail?.[userEmail] ?? [];
 
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
   const changeField = (field, value) => setProfile((current) => ({ ...current, [field]: value }));
 
+  useEffect(() => {
+    const nextSavedProfile = settings.profilesByEmail?.[userEmail];
+    const nextSavedPhoto = settings.photosByEmail?.[userEmail];
+    setProfile({
+      firstName: nextSavedProfile?.firstName ?? user?.firstName ?? 'Alan',
+      lastName: nextSavedProfile?.lastName ?? user?.lastName ?? 'Camazones',
+      email: userEmail,
+      phone: nextSavedProfile?.phone ?? user?.phone ?? '+237 6 90 00 00 00',
+      city: nextSavedProfile?.city ?? 'Douala',
+      bio: nextSavedProfile?.bio ?? 'Acheteur et vendeur actif sur Camazones.',
+      address: nextSavedProfile?.address ?? 'Camazones',
+      profilePictureUrl: nextSavedPhoto ?? nextSavedProfile?.profilePictureUrl ?? null,
+    });
+    setEditMode(false);
+  }, [settings.profilesByEmail, settings.photosByEmail, user?.firstName, user?.lastName, user?.phone, userEmail]);
+
   const pickProfilePhoto = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission requise', 'Autorise la galerie pour ajouter une photo de profil.');
+      Alert.alert(t('permissionRequired'), t('photoPermissionText'));
       return;
     }
 
@@ -78,12 +95,12 @@ export default function SellerScreen({ navigation, appSettings }) {
     );
 
     changeField('profilePictureUrl', image.uri);
-    await dispatch(setProfilePhotoPersisted(image.uri));
+    await dispatch(setProfilePhotoPersisted({ email: userEmail, uri: image.uri }));
   };
 
   const saveProfile = async () => {
     if (!profile.firstName.trim() || !profile.lastName.trim() || !profile.phone.trim()) {
-      Alert.alert('Profil incomplet', 'Nom, prenom et telephone sont requis.');
+      Alert.alert(t('incompleteProfile'), t('incompleteProfileText'));
       return;
     }
 
@@ -96,10 +113,10 @@ export default function SellerScreen({ navigation, appSettings }) {
         remoteProfile = null;
       }
       const saved = { ...profile, ...(remoteProfile ?? {}) };
-      await dispatch(saveProfilePersisted(saved));
+      await dispatch(saveProfilePersisted({ email: userEmail, profile: saved }));
       setProfile(saved);
       setEditMode(false);
-      Alert.alert('Enregistre', 'Profil sauvegarde localement et synchronise si l API est disponible.');
+      Alert.alert(t('profileSaved'), t('profileSavedText'));
     } finally {
       setSaving(false);
     }
@@ -116,7 +133,7 @@ export default function SellerScreen({ navigation, appSettings }) {
             <View style={styles.profileCopy}>
               <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('profile')}</Text>
               <Text style={[styles.title, { color: colors.text }]}>{profile.firstName} {profile.lastName}</Text>
-              <Text style={[styles.subtitle, { color: muted }]}>Profil editable, photo persistante, preferences sauvegardees.</Text>
+              <Text style={[styles.subtitle, { color: muted }]}>{t('profileSavedText')}</Text>
             </View>
           </View>
 
@@ -139,13 +156,13 @@ export default function SellerScreen({ navigation, appSettings }) {
 
           <View style={styles.form}>
             <View style={styles.row}>
-              <TextInput label="Prenom" value={profile.firstName} onChangeText={(value) => changeField('firstName', value)} editable={editMode} style={styles.flexInput} />
-              <TextInput label="Nom" value={profile.lastName} onChangeText={(value) => changeField('lastName', value)} editable={editMode} style={styles.flexInput} />
+              <TextInput label={t('firstName')} value={profile.firstName} onChangeText={(value) => changeField('firstName', value)} editable={editMode} style={styles.flexInput} />
+              <TextInput label={t('lastName')} value={profile.lastName} onChangeText={(value) => changeField('lastName', value)} editable={editMode} style={styles.flexInput} />
             </View>
-            <TextInput label="Email" value={profile.email} onChangeText={(value) => changeField('email', value)} editable={false} keyboardType="email-address" autoCapitalize="none" />
-            <TextInput label="Telephone" value={profile.phone} onChangeText={(value) => changeField('phone', value)} editable={editMode} keyboardType="phone-pad" />
-            <TextInput label="Ville" value={profile.city} onChangeText={(value) => changeField('city', value)} editable={editMode} />
-            <TextInput label="Bio" value={profile.bio} onChangeText={(value) => changeField('bio', value)} editable={editMode} multiline />
+            <TextInput label={t('email')} value={profile.email} onChangeText={(value) => changeField('email', value)} editable={false} keyboardType="email-address" autoCapitalize="none" />
+            <TextInput label={t('phone')} value={profile.phone} onChangeText={(value) => changeField('phone', value)} editable={editMode} keyboardType="phone-pad" />
+            <TextInput label={t('city')} value={profile.city} onChangeText={(value) => changeField('city', value)} editable={editMode} />
+            <TextInput label={t('bio')} value={profile.bio} onChangeText={(value) => changeField('bio', value)} editable={editMode} multiline />
           </View>
 
           <View style={styles.preferenceGrid}>
@@ -178,7 +195,7 @@ export default function SellerScreen({ navigation, appSettings }) {
           <Pressable onPress={() => navigation.navigate('Wallet')} style={[styles.walletCard, { borderColor: line, backgroundColor: darkMode ? palette.dark : overlay.orange }]}>
             <View>
               <Text style={[styles.walletTitle, { color: colors.text }]}>{t('wallet')}</Text>
-              <Text style={[styles.walletText, { color: muted }]}>Solde: {money(wallet.balance)}</Text>
+              <Text style={[styles.walletText, { color: muted }]}>{t('balance')}: {money(wallet.balance)}</Text>
             </View>
             <Text style={[styles.walletAction, { color: colors.primary }]}>{t('pay')} ›</Text>
           </Pressable>
@@ -188,24 +205,24 @@ export default function SellerScreen({ navigation, appSettings }) {
           </Button>
         </Surface>
 
-        <SectionHeader title="Historique des modifications" description="Les sauvegardes profil sont tracees localement." />
+        <SectionHeader title={t('history')} description={t('profileHistoryText')} />
         <View style={styles.stack}>
-          {settings.changeHistory.length ? (
-            settings.changeHistory.map((item) => (
+          {changeHistory.length ? (
+            changeHistory.map((item) => (
               <Surface key={item.id} style={[styles.historyCard, { backgroundColor: surface, borderColor: line }]}>
-                <Text style={[styles.historyTitle, { color: colors.text }]}>{item.label}</Text>
+                <Text style={[styles.historyTitle, { color: colors.text }]}>{item.labelKey ? t(item.labelKey) : item.label}</Text>
                 <Text style={[styles.historyDate, { color: muted }]}>{new Date(item.at).toLocaleString('fr-FR')}</Text>
               </Surface>
             ))
           ) : (
-            <Text style={[styles.subtitle, { color: muted }]}>Aucune modification sauvegardee pour le moment.</Text>
+            <Text style={[styles.subtitle, { color: muted }]}>{t('noProfileChange')}</Text>
           )}
         </View>
 
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { color: colors.secondary }]}>Profils separes</Text>
-          <Text style={[styles.sectionLead, { color: colors.text }]}>Client actif ou boutique, la logique change.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>Camazones distingue vendeurs sans vitrine et boutiques professionnelles avec catalogue.</Text>
+          <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('separatedProfiles')}</Text>
+          <Text style={[styles.sectionLead, { color: colors.text }]}>{t('profileLogicTitle')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{t('profileLogicText')}</Text>
         </View>
 
         <View style={styles.typeGrid}>
@@ -219,9 +236,9 @@ export default function SellerScreen({ navigation, appSettings }) {
               >
                 <View style={styles.typeTop}>
                   <Text style={[styles.typeIcon, { color: active ? colors.background : colors.primary }]}>{item.id === 'professional' ? '◇' : '●'}</Text>
-                  <Text style={[styles.typeTitle, { color: active ? colors.background : colors.text }]}>{item.label}</Text>
+                  <Text style={[styles.typeTitle, { color: active ? colors.background : colors.text }]}>{t(`${item.id}AccountLabel`)}</Text>
                 </View>
-                <Text style={[styles.typeText, { color: active ? colors.background : muted }]}>{item.description}</Text>
+                <Text style={[styles.typeText, { color: active ? colors.background : muted }]}>{t(`${item.id}AccountText`)}</Text>
               </Pressable>
             );
           })}
@@ -229,7 +246,7 @@ export default function SellerScreen({ navigation, appSettings }) {
 
         {isProfessional ? (
           <>
-            <SectionHeader title="Boutiques professionnelles" description="Apercu des vitrines; la zone complete est dans l onglet Boutiques." />
+            <SectionHeader title={t('professionalShops')} description={t('professionalShopsText')} />
             <View style={styles.stack}>
               {shops.slice(0, 3).map((shop) => (
                 <Surface key={shop.id} style={[styles.shopLine, { backgroundColor: surface, borderColor: line }]}>
@@ -237,7 +254,7 @@ export default function SellerScreen({ navigation, appSettings }) {
                     <Text style={[styles.profileName, { color: colors.text }]}>{shop.name}</Text>
                     {shop.premium ? <Text style={styles.star}>★</Text> : null}
                   </View>
-                  <Text style={[styles.profileMeta, { color: muted }]}>{shop.city} · {shop.products.length} articles</Text>
+                  <Text style={[styles.profileMeta, { color: muted }]}>{shop.city} · {shop.products.length} {t('items')}</Text>
                   <View style={styles.badgeRow}>
                     <Badge type="professional" />
                     {shop.certifiedByAp ? <Badge type="ap" /> : null}
@@ -249,7 +266,7 @@ export default function SellerScreen({ navigation, appSettings }) {
           </>
         ) : (
           <>
-            <SectionHeader title="Clients independants vendeurs" description="Ils vendent souvent, mais sans vitrine boutique complete." />
+            <SectionHeader title={t('independentSellers')} description={t('independentSellersText')} />
             <View style={styles.stack}>
               {independentSellers.map((seller) => (
                 <Surface key={seller.id} style={[styles.sellerCard, { backgroundColor: surface, borderColor: line }]}>
@@ -257,7 +274,7 @@ export default function SellerScreen({ navigation, appSettings }) {
                     <Image source={seller.avatar} style={styles.sellerPhoto} resizeMode="cover" />
                     <View style={styles.profileCopy}>
                       <Text style={[styles.profileName, { color: colors.text }]}>{seller.name}</Text>
-                      <Text style={[styles.profileMeta, { color: muted }]}>{seller.city} · sans vitrine</Text>
+                      <Text style={[styles.profileMeta, { color: muted }]}>{seller.city} · {t('withoutStorefront')}</Text>
                     </View>
                   </View>
                   <Text style={[styles.profileText, { color: muted }]}>{seller.tagline}</Text>

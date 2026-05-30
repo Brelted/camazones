@@ -16,6 +16,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
   const muted = darkMode ? darkPalette.muted : overlay.muted;
   const line = darkMode ? darkPalette.line : overlay.line;
   const surface = darkMode ? darkPalette.surface : overlay.surface;
+  const t = appSettings?.t ?? ((key) => key);
 
   useEffect(() => {
     if (route?.params?.shopId) {
@@ -31,7 +32,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Pressable onPress={() => setSelectedShopId(null)} style={styles.backLink}>
-            <Text style={[styles.backText, { color: colors.primary }]}>‹ Boutiques</Text>
+            <Text style={[styles.backText, { color: colors.primary }]}>‹ {t('shops')}</Text>
           </Pressable>
 
           <Surface style={[styles.hero, { backgroundColor: surface, borderColor: line }]}>
@@ -53,14 +54,14 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
 
           <View style={styles.actions}>
             <Pressable onPress={() => openMessages(selectedShop.name)} style={[styles.action, { backgroundColor: colors.green ?? palette.green }]}>
-              <Text style={[styles.actionText, { color: colors.background }]}>DM vendeur</Text>
+              <Text style={[styles.actionText, { color: colors.background }]}>{t('sellerDm')}</Text>
             </Pressable>
             <Pressable onPress={() => openPayment(selectedShop.products[0]?.title ?? selectedShop.name)} style={[styles.action, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.actionText, { color: colors.background }]}>Acheter</Text>
+              <Text style={[styles.actionText, { color: colors.background }]}>{t('buy')}</Text>
             </Pressable>
           </View>
 
-          <SectionHeader title="Vitrine boutique" description={`${selectedShop.products.length} articles visibles dans cette boutique.`} />
+          <SectionHeader title={t('storefront')} description={`${selectedShop.products.length} ${t('visibleArticlesInShop')}`} />
           <View style={styles.stack}>
             {selectedShop.products.map((product) => (
               <ProductCard
@@ -80,23 +81,21 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { color: colors.secondary }]}>Zone boutique</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Uniquement des vitrines professionnelles.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>
-            Les produits de vendeurs independants restent dans la recherche, pas dans cette zone boutique.
-          </Text>
+          <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('shopZone')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('professionalStorefrontsOnly')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{t('independentProductsSearchOnly')}</Text>
           {isOffline || error ? (
             <Text style={[styles.offline, { color: colors.primary }]}>
-              {isOffline ? 'Mode cache offline actif.' : error}
+              {isOffline ? t('offlineCacheActive') : error}
             </Text>
           ) : null}
         </View>
 
-        <TextInput value={query} onChangeText={setQuery} placeholder="Chercher une boutique ou un article..." autoCapitalize="none" />
+        <TextInput value={query} onChangeText={setQuery} placeholder={t('searchShopOrProduct')} autoCapitalize="none" />
 
         <SectionHeader
-          title={query.trim() ? 'Resultats boutiques' : 'Toutes les vitrines'}
-          description={isLoading ? 'Synchronisation API en cours...' : `${results.length} vitrine(s) disponible(s).`}
+          title={query.trim() ? t('shopResults') : t('allStorefronts')}
+          description={isLoading ? t('apiSync') : `${results.length} ${t('storefrontsAvailable')}`}
         />
 
         <View style={styles.stack}>

@@ -7,7 +7,8 @@ import {
   TextInput as NativeTextInput,
   View,
 } from 'react-native';
-import { overlay, palette, theme } from '../theme';
+import { useSelector } from 'react-redux';
+import { darkPalette, overlay, palette, theme } from '../theme';
 
 export function useTheme() {
   return theme;
@@ -45,10 +46,12 @@ export function Button({
   contentStyle,
   style,
 }) {
+  const darkMode = useSelector((state) => state.settings?.darkMode);
+  const colors = darkMode ? darkPalette : palette;
   const contained = mode === 'contained';
   const outlined = mode === 'outlined';
-  const backgroundColor = contained ? buttonColor ?? palette.primary : 'transparent';
-  const color = textColor ?? (contained ? palette.background : palette.primary);
+  const backgroundColor = contained ? buttonColor ?? colors.primary : 'transparent';
+  const color = textColor ?? (contained ? colors.background : colors.primary);
 
   return (
     <Pressable
@@ -58,7 +61,7 @@ export function Button({
         styles.button,
         compact && styles.compactButton,
         contained && { backgroundColor },
-        outlined && styles.outlinedButton,
+        outlined && { borderColor: colors.primary },
         (disabled || loading) && styles.disabled,
         pressed && styles.pressed,
         style,
@@ -83,20 +86,25 @@ export function TextInput({
   multiline,
   style,
 }) {
+  const darkMode = useSelector((state) => state.settings?.darkMode);
+  const colors = darkMode ? darkPalette : palette;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+
   return (
-    <View style={[styles.inputShell, style]}>
-      {label ? <Text style={styles.inputLabel}>{label}</Text> : null}
+    <View style={[styles.inputShell, { backgroundColor: colors.surface, borderColor: line }, style]}>
+      {label ? <Text style={[styles.inputLabel, { color: muted }]}>{label}</Text> : null}
       <NativeTextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder ?? label}
-        placeholderTextColor={overlay.muted}
+        placeholderTextColor={muted}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         editable={editable}
         multiline={multiline}
-        style={styles.input}
+        style={[styles.input, { color: colors.text }]}
       />
     </View>
   );
@@ -138,9 +146,6 @@ const styles = StyleSheet.create({
   },
   compactButton: {
     minHeight: 34,
-  },
-  outlinedButton: {
-    borderColor: palette.primary,
   },
   disabled: {
     opacity: 0.55,

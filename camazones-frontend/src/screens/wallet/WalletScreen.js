@@ -85,8 +85,8 @@ export default function WalletScreen({ route, appSettings }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('wallet')}</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Paiement, recharge et facture au meme endroit.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>Pay est maintenant accessible depuis le profil, avec historique et export PDF.</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('walletTitle')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{t('walletSubtitle')}</Text>
         </View>
 
         <Surface style={[styles.checkoutCard, { backgroundColor: surface, borderColor: line }]}>
@@ -96,37 +96,37 @@ export default function WalletScreen({ route, appSettings }) {
             </View>
             <View style={styles.checkoutCopy}>
               <Text style={[styles.checkoutTitle, { color: colors.text }]}>{productTitle}</Text>
-              <Text style={[styles.checkoutMeta, { color: muted }]}>Commande protegee · vendeur verifiable</Text>
+              <Text style={[styles.checkoutMeta, { color: muted }]}>{t('protectedOrder')}</Text>
             </View>
             <Badge type="ap" />
           </View>
 
           <View style={styles.summary}>
-            <Row label="Sous-total" value={money(subtotal)} muted={muted} color={colors.text} />
-            <Row label="Livraison estimee" value={money(delivery)} muted={muted} color={colors.text} />
-            <Row label="Frais paiement" value={money(fees)} muted={muted} color={colors.text} />
+            <Row label={t('subtotal')} value={money(subtotal)} muted={muted} color={colors.text} />
+            <Row label={t('delivery')} value={money(delivery)} muted={muted} color={colors.text} />
+            <Row label={t('paymentFees')} value={money(fees)} muted={muted} color={colors.text} />
           </View>
 
           <View style={[styles.totalRow, { borderTopColor: line }]}>
-            <Text style={[styles.totalLabel, { color: muted }]}>Total a payer</Text>
+            <Text style={[styles.totalLabel, { color: muted }]}>{t('totalToPay')}</Text>
             <Text style={[styles.totalValue, { color: colors.text }]}>{money(total)}</Text>
           </View>
 
           <View style={[styles.balanceBox, { backgroundColor: darkMode ? palette.dark : overlay.green }]}>
-            <Text style={[styles.balanceLabel, { color: muted }]}>Solde Camazones</Text>
+            <Text style={[styles.balanceLabel, { color: muted }]}>{t('camazonesBalance')}</Text>
             <Text style={[styles.balanceValue, { color: colors.green ?? palette.green }]}>{money(balance)}</Text>
           </View>
         </Surface>
 
-        <SectionHeader title="Recharger le portefeuille" description="Ajoute de l argent avant de payer avec le solde Camazones." />
+        <SectionHeader title={t('topUpWallet')} description={t('topUpWalletDescription')} />
         <Surface style={[styles.formCard, { backgroundColor: surface, borderColor: line }]}>
-          <TextInput label="Montant recharge" value={rechargeAmount} onChangeText={(value) => setRechargeAmount(value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" />
+          <TextInput label={t('topUpAmount')} value={rechargeAmount} onChangeText={(value) => setRechargeAmount(value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" />
           <Button mode="contained" onPress={recharge} buttonColor={colors.green ?? palette.green} textColor={colors.background}>
             {t('recharge')}
           </Button>
         </Surface>
 
-        <SectionHeader title="Methode de paiement" description="Orange Money, MTN MoMo, carte ou portefeuille." />
+        <SectionHeader title={t('paymentMethod')} description={t('paymentMethodDescription')} />
         <View style={styles.methods}>
           {paymentMethods.map((method) => {
             const isActive = selectedMethod === method.id;
@@ -163,18 +163,18 @@ export default function WalletScreen({ route, appSettings }) {
 
           {selectedMethod === 'card' ? (
             <View style={styles.form}>
-              <TextInput label="Nom sur la carte" value={form.name} onChangeText={(value) => changeField('name', value)} autoCapitalize="characters" />
-              <TextInput label="Numero carte" value={form.card} onChangeText={(value) => changeField('card', value)} keyboardType="number-pad" />
+              <TextInput label={t('cardName')} value={form.name} onChangeText={(value) => changeField('name', value)} autoCapitalize="characters" />
+              <TextInput label={t('cardNumber')} value={form.card} onChangeText={(value) => changeField('card', value)} keyboardType="number-pad" />
               <TextInput label="Expiration" value={form.expiry} onChangeText={(value) => changeField('expiry', value)} keyboardType="numbers-and-punctuation" />
             </View>
           ) : selectedMethod === 'wallet' ? (
             <View style={styles.form}>
-              <TextInput label="Code PIN portefeuille" value="••••" onChangeText={() => {}} secureTextEntry />
-              <Text style={[styles.providerNote, { color: muted }]}>Le solde est verifie avant validation.</Text>
+              <TextInput label={t('walletPin')} value="••••" onChangeText={() => {}} secureTextEntry />
+              <Text style={[styles.providerNote, { color: muted }]}>{t('balanceChecked')}</Text>
             </View>
           ) : (
             <View style={styles.form}>
-              <TextInput label="Numero mobile money" value={form.phone} onChangeText={(value) => changeField('phone', value)} keyboardType="phone-pad" />
+              <TextInput label={t('mobileMoneyNumber')} value={form.phone} onChangeText={(value) => changeField('phone', value)} keyboardType="phone-pad" />
               <Text style={[styles.providerNote, { color: muted }]}>Un code OTP sera demande par {selected.label}.</Text>
             </View>
           )}
@@ -183,8 +183,8 @@ export default function WalletScreen({ route, appSettings }) {
         {paid ? (
           <Surface style={[styles.successCard, { backgroundColor: overlay.green, borderColor: palette.green }]}>
             <Text style={styles.successIcon}>✓</Text>
-            <Text style={styles.successTitle}>Paiement confirme</Text>
-            <Text style={styles.successText}>La facture est prete a exporter en PDF.</Text>
+            <Text style={styles.successTitle}>{t('paymentConfirmed')}</Text>
+            <Text style={styles.successText}>{t('invoiceReady')}</Text>
             <Button mode="outlined" onPress={exportPdf} textColor={palette.green} style={styles.pdfButton}>
               {t('invoicePdf')}
             </Button>
@@ -195,7 +195,7 @@ export default function WalletScreen({ route, appSettings }) {
           Payer {money(total)}
         </Button>
 
-        <SectionHeader title={t('history')} description="Recharges et depenses du portefeuille." />
+        <SectionHeader title={t('history')} description={t('walletHistoryDescription')} />
         <View style={styles.history}>
           {transactions.length ? (
             transactions.map((transaction) => (
@@ -210,7 +210,7 @@ export default function WalletScreen({ route, appSettings }) {
               </Surface>
             ))
           ) : (
-            <Text style={[styles.subtitle, { color: muted }]}>Aucune operation pour le moment.</Text>
+            <Text style={[styles.subtitle, { color: muted }]}>{t('noOperation')}</Text>
           )}
         </View>
       </ScrollView>

@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, HelperText, Surface, Text, TextInput, useTheme } from '../../components/ui';
 import { useDispatch, useSelector } from 'react-redux';
 import BrandLogo from '../../components/BrandLogo';
 import { Badge } from '../../components/MarketplaceCards';
+import { Button, HelperText, Surface, Text, TextInput } from '../../components/ui';
 import { accountTypes } from '../../data/marketplace';
-import { overlay, palette } from '../../theme';
+import { translate } from '../../i18n';
 import { login, register } from '../../store/slices/authSlice';
+import { darkPalette, overlay, palette } from '../../theme';
 
 export default function AuthScreen() {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const authError = useSelector((state) => state.auth.error);
   const isLoading = useSelector((state) => state.auth.isLoading);
+  const { darkMode, language } = useSelector((state) => state.settings);
   const [mode, setMode] = useState('login');
   const [localError, setLocalError] = useState('');
-  const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: '',
-  });
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
     firstName: '',
     lastName: '',
@@ -28,12 +26,18 @@ export default function AuthScreen() {
     accountType: 'independent',
   });
 
-  useEffect(() => {
-    setLocalError('');
-  }, [mode]);
-
+  const colors = darkMode ? darkPalette : palette;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const soft = darkMode ? palette.dark : overlay.soft;
+  const surface = darkMode ? darkPalette.surface : overlay.surface;
+  const t = (key) => translate(language, key);
   const validationError = localError || authError || '';
   const selectedAccountType = accountTypes.find((item) => item.id === registerForm.accountType);
+
+  useEffect(() => {
+    setLocalError('');
+  }, [mode, language]);
 
   const updateLoginField = (field, value) => {
     setLoginForm((current) => ({ ...current, [field]: value }));
@@ -47,12 +51,12 @@ export default function AuthScreen() {
 
   const handleLogin = async () => {
     if (!loginForm.email || !loginForm.password) {
-      setLocalError('Email et mot de passe requis.');
+      setLocalError(t('emailPasswordRequired'));
       return;
     }
 
     if (!validateEmail(loginForm.email)) {
-      setLocalError('Adresse email invalide.');
+      setLocalError(t('invalidEmail'));
       return;
     }
 
@@ -72,30 +76,29 @@ export default function AuthScreen() {
       !registerForm.email ||
       !registerForm.password
     ) {
-      setLocalError('Tous les champs sont requis.');
+      setLocalError(t('allFieldsRequired'));
       return;
     }
 
     if (!validateEmail(registerForm.email)) {
-      setLocalError('Adresse email invalide.');
+      setLocalError(t('invalidEmail'));
       return;
     }
 
     if (registerForm.password.length < 6) {
-      setLocalError('Le mot de passe doit contenir au moins 6 caractères.');
+      setLocalError(t('passwordMin'));
       return;
     }
 
-    const credentials = {
-      firstName: registerForm.firstName,
-      lastName: registerForm.lastName,
-      phone: registerForm.phone,
-      email: registerForm.email,
-      password: registerForm.password,
-    };
     setLocalError('');
     try {
-      await dispatch(register(credentials));
+      await dispatch(register({
+        firstName: registerForm.firstName,
+        lastName: registerForm.lastName,
+        phone: registerForm.phone,
+        email: registerForm.email,
+        password: registerForm.password,
+      }));
     } catch (error) {
       return;
     }
@@ -104,30 +107,32 @@ export default function AuthScreen() {
   const primaryAction = mode === 'login' ? handleLogin : handleRegister;
 
   return (
-    <View style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.hero}>
-            <BrandLogo caption="Boutiques, vendeurs et achats sécurisés" />
-            <Text style={styles.heroTitle}>Entrez dans un marché plus élégant.</Text>
-            <Text style={styles.heroSubtitle}>
-              Connectez-vous pour découvrir les vitrines, parler aux vendeurs et finaliser vos achats.
-            </Text>
+            <BrandLogo caption={t('authLogoCaption')} colors={colors} muted={muted} />
+            <Text style={[styles.heroTitle, { color: colors.text }]}>{t('authTitle')}</Text>
+            <Text style={[styles.heroSubtitle, { color: muted }]}>{t('authSubtitle')}</Text>
           </View>
 
-          <Surface style={styles.card} elevation={0}>
-            <View style={styles.modeBar}>
+          <Surface style={[styles.card, { backgroundColor: surface, borderColor: line }]}>
+            <View style={[styles.modeBar, { backgroundColor: soft }]}>
               <Pressable
                 onPress={() => setMode('login')}
-                style={[styles.modeButton, mode === 'login' && styles.modeButtonActive]}
+                style={[styles.modeButton, mode === 'login' && { backgroundColor: colors.primary }]}
               >
-                <Text style={[styles.modeLabel, mode === 'login' && styles.modeLabelActive]}>Connexion</Text>
+                <Text style={[styles.modeLabel, { color: muted }, mode === 'login' && { color: colors.background }]}>
+                  {t('login')}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={() => setMode('register')}
-                style={[styles.modeButton, mode === 'register' && styles.modeButtonActive]}
+                style={[styles.modeButton, mode === 'register' && { backgroundColor: colors.primary }]}
               >
-                <Text style={[styles.modeLabel, mode === 'register' && styles.modeLabelActive]}>Inscription</Text>
+                <Text style={[styles.modeLabel, { color: muted }, mode === 'register' && { color: colors.background }]}>
+                  {t('register')}
+                </Text>
               </Pressable>
             </View>
 
@@ -136,33 +141,23 @@ export default function AuthScreen() {
                 <>
                   <View style={styles.row}>
                     <TextInput
-                      label="Prénom"
-                      mode="outlined"
+                      label={t('firstName')}
                       value={registerForm.firstName}
                       onChangeText={(value) => updateRegisterField('firstName', value)}
                       style={styles.halfInput}
-                      outlineColor={overlay.line}
-                      activeOutlineColor={palette.primary}
                     />
                     <TextInput
-                      label="Nom"
-                      mode="outlined"
+                      label={t('lastName')}
                       value={registerForm.lastName}
                       onChangeText={(value) => updateRegisterField('lastName', value)}
                       style={styles.halfInput}
-                      outlineColor={overlay.line}
-                      activeOutlineColor={palette.primary}
                     />
                   </View>
                   <TextInput
-                    label="Téléphone"
-                    mode="outlined"
+                    label={t('phone')}
                     keyboardType="phone-pad"
                     value={registerForm.phone}
                     onChangeText={(value) => updateRegisterField('phone', value)}
-                    style={styles.input}
-                    outlineColor={overlay.line}
-                    activeOutlineColor={palette.primary}
                   />
                   <View style={styles.accountTypes}>
                     {accountTypes.map((item) => (
@@ -171,11 +166,15 @@ export default function AuthScreen() {
                         onPress={() => updateRegisterField('accountType', item.id)}
                         style={[
                           styles.accountType,
-                          registerForm.accountType === item.id && styles.accountTypeActive,
+                          { backgroundColor: soft, borderColor: line },
+                          registerForm.accountType === item.id && {
+                            backgroundColor: darkMode ? palette.darkSurface : overlay.secondary,
+                            borderColor: colors.secondary,
+                          },
                         ]}
                       >
-                        <Text style={styles.accountTypeTitle}>{item.label}</Text>
-                        <Text style={styles.accountTypeText}>{item.description}</Text>
+                        <Text style={[styles.accountTypeTitle, { color: colors.text }]}>{t(`${item.id}AccountLabel`)}</Text>
+                        <Text style={[styles.accountTypeText, { color: muted }]}>{t(`${item.id}AccountText`)}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -186,29 +185,21 @@ export default function AuthScreen() {
               ) : null}
 
               <TextInput
-                label="Email"
-                mode="outlined"
+                label={t('email')}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={mode === 'login' ? loginForm.email : registerForm.email}
                 onChangeText={(value) =>
                   mode === 'login' ? updateLoginField('email', value) : updateRegisterField('email', value)
                 }
-                style={styles.input}
-                outlineColor={overlay.line}
-                activeOutlineColor={palette.primary}
               />
               <TextInput
-                label="Mot de passe"
-                mode="outlined"
+                label={t('password')}
                 secureTextEntry
                 value={mode === 'login' ? loginForm.password : registerForm.password}
                 onChangeText={(value) =>
                   mode === 'login' ? updateLoginField('password', value) : updateRegisterField('password', value)
                 }
-                style={styles.input}
-                outlineColor={overlay.line}
-                activeOutlineColor={palette.primary}
               />
 
               <HelperText type="error" visible={Boolean(validationError)}>
@@ -221,16 +212,14 @@ export default function AuthScreen() {
                 loading={isLoading}
                 disabled={isLoading}
                 contentStyle={styles.buttonContent}
-                buttonColor={palette.primary}
-                textColor={palette.background}
+                buttonColor={colors.primary}
+                textColor={colors.background}
               >
-                {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                {mode === 'login' ? t('loginAction') : t('registerAction')}
               </Button>
 
-              <Text style={styles.footerText}>
-                {mode === 'login'
-                  ? 'Votre session JWT est restaurée automatiquement au lancement.'
-                  : 'Le type de profil sert à séparer client indépendant et boutique professionnelle.'}
+              <Text style={[styles.footerText, { color: muted }]}>
+                {mode === 'login' ? t('jwtRestored') : t('profileTypeInfo')}
               </Text>
             </View>
           </Surface>
@@ -255,14 +244,12 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   heroTitle: {
-    color: palette.text,
     fontSize: 34,
     lineHeight: 39,
     fontWeight: '900',
     letterSpacing: -1.2,
   },
   heroSubtitle: {
-    color: overlay.muted,
     fontSize: 15,
     lineHeight: 22,
   },
@@ -270,15 +257,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: overlay.line,
-    backgroundColor: overlay.surface,
   },
   modeBar: {
     flexDirection: 'row',
     borderRadius: 8,
     padding: 4,
     marginBottom: 18,
-    backgroundColor: overlay.soft,
   },
   modeButton: {
     flex: 1,
@@ -287,15 +271,8 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 8,
   },
-  modeButtonActive: {
-    backgroundColor: palette.primary,
-  },
   modeLabel: {
-    color: overlay.muted,
     fontWeight: '800',
-  },
-  modeLabelActive: {
-    color: palette.background,
   },
   form: {
     gap: 12,
@@ -306,10 +283,6 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
-    backgroundColor: palette.background,
-  },
-  input: {
-    backgroundColor: palette.background,
   },
   accountTypes: {
     gap: 10,
@@ -318,20 +291,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: overlay.line,
-    backgroundColor: overlay.soft,
-  },
-  accountTypeActive: {
-    borderColor: palette.secondary,
-    backgroundColor: overlay.secondary,
   },
   accountTypeTitle: {
-    color: palette.text,
     fontWeight: '900',
     marginBottom: 4,
   },
   accountTypeText: {
-    color: overlay.muted,
     lineHeight: 18,
     fontSize: 12,
   },
@@ -342,7 +307,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   footerText: {
-    color: overlay.muted,
     textAlign: 'center',
     lineHeight: 19,
   },

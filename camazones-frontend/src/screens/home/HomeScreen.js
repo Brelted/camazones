@@ -4,33 +4,39 @@ import { Surface, Text } from '../../components/ui';
 import { ShopCard } from '../../components/MarketplaceCards';
 import { categories } from '../../data/marketplace';
 import { useMarketplaceData } from '../../services/marketplaceService';
-import { overlay, palette } from '../../theme';
+import { darkPalette, overlay, palette } from '../../theme';
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation, appSettings }) {
   const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
+  const darkMode = Boolean(appSettings?.darkMode);
+  const colors = appSettings?.colors ?? palette;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const cardSurface = darkMode ? darkPalette.surface : palette.card;
+  const t = appSettings?.t ?? ((key) => key);
   const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
   const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.topBar}>
+        <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
           <View style={styles.logoRow}>
-            <View style={styles.logoMark}>
-              <Text style={styles.logoText}>C</Text>
+            <View style={[styles.logoMark, { backgroundColor: colors.background }]}>
+              <Text style={[styles.logoText, { color: colors.primary }]}>C</Text>
             </View>
             <View>
-              <Text style={styles.logoName}>CAMAZONE</Text>
-              <Text style={styles.logoSub}>Marketplace mobile</Text>
+              <Text style={[styles.logoName, { color: colors.background }]}>CAMAZONE</Text>
+              <Text style={[styles.logoSub, { color: darkMode ? darkPalette.muted : '#FFE1C4' }]}>{t('mobileMarketplace')}</Text>
             </View>
-            <Pressable onPress={() => navigation.navigate('Seller')} style={styles.walletPill}>
-              <Text style={styles.walletText}>Profil</Text>
+            <Pressable onPress={() => navigation.navigate('Seller')} style={[styles.walletPill, { backgroundColor: colors.background }]}>
+              <Text style={[styles.walletText, { color: colors.primary }]}>{t('profile')}</Text>
             </Pressable>
           </View>
 
-          <Pressable onPress={() => navigation.navigate('Products')} style={styles.searchBar}>
-            <Text style={styles.searchIcon}>⌕</Text>
-            <Text style={styles.searchPlaceholder}>Chercher vetements, gadgets, boutiques...</Text>
+          <Pressable onPress={() => navigation.navigate('Products')} style={[styles.searchBar, { backgroundColor: cardSurface }]}>
+            <Text style={[styles.searchIcon, { color: colors.primary }]}>⌕</Text>
+            <Text style={[styles.searchPlaceholder, { color: muted }]}>{t('searchPlaceholder')}</Text>
           </Pressable>
         </View>
 
@@ -41,17 +47,17 @@ export default function HomeScreen({ navigation }) {
         ) : null}
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.viewAll}>Rapide</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('categories')}</Text>
+          <Text style={[styles.viewAll, { color: colors.primary }]}>{t('quick')}</Text>
         </View>
 
         <View style={styles.categoryRow}>
           {categories.map((category) => (
             <Pressable key={category.id} onPress={() => navigation.navigate('Products')} style={styles.categoryItem}>
-              <View style={styles.categoryIcon}>
+              <View style={[styles.categoryIcon, { backgroundColor: cardSurface, borderColor: line }]}>
                 <Text style={styles.categoryEmoji}>{category.icon}</Text>
               </View>
-              <Text style={styles.categoryLabel}>{category.label}</Text>
+              <Text style={[styles.categoryLabel, { color: colors.text }]}>{t(category.id) || category.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -59,13 +65,13 @@ export default function HomeScreen({ navigation }) {
         <Surface style={styles.banner}>
           <View style={styles.bannerOrange} />
           <View style={styles.bannerGreen} />
-          <Text style={styles.bannerTitle}>Nouveautes et bonnes affaires</Text>
-          <Text style={styles.bannerText}>Les boutiques premium remontent, sans masquer les vendeurs independants.</Text>
+          <Text style={styles.bannerTitle}>{t('newDeals')}</Text>
+          <Text style={styles.bannerText}>{t('premiumVisibilityNote')}</Text>
         </Surface>
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Tendances</Text>
-          <Text style={styles.viewAll}>Carousel</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('trending')}</Text>
+          <Text style={[styles.viewAll, { color: colors.primary }]}>{t('carousel')}</Text>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
@@ -73,6 +79,7 @@ export default function HomeScreen({ navigation }) {
             <TrendProductCard
               key={item.product.id}
               item={item}
+              appSettings={appSettings}
               onMessage={() => openMessages(item.seller.name)}
               onBuy={() => openPayment(item.product.title)}
             />
@@ -80,8 +87,8 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Produits en avant</Text>
-          <Text style={styles.viewAll}>Voir</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('featuredProducts')}</Text>
+          <Text style={[styles.viewAll, { color: colors.primary }]}>{t('view')}</Text>
         </View>
 
         <View style={styles.productGrid}>
@@ -89,6 +96,7 @@ export default function HomeScreen({ navigation }) {
             <GridProductCard
               key={`grid-${item.product.id}`}
               item={item}
+              appSettings={appSettings}
               onMessage={() => openMessages(item.seller.name)}
               onBuy={() => openPayment(item.product.title)}
             />
@@ -96,9 +104,9 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Vitrines boutiques</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('storefronts')}</Text>
           <Pressable onPress={() => navigation.navigate('Shops')}>
-            <Text style={styles.viewAll}>Toutes</Text>
+            <Text style={[styles.viewAll, { color: colors.primary }]}>{t('all')}</Text>
           </Pressable>
         </View>
 
@@ -112,15 +120,20 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-function TrendProductCard({ item, onMessage, onBuy }) {
+function TrendProductCard({ item, onMessage, onBuy, appSettings }) {
   const { product, seller } = item;
+  const darkMode = Boolean(appSettings?.darkMode);
+  const colors = appSettings?.colors ?? palette;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const cardSurface = darkMode ? darkPalette.surface : palette.card;
 
   return (
-    <Surface style={styles.trendCard}>
+    <Surface style={[styles.trendCard, { backgroundColor: cardSurface, borderColor: line }]}>
       <Image source={product.image} style={styles.trendImage} resizeMode="cover" />
-      <Text numberOfLines={2} style={styles.gridTitle}>{product.title}</Text>
-      <Text numberOfLines={1} style={styles.gridSeller}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
-      <Text style={styles.gridPrice}>{product.price}</Text>
+      <Text numberOfLines={2} style={[styles.gridTitle, { color: colors.text }]}>{product.title}</Text>
+      <Text numberOfLines={1} style={[styles.gridSeller, { color: muted }]}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
+      <Text style={[styles.gridPrice, { color: colors.primary }]}>{product.price}</Text>
       <View style={styles.gridActions}>
         <Pressable onPress={onMessage} style={styles.gridMiniButton}>
           <Text style={styles.gridMiniText}>DM</Text>
@@ -133,11 +146,16 @@ function TrendProductCard({ item, onMessage, onBuy }) {
   );
 }
 
-function GridProductCard({ item, onMessage, onBuy }) {
+function GridProductCard({ item, onMessage, onBuy, appSettings }) {
   const { product, seller } = item;
+  const darkMode = Boolean(appSettings?.darkMode);
+  const colors = appSettings?.colors ?? palette;
+  const muted = darkMode ? darkPalette.muted : overlay.muted;
+  const line = darkMode ? darkPalette.line : overlay.line;
+  const cardSurface = darkMode ? darkPalette.surface : palette.card;
 
   return (
-    <Surface style={styles.gridCard}>
+    <Surface style={[styles.gridCard, { backgroundColor: cardSurface, borderColor: line }]}>
       <View style={styles.gridImageWrap}>
         <Image source={product.image} style={styles.gridImage} resizeMode="cover" />
         <View style={styles.badgeTopLeft}>
@@ -149,10 +167,10 @@ function GridProductCard({ item, onMessage, onBuy }) {
           </View>
         ) : null}
       </View>
-      <Text numberOfLines={2} style={styles.gridTitle}>{product.title}</Text>
-      <Text numberOfLines={1} style={styles.gridSeller}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
+      <Text numberOfLines={2} style={[styles.gridTitle, { color: colors.text }]}>{product.title}</Text>
+      <Text numberOfLines={1} style={[styles.gridSeller, { color: muted }]}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
       <View style={styles.gridFooter}>
-        <Text style={styles.gridPrice}>{product.price}</Text>
+        <Text style={[styles.gridPrice, { color: colors.primary }]}>{product.price}</Text>
         <View style={styles.gridActions}>
           <Pressable onPress={onMessage} style={styles.gridMiniButton}>
             <Text style={styles.gridMiniText}>DM</Text>
