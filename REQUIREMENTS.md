@@ -1,77 +1,77 @@
 # Requirements - Camazones
 
-## Environnement global
+## Global
 
 - Git
-- Windows PowerShell ou terminal compatible
-- Connexion Internet pour installer les dependances
+- Windows PowerShell
+- Node.js 18+
+- Java 17+
+- Maven 3.8+
+- Expo Go SDK 54
+- Android 9+
 
 ## Frontend
 
-- Node.js 18 ou plus
-- npm
-- Expo Go compatible SDK 54
-- Android 9 ou plus pour telephone physique
-- Reseau Wi-Fi commun entre PC et telephone en mode LAN
-
-### Dependances principales
-
-- Expo `~54.0.33`
+- Expo `~54.0.34`
 - React `19.1.0`
 - React Native `0.81.5`
+- React Native Web `~0.21.2`
 - Redux Toolkit
 - React Redux
 - Axios
 - AsyncStorage
-
-### Variable d'environnement
-
-Optionnelle en mode Expo LAN, car l'application detecte l'IP du serveur Expo.
-
-```powershell
-$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
-```
+- NetInfo
+- Expo Image Picker
+- Expo Image Manipulator
+- Expo Print
+- Expo Sharing
 
 ## Backend
 
-- Java 17 ou plus
-- Maven 3.8 ou plus
-- H2 pour developpement local
-- PostgreSQL pour production
-
-### Dependances principales
-
-- Spring Boot `3.1.5`
+- Spring Boot `3.3.5`
 - Spring Web
 - Spring Security
 - Spring Data JPA
 - Spring Validation
 - JJWT `0.12.3`
-- H2
-- PostgreSQL driver
-- Lombok
+- H2 en developpement
+- PostgreSQL driver pour production
 
-### Variables recommandees
+## Variables
+
+Frontend optionnel :
+
+```powershell
+$env:EXPO_PUBLIC_API_BASE_URL="http://IP_DU_PC:8080/api"
+```
+
+Backend recommande :
 
 ```powershell
 $env:JWT_SECRET="cle-secrete-production-256-bits-minimum"
 ```
 
-## Fonctionnel attendu
-
-- Authentification login/register.
-- Persistance JWT.
-- Vitrines boutiques.
-- Produits avec images.
-- Recherche globale.
-- Badges premium et reconnu AP.
-- Messagerie directe vendeur.
-- Paiement mobile money, carte et wallet.
-- Profil modifiable avec photo et deconnexion.
-
 ## Compatibilite
 
 - Expo Go SDK 54.
-- Android 9+.
-- Backend local sur `http://localhost:8080/api`.
-- Frontend mobile vers API via auto-detection LAN ou adresse IP du PC, pas `localhost`.
+- Android 9, 10 et plus.
+- Backend local sur `0.0.0.0:8080`.
+- Mobile vers backend via IP LAN detectee automatiquement ou variable `EXPO_PUBLIC_API_BASE_URL`.
+- Ne pas combiner `--offline` avec `--lan`, `--tunnel` ou `--localhost`.
+
+## Fonctionnel
+
+- Auth JWT.
+- API connectee a la base H2 dev.
+- Cache offline cote app.
+- Vitrines boutiques.
+- Produits boutiques et vendeurs independants.
+- Recherche globale.
+- Badges AP et premium.
+- DM vendeur.
+- Profil editable avec photo locale compressee.
+- Mode sombre optionnel persistant.
+- Langue FR/EN persistante.
+- Portefeuille rechargeable.
+- Paiement simule realiste.
+- Facture PDF partageable.

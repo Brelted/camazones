@@ -12,5 +12,6 @@ import java.util.UUID;
 public interface ShopRepository extends JpaRepository<Shop, UUID> {
     List<Shop>       findByOwnerIdAndDeletedAtIsNull(UUID ownerId);
     Optional<Shop>   findByIdAndDeletedAtIsNull(UUID id);
+    List<Shop>       findAllByDeletedAtIsNullOrderByCreatedAtDesc();
     boolean          existsByOwnerIdAndDeletedAtIsNull(UUID ownerId);
 }

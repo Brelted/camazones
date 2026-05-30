@@ -1,63 +1,24 @@
 # Camazones
 
-Camazones est une marketplace mobile qui connecte acheteurs, vendeurs independants et boutiques professionnelles. Le projet contient une application mobile Expo / React Native, une API Spring Boot et une documentation partagee.
+Camazones est une marketplace mobile Expo + Spring Boot qui connecte acheteurs, vendeurs independants et boutiques professionnelles avec vitrines, recherche, DM vendeur, portefeuille et paiement.
 
 ## Structure
 
 ```text
 camazones/
-|-- camazones-frontend/   Application mobile Expo / React Native
-|-- camazones-backend/    API REST Spring Boot
-|-- camazones-docs/       Documentation technique et fonctionnelle
-|-- Lean-Canva/           Lean canvas HTML et supports visuels
-|-- REQUIREMENTS.md       Pre-requis techniques et fonctionnels
+|-- camazones-frontend/   App mobile Expo SDK 54
+|-- camazones-backend/    API Spring Boot + JWT + H2 dev
+|-- camazones-docs/       Documentation projet
+|-- Lean-Canva/           Lean canvas HTML
+|-- REQUIREMENTS.md       Prerequis et dependances
 ```
 
-## Frontend
-
-Application mobile Expo SDK 54 avec :
-
-- Auth Login / Register.
-- JWT persiste avec AsyncStorage.
-- Marketplace avec categories, produits et boutiques.
-- Recherche globale.
-- Badges premium et reconnu AP.
-- DM vendeur.
-- Paiement simule.
-- Profil modifiable, photo et deconnexion.
-
-Lancement :
+## Lancer le backend
 
 ```powershell
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
-mvn spring-boot:run
-```
-
-Puis dans un deuxieme terminal :
-
-```powershell
-cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
-npm install
-npx expo start --go --clear --lan
-```
-
-L'app detecte automatiquement l'IP LAN Expo et appelle `http://IP_DU_PC:8080/api`.
-
-Si besoin, forcer l'URL :
-
-```powershell
-$env:EXPO_PUBLIC_API_BASE_URL="http://ADRESSE_IP_DU_PC:8080/api"
-```
-
-## Backend
-
-API Spring Boot avec socle Java 17, Maven, Security, JPA, JWT et H2.
-
-Lancement :
-
-```powershell
-cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
-mvn clean install
+$env:JAVA_HOME="C:\Users\Alan\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
+$env:Path="$env:JAVA_HOME\bin;C:\ProgramData\chocolatey\lib\maven\apache-maven-3.9.16\bin;$env:Path"
 mvn spring-boot:run
 ```
 
@@ -67,22 +28,55 @@ Health check :
 http://localhost:8080/api/health
 ```
 
-## Documentation
+## Lancer le frontend Expo Go
 
-- `camazones-docs/FRONTEND_SUMMARY.md`
-- `camazones-docs/BACKEND_SUMMARY.md`
-- `camazones-docs/PROJECT_SUMMARY.md`
-- `camazones-docs/API.md`
-- `camazones-docs/SCHEMA.md`
-- `REQUIREMENTS.md`
+```powershell
+cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-frontend
+npm install
+Remove-Item Env:EXPO_PUBLIC_API_BASE_URL -ErrorAction SilentlyContinue
+npx expo start --go --clear --lan
+```
 
-## Branches
+L'application detecte automatiquement l'IP LAN Expo pour joindre `http://IP_DU_PC:8080/api`.
 
-- `main` : branche principale.
-- `alan-dev` : branche de travail recente.
+## Fonctionnalites principales
 
-## Notes importantes
+- Authentification JWT login/register avec restauration de session.
+- Frontend connecte a l'API backend avec cache local et fallback offline.
+- Donnees seedees en base H2 au demarrage: boutiques, produits, comptes demo.
+- Zone Boutiques dediee aux vitrines professionnelles uniquement.
+- Recherche globale avec boutiques et produits correspondants.
+- Carousel horizontal de produits tendance.
+- Profil modifiable avec photo depuis le telephone, compression image et historique.
+- Mode sombre optionnel dans le Profil, persistant.
+- Langue FR/EN dans le Profil, persistante.
+- Pay deplace dans le Profil.
+- Portefeuille Camazone rechargeable avec historique.
+- Paiement Orange Money, MTN MoMo, carte, wallet.
+- Export de facture en PDF et partage mobile.
+- Badges AP, premium et etoile visible pour boutiques premium.
 
-- Sur telephone physique, ne pas utiliser `localhost` pour l'API.
-- Utiliser l'adresse IP du PC dans `EXPO_PUBLIC_API_BASE_URL` seulement si l'auto-detection LAN ne suffit pas.
-- Android 9+ est vise avec Expo Go SDK 54.
+## Identifiants demo
+
+Tous les comptes seedes utilisent :
+
+```text
+Mot de passe: Camazones2026!
+```
+
+Comptes utiles :
+
+```text
+admin@camazones.demo
+koa@camazones.demo
+talia@camazones.demo
+noma@camazones.demo
+sawa@camazones.demo
+mila@camazones.demo
+```
+
+## Branches attendues
+
+- `main` : projet complet.
+- `front` : frontend uniquement.
+- `back` : backend uniquement.

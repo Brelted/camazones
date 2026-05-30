@@ -2,24 +2,23 @@ import React, { useMemo, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, EmptyState, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
-import { getRankedProducts, searchMarketplace, shops } from '../../data/marketplace';
+import { useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function ProductsScreen({ navigation, appSettings }) {
   const [query, setQuery] = useState('');
   const normalizedQuery = query.trim().toLowerCase();
-  const shopResults = useMemo(() => searchMarketplace(query), [query]);
+  const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
+  const shopResults = useShopSearch(shops, query);
   const productResults = useMemo(() => {
-    const products = getRankedProducts();
-
     if (!normalizedQuery) {
-      return products.slice(0, 8);
+      return rankedProducts.slice(0, 8);
     }
 
-    return products.filter(({ product, seller }) =>
+    return rankedProducts.filter(({ product, seller }) =>
       `${product.title} ${product.category} ${product.description} ${seller.name}`.toLowerCase().includes(normalizedQuery)
     );
-  }, [normalizedQuery]);
+  }, [normalizedQuery, rankedProducts]);
 
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
@@ -53,6 +52,13 @@ export default function ProductsScreen({ navigation, appSettings }) {
           style={styles.input}
           autoCapitalize="none"
         />
+
+        {isOffline || error ? (
+          <Surface style={styles.rankingNote} elevation={0}>
+            <Text style={styles.rankingTitle}>{isOffline ? 'Cache offline' : 'API'}</Text>
+            <Text style={styles.rankingText}>{isOffline ? 'Les derniers resultats sauvegardes restent visibles.' : error}</Text>
+          </Surface>
+        ) : null}
 
         <SectionHeader
           title={normalizedQuery ? 'Boutiques qui vendent ce produit' : 'Boutiques disponibles'}

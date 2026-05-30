@@ -1,64 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Surface, Text } from '../../components/ui';
-import { Badge, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
-import { categories, getRankedProducts, shops } from '../../data/marketplace';
+import { ShopCard } from '../../components/MarketplaceCards';
+import { categories } from '../../data/marketplace';
+import { useMarketplaceData } from '../../services/marketplaceService';
 import { overlay, palette } from '../../theme';
 
 export default function HomeScreen({ navigation }) {
-  const [selectedShopId, setSelectedShopId] = useState(null);
-  const rankedProducts = useMemo(() => getRankedProducts(), []);
-  const selectedShop = shops.find((shop) => shop.id === selectedShopId);
-
-  const openMessages = (sellerName) => {
-    navigation.navigate('Messages', { sellerName });
-  };
-
-  const openPayment = (productTitle) => {
-    navigation.navigate('Wallet', { productTitle });
-  };
-
-  if (selectedShop) {
-    return (
-      <SafeAreaView style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.detailContent} showsVerticalScrollIndicator={false}>
-          <Pressable onPress={() => setSelectedShopId(null)} style={styles.backLink}>
-            <Text style={styles.backIcon}>‹</Text>
-            <Text style={styles.backText}>Back to marketplace</Text>
-          </Pressable>
-
-          <Surface style={styles.shopHero} elevation={0}>
-            <Image source={selectedShop.cover} style={styles.shopHeroImage} resizeMode="cover" />
-            <View style={styles.shopHeroCopy}>
-              <View style={styles.nameRow}>
-                <Text style={styles.shopName}>{selectedShop.name}</Text>
-                {selectedShop.premium ? <Text style={styles.shopStar}>★</Text> : null}
-              </View>
-              <Text style={styles.shopMeta}>{selectedShop.city} · {selectedShop.speciality}</Text>
-              <Text style={styles.shopText}>{selectedShop.tagline}</Text>
-              <View style={styles.badges}>
-                <Badge type="professional" />
-                {selectedShop.certifiedByAp ? <Badge type="ap" /> : null}
-                {selectedShop.premium ? <Badge type="premium" /> : null}
-              </View>
-            </View>
-          </Surface>
-
-          <SectionHeader title="Store products" description="Clothes, gadgets and offers from this boutique only." />
-          <View style={styles.stack}>
-            {selectedShop.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                item={{ product, seller: selectedShop, sellerType: 'shop' }}
-                onMessage={() => openMessages(selectedShop.name)}
-                onBuy={() => openPayment(product.title)}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+  const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
+  const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
+  const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -70,20 +21,28 @@ export default function HomeScreen({ navigation }) {
             </View>
             <View>
               <Text style={styles.logoName}>CAMAZONE</Text>
-              <Text style={styles.logoSub}>Mobile marketplace</Text>
+              <Text style={styles.logoSub}>Marketplace mobile</Text>
             </View>
-            <Text style={styles.cartIcon}>🛍️</Text>
+            <Pressable onPress={() => navigation.navigate('Seller')} style={styles.walletPill}>
+              <Text style={styles.walletText}>Profil</Text>
+            </Pressable>
           </View>
 
           <Pressable onPress={() => navigation.navigate('Products')} style={styles.searchBar}>
             <Text style={styles.searchIcon}>⌕</Text>
-            <Text style={styles.searchPlaceholder}>Search clothes, gadgets...</Text>
+            <Text style={styles.searchPlaceholder}>Chercher vetements, gadgets, boutiques...</Text>
           </Pressable>
         </View>
 
+        {isOffline || error ? (
+          <Surface style={styles.syncNote}>
+            <Text style={styles.syncText}>{isOffline ? 'Mode offline: cache Camazones actif.' : error}</Text>
+          </Surface>
+        ) : null}
+
         <View style={styles.sectionInline}>
           <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.viewAll}>View all</Text>
+          <Text style={styles.viewAll}>Rapide</Text>
         </View>
 
         <View style={styles.categoryRow}>
@@ -97,22 +56,38 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        <Surface style={styles.banner} elevation={0}>
-          <View style={styles.bannerBlue} />
-          <View style={styles.bannerPurple} />
-          <Text style={styles.bannerTitle}>⚡ New arrivals, big deals</Text>
-          <Text style={styles.bannerText}>Fresh clothes, sneakers and gadgets with premium stores first.</Text>
+        <Surface style={styles.banner}>
+          <View style={styles.bannerOrange} />
+          <View style={styles.bannerGreen} />
+          <Text style={styles.bannerTitle}>Nouveautes et bonnes affaires</Text>
+          <Text style={styles.bannerText}>Les boutiques premium remontent, sans masquer les vendeurs independants.</Text>
         </Surface>
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Featured products</Text>
-          <Text style={styles.viewAll}>View all</Text>
+          <Text style={styles.sectionTitle}>Tendances</Text>
+          <Text style={styles.viewAll}>Carousel</Text>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+          {rankedProducts.slice(0, 10).map((item) => (
+            <TrendProductCard
+              key={item.product.id}
+              item={item}
+              onMessage={() => openMessages(item.seller.name)}
+              onBuy={() => openPayment(item.product.title)}
+            />
+          ))}
+        </ScrollView>
+
+        <View style={styles.sectionInline}>
+          <Text style={styles.sectionTitle}>Produits en avant</Text>
+          <Text style={styles.viewAll}>Voir</Text>
         </View>
 
         <View style={styles.productGrid}>
           {rankedProducts.slice(0, 8).map((item) => (
             <GridProductCard
-              key={item.product.id}
+              key={`grid-${item.product.id}`}
               item={item}
               onMessage={() => openMessages(item.seller.name)}
               onBuy={() => openPayment(item.product.title)}
@@ -121,12 +96,15 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.sectionInline}>
-          <Text style={styles.sectionTitle}>Stores</Text>
-          <Text style={styles.viewAll}>View all</Text>
+          <Text style={styles.sectionTitle}>Vitrines boutiques</Text>
+          <Pressable onPress={() => navigation.navigate('Shops')}>
+            <Text style={styles.viewAll}>Toutes</Text>
+          </Pressable>
         </View>
+
         <View style={styles.stack}>
           {shops.slice(0, 3).map((shop) => (
-            <ShopCard key={shop.id} shop={shop} onPress={() => setSelectedShopId(shop.id)} />
+            <ShopCard key={shop.id} shop={shop} onPress={() => navigation.navigate('Shops', { shopId: shop.id })} />
           ))}
         </View>
       </ScrollView>
@@ -134,19 +112,42 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+function TrendProductCard({ item, onMessage, onBuy }) {
+  const { product, seller } = item;
+
+  return (
+    <Surface style={styles.trendCard}>
+      <Image source={product.image} style={styles.trendImage} resizeMode="cover" />
+      <Text numberOfLines={2} style={styles.gridTitle}>{product.title}</Text>
+      <Text numberOfLines={1} style={styles.gridSeller}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
+      <Text style={styles.gridPrice}>{product.price}</Text>
+      <View style={styles.gridActions}>
+        <Pressable onPress={onMessage} style={styles.gridMiniButton}>
+          <Text style={styles.gridMiniText}>DM</Text>
+        </Pressable>
+        <Pressable onPress={onBuy} style={styles.gridBuyButton}>
+          <Text style={styles.gridBuyText}>Buy</Text>
+        </Pressable>
+      </View>
+    </Surface>
+  );
+}
+
 function GridProductCard({ item, onMessage, onBuy }) {
   const { product, seller } = item;
 
   return (
-    <Surface style={styles.gridCard} elevation={0}>
+    <Surface style={styles.gridCard}>
       <View style={styles.gridImageWrap}>
         <Image source={product.image} style={styles.gridImage} resizeMode="cover" />
         <View style={styles.badgeTopLeft}>
-          <Text style={styles.badgeTopText}>⭐ {seller.premium ? 'Top' : 'New'}</Text>
+          <Text style={styles.badgeTopText}>{seller.premium ? 'Premium' : 'New'}</Text>
         </View>
-        <View style={styles.badgeTopRight}>
-          <Text style={styles.badgeTopText}>-{product.premium ? '35' : '20'}%</Text>
-        </View>
+        {seller.certifiedByAp ? (
+          <View style={styles.badgeTopRight}>
+            <Text style={styles.badgeTopText}>AP</Text>
+          </View>
+        ) : null}
       </View>
       <Text numberOfLines={2} style={styles.gridTitle}>{product.title}</Text>
       <Text numberOfLines={1} style={styles.gridSeller}>{seller.name}{seller.premium ? ' ★' : ''}</Text>
@@ -154,7 +155,7 @@ function GridProductCard({ item, onMessage, onBuy }) {
         <Text style={styles.gridPrice}>{product.price}</Text>
         <View style={styles.gridActions}>
           <Pressable onPress={onMessage} style={styles.gridMiniButton}>
-            <Text style={styles.gridMiniText}>💬</Text>
+            <Text style={styles.gridMiniText}>DM</Text>
           </Pressable>
           <Pressable onPress={onBuy} style={styles.gridBuyButton}>
             <Text style={styles.gridBuyText}>Buy</Text>
@@ -171,12 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.background,
   },
   content: {
-    paddingBottom: 108,
-    gap: 16,
-  },
-  detailContent: {
-    padding: 18,
-    paddingBottom: 108,
+    paddingBottom: 92,
     gap: 16,
   },
   topBar: {
@@ -215,15 +211,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
   },
-  cartIcon: {
+  walletPill: {
     marginLeft: 'auto',
-    color: palette.card,
-    fontSize: 16,
-    lineHeight: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: palette.card,
+  },
+  walletText: {
+    color: palette.orange,
+    fontSize: 12,
+    fontWeight: '900',
   },
   searchBar: {
-    minHeight: 40,
-    borderRadius: 8,
+    minHeight: 42,
+    borderRadius: 10,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -239,6 +241,19 @@ const styles = StyleSheet.create({
     color: overlay.muted,
     fontSize: 13,
     fontWeight: '800',
+  },
+  syncNote: {
+    marginHorizontal: 18,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: overlay.green,
+    borderWidth: 1,
+    borderColor: palette.green,
+  },
+  syncText: {
+    color: palette.text,
+    fontSize: 12,
+    fontWeight: '900',
   },
   sectionInline: {
     paddingHorizontal: 18,
@@ -288,29 +303,29 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   banner: {
-    minHeight: 76,
+    minHeight: 78,
     marginHorizontal: 18,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     overflow: 'hidden',
-    backgroundColor: palette.blue,
+    backgroundColor: palette.orange,
   },
-  bannerBlue: {
+  bannerOrange: {
     position: 'absolute',
     left: 0,
     top: 0,
     bottom: 0,
-    width: '55%',
-    backgroundColor: palette.blue,
+    width: '58%',
+    backgroundColor: palette.orange,
   },
-  bannerPurple: {
+  bannerGreen: {
     position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
-    width: '55%',
-    backgroundColor: palette.purple,
-    opacity: 0.9,
+    width: '58%',
+    backgroundColor: palette.green,
+    opacity: 0.75,
   },
   bannerTitle: {
     color: palette.card,
@@ -318,11 +333,32 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   bannerText: {
-    color: '#EDE3D1',
+    color: '#FFF0DE',
     marginTop: 5,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
+  },
+  carousel: {
+    paddingLeft: 18,
+    paddingRight: 18,
+    gap: 12,
+  },
+  trendCard: {
+    width: 168,
+    minHeight: 248,
+    borderRadius: 12,
+    padding: 8,
+    backgroundColor: palette.card,
+    borderWidth: 1,
+    borderColor: overlay.line,
+    gap: 7,
+  },
+  trendImage: {
+    width: '100%',
+    height: 128,
+    borderRadius: 9,
+    backgroundColor: palette.khaki,
   },
   productGrid: {
     paddingHorizontal: 18,
@@ -357,7 +393,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 8,
-    backgroundColor: palette.blue,
+    backgroundColor: palette.orange,
   },
   badgeTopRight: {
     position: 'absolute',
@@ -400,16 +436,18 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   gridMiniButton: {
-    width: 34,
+    minWidth: 34,
     height: 30,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: overlay.soft,
+    paddingHorizontal: 8,
   },
   gridMiniText: {
-    fontSize: 12,
-    lineHeight: 15,
+    color: palette.text,
+    fontSize: 10,
+    fontWeight: '900',
   },
   gridBuyButton: {
     flex: 1,
@@ -427,64 +465,5 @@ const styles = StyleSheet.create({
   stack: {
     paddingHorizontal: 18,
     gap: 12,
-  },
-  backLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    alignSelf: 'flex-start',
-  },
-  backIcon: {
-    color: palette.orange,
-    fontSize: 24,
-    fontWeight: '900',
-  },
-  backText: {
-    color: palette.orange,
-    fontWeight: '900',
-  },
-  shopHero: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: palette.card,
-    borderWidth: 1,
-    borderColor: overlay.line,
-  },
-  shopHeroImage: {
-    width: '100%',
-    height: 180,
-    backgroundColor: palette.khaki,
-  },
-  shopHeroCopy: {
-    padding: 14,
-    gap: 9,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  shopName: {
-    color: palette.text,
-    fontSize: 23,
-    fontWeight: '900',
-  },
-  shopStar: {
-    color: palette.orange,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  shopMeta: {
-    color: overlay.muted,
-    fontWeight: '800',
-  },
-  shopText: {
-    color: overlay.muted,
-    lineHeight: 20,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
 });

@@ -1,6 +1,10 @@
 package com.camazones.auth.controller;
 
-import com.camazones.auth.dto.*;
+import com.camazones.auth.dto.AuthResponse;
+import com.camazones.auth.dto.LoginRequest;
+import com.camazones.auth.dto.RegisterRequest;
+import com.camazones.auth.dto.UpdateProfileRequest;
+import com.camazones.auth.dto.UserProfileDto;
 import com.camazones.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -8,14 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Endpoints d'authentification.
- *   POST /auth/register  → créer un compte  (public)
- *   POST /auth/login     → se connecter     (public)
- *   GET  /auth/me        → profil           (JWT requis)
- */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -41,7 +45,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.getProfile(userDetails.getUsername()));
     }
 
-    // ── Gestion des erreurs ───────────────────────────────────────────────
+    @PutMapping("/me")
+    ResponseEntity<UserProfileDto> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(authService.updateProfile(userDetails.getUsername(), request));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ErrorResponse> handleConflict(IllegalArgumentException ex) {

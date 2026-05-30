@@ -10,24 +10,24 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ShopService {
 
-    private final ShopRepository   shopRepository;
-    private final UserRepository   userRepository;
-    private final ProductMapper    mapper;
+    private final ShopRepository shopRepository;
+    private final UserRepository userRepository;
+    private final ProductMapper mapper;
 
     public ShopService(ShopRepository shopRepository,
                        UserRepository userRepository,
                        ProductMapper mapper) {
         this.shopRepository = shopRepository;
         this.userRepository = userRepository;
-        this.mapper         = mapper;
+        this.mapper = mapper;
     }
 
-    /** Tâche 9 : POST /shops */
     @Transactional
     public ShopResponse createShop(String ownerEmail, CreateShopRequest req) {
         User owner = userRepository.findByEmail(ownerEmail)
@@ -45,14 +45,19 @@ public class ShopService {
         return mapper.toShopResponse(shopRepository.save(shop));
     }
 
-    /** Tâche 10 : GET /shops/:id */
+    public List<ShopResponse> getShops() {
+        return shopRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
+                .stream()
+                .map(mapper::toShopResponse)
+                .toList();
+    }
+
     public ShopResponse getShop(UUID shopId) {
         Shop shop = shopRepository.findByIdAndDeletedAtIsNull(shopId)
                 .orElseThrow(() -> new IllegalArgumentException("Boutique introuvable"));
         return mapper.toShopResponse(shop);
     }
 
-    /** GET /shops/mine — boutique du vendeur connecté (null si pas de boutique) */
     public ShopResponse getMyShop(String ownerEmail) {
         User owner = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));

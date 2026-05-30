@@ -88,6 +88,30 @@ public class AuthService implements UserDetailsService {
         User u = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable."));
 
+        return toProfile(u);
+    }
+
+    @Transactional
+    public UserProfileDto updateProfile(String email, UpdateProfileRequest req) {
+        User u = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable."));
+
+        if (req.firstName() != null) u.setFirstName(req.firstName());
+        if (req.lastName() != null) u.setLastName(req.lastName());
+        if (req.phone() != null && !req.phone().equals(u.getPhoneNumber())) {
+            if (!req.phone().isBlank() && userRepository.existsByPhoneNumber(req.phone()))
+                throw new IllegalArgumentException("Ce numéro de téléphone est déjà utilisé.");
+            u.setPhoneNumber(req.phone());
+        }
+        if (req.profilePictureUrl() != null) u.setProfilePictureUrl(req.profilePictureUrl());
+        if (req.bio() != null) u.setBio(req.bio());
+        if (req.city() != null) u.setCity(req.city());
+        if (req.address() != null) u.setAddress(req.address());
+
+        return toProfile(userRepository.save(u));
+    }
+
+    private UserProfileDto toProfile(User u) {
         return new UserProfileDto(
                 u.getId(), u.getEmail(), u.getFirstName(), u.getLastName(),
                 u.getPhoneNumber(), u.getProfilePictureUrl(), u.getBio(),

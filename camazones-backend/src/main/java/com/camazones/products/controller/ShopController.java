@@ -1,6 +1,8 @@
 package com.camazones.products.controller;
 
-import com.camazones.products.dto.*;
+import com.camazones.products.dto.CreateShopRequest;
+import com.camazones.products.dto.ProductPageResponse;
+import com.camazones.products.dto.ShopResponse;
 import com.camazones.products.service.ProductService;
 import com.camazones.products.service.ShopService;
 import jakarta.validation.Valid;
@@ -8,26 +10,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
-/**
- * POST /shops              → créer une boutique           (JWT)
- * GET  /shops/mine         → boutique du vendeur connecté (JWT)
- * GET  /shops/:id          → voir une boutique             (public)
- * GET  /shops/:id/products → produits d'une boutique       (public)
- */
 @RestController
 @RequestMapping("/shops")
 public class ShopController {
 
-    private final ShopService    shopService;
+    private final ShopService shopService;
     private final ProductService productService;
 
     public ShopController(ShopService shopService, ProductService productService) {
-        this.shopService    = shopService;
+        this.shopService = shopService;
         this.productService = productService;
+    }
+
+    @GetMapping
+    ResponseEntity<List<ShopResponse>> list() {
+        return ResponseEntity.ok(shopService.getShops());
     }
 
     @PostMapping
@@ -38,7 +47,6 @@ public class ShopController {
                 .body(shopService.createShop(user.getUsername(), request));
     }
 
-    /** Boutique du vendeur connecté — utilisé par SellerScreen (frontend) */
     @GetMapping("/mine")
     ResponseEntity<ShopResponse> getMine(@AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(shopService.getMyShop(user.getUsername()));
@@ -52,15 +60,14 @@ public class ShopController {
     @GetMapping("/{id}/products")
     ResponseEntity<ProductPageResponse> getProducts(
             @PathVariable UUID id,
-            @RequestParam(defaultValue = "1")  int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit) {
         return ResponseEntity.ok(productService.getShopProducts(id, page, limit));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ErrorResponse> notFound(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getMessage()));
     }
 
     record ErrorResponse(String message) {}

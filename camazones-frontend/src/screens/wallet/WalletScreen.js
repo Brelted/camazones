@@ -1,15 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, SectionHeader } from '../../components/MarketplaceCards';
 import { paymentMethods } from '../../data/marketplace';
+import { exportInvoicePdf } from '../../services/pdfService';
+import { payOrder, rechargeWallet, saveInvoice } from '../../store/slices/walletSlice';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function WalletScreen({ route, appSettings }) {
-  const balance = useSelector((state) => state.wallet.balance);
+  const dispatch = useDispatch();
+  const { balance, transactions, lastInvoice } = useSelector((state) => state.wallet);
   const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0].id);
   const [paid, setPaid] = useState(false);
+  const [rechargeAmount, setRechargeAmount] = useState('10000');
   const [form, setForm] = useState({
     phone: '+237 6 90 00 00 00',
     card: '4242 4242 4242 4242',
@@ -17,7 +21,7 @@ export default function WalletScreen({ route, appSettings }) {
     name: 'ALAN CAMAZONES',
   });
 
-  const productTitle = route?.params?.productTitle ?? 'Sac Kaya';
+  const productTitle = route?.params?.productTitle ?? 'Commande Camazones';
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
@@ -28,23 +32,64 @@ export default function WalletScreen({ route, appSettings }) {
   const delivery = 1500;
   const fees = selectedMethod === 'wallet' ? 0 : 350;
   const total = subtotal + delivery + fees;
+  const t = appSettings?.t ?? ((key) => key);
 
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
-  const money = (value) => `${value.toLocaleString('fr-FR')} FCFA`;
+  const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+
+  const recharge = async () => {
+    const amount = Number(rechargeAmount.replace(/[^0-9]/g, ''));
+    if (!amount || amount < 500) {
+      Alert.alert('Montant invalide', 'Entre au moins 500 FCFA.');
+      return;
+    }
+    await dispatch(rechargeWallet({ amount, label: `Recharge ${selected.label}` }));
+    Alert.alert('Recharge ajoutee', `${money(amount)} ajoute au portefeuille Camazones.`);
+  };
+
+  const pay = async () => {
+    if (selectedMethod === 'wallet' && balance < total) {
+      Alert.alert('Solde insuffisant', 'Recharge le portefeuille ou choisis un autre moyen de paiement.');
+      return;
+    }
+
+    const invoice = {
+      id: `CMZ-${Date.now()}`,
+      productTitle,
+      total: money(total),
+      method: selected.label,
+    };
+    await dispatch(payOrder({ amount: total, label: productTitle, fromWallet: selectedMethod === 'wallet', invoice }));
+    setPaid(true);
+  };
+
+  const exportPdf = async () => {
+    const invoice = lastInvoice ?? {
+      id: `CMZ-${Date.now()}`,
+      productTitle,
+      total: money(total),
+      method: selected.label,
+    };
+    const uri = await exportInvoicePdf({
+      productTitle: invoice.productTitle,
+      total: invoice.total,
+      method: invoice.method,
+      transactionId: invoice.id,
+    });
+    await dispatch(saveInvoice({ ...invoice, uri }));
+  };
 
   return (
     <SafeAreaView style={screenStyle}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { color: colors.secondary }]}>Paiement</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Un checkout simple, local et credible.</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>
-            Le paiement reste dans le parcours Camazones sans dupliquer le portefeuille existant.
-          </Text>
+          <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('wallet')}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Paiement, recharge et facture au meme endroit.</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>Pay est maintenant accessible depuis le profil, avec historique et export PDF.</Text>
         </View>
 
-        <Surface style={[styles.checkoutCard, { backgroundColor: surface, borderColor: line }]} elevation={0}>
+        <Surface style={[styles.checkoutCard, { backgroundColor: surface, borderColor: line }]}>
           <View style={styles.checkoutTop}>
             <View style={[styles.paymentIcon, { backgroundColor: colors.primary }]}>
               <Text style={[styles.paymentIconText, { color: colors.background }]}>✓</Text>
@@ -68,16 +113,23 @@ export default function WalletScreen({ route, appSettings }) {
           </View>
 
           <View style={[styles.balanceBox, { backgroundColor: darkMode ? palette.dark : overlay.green }]}>
-            <Text style={[styles.balanceLabel, { color: muted }]}>Solde Camazones disponible</Text>
+            <Text style={[styles.balanceLabel, { color: muted }]}>Solde Camazones</Text>
             <Text style={[styles.balanceValue, { color: colors.green ?? palette.green }]}>{money(balance)}</Text>
           </View>
+        </Surface>
+
+        <SectionHeader title="Recharger le portefeuille" description="Ajoute de l argent avant de payer avec le solde Camazones." />
+        <Surface style={[styles.formCard, { backgroundColor: surface, borderColor: line }]}>
+          <TextInput label="Montant recharge" value={rechargeAmount} onChangeText={(value) => setRechargeAmount(value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" />
+          <Button mode="contained" onPress={recharge} buttonColor={colors.green ?? palette.green} textColor={colors.background}>
+            {t('recharge')}
+          </Button>
         </Surface>
 
         <SectionHeader title="Methode de paiement" description="Orange Money, MTN MoMo, carte ou portefeuille." />
         <View style={styles.methods}>
           {paymentMethods.map((method) => {
             const isActive = selectedMethod === method.id;
-
             return (
               <Pressable
                 key={method.id}
@@ -94,7 +146,7 @@ export default function WalletScreen({ route, appSettings }) {
                 ]}
               >
                 <View style={styles.methodTop}>
-                  <Text style={[styles.methodIcon, { fontSize: 15 }]}>{method.icon}</Text>
+                  <Text style={styles.methodIcon}>{method.icon}</Text>
                   <Text style={[styles.methodTitle, { color: isActive ? colors.background : colors.text }]}>{method.label}</Text>
                 </View>
                 <Text style={[styles.methodText, { color: isActive ? colors.background : muted }]}>{method.detail}</Text>
@@ -103,7 +155,7 @@ export default function WalletScreen({ route, appSettings }) {
           })}
         </View>
 
-        <Surface style={[styles.formCard, { backgroundColor: surface, borderColor: line }]} elevation={0}>
+        <Surface style={[styles.formCard, { backgroundColor: surface, borderColor: line }]}>
           <View style={styles.formHeader}>
             <Text style={[styles.formTitle, { color: colors.text }]}>{selected.label}</Text>
             <Text style={styles.formIcon}>{selected.icon}</Text>
@@ -128,30 +180,39 @@ export default function WalletScreen({ route, appSettings }) {
           )}
         </Surface>
 
-        <Surface style={[styles.securityCard, { backgroundColor: overlay.orange, borderColor: palette.orange }]} elevation={0}>
-          <Text style={styles.securityTitle}>Protection achat</Text>
-          <Text style={styles.securityText}>
-            Le paiement est confirme avant l echange, le DM vendeur reste accessible et le recu est conserve.
-          </Text>
-        </Surface>
-
         {paid ? (
-          <Surface style={[styles.successCard, { backgroundColor: overlay.green, borderColor: palette.green }]} elevation={0}>
+          <Surface style={[styles.successCard, { backgroundColor: overlay.green, borderColor: palette.green }]}>
             <Text style={styles.successIcon}>✓</Text>
-            <Text style={styles.successTitle}>Paiement simule confirme</Text>
-            <Text style={styles.successText}>Le parcours est pret pour brancher le provider reel.</Text>
+            <Text style={styles.successTitle}>Paiement confirme</Text>
+            <Text style={styles.successText}>La facture est prete a exporter en PDF.</Text>
+            <Button mode="outlined" onPress={exportPdf} textColor={palette.green} style={styles.pdfButton}>
+              {t('invoicePdf')}
+            </Button>
           </Surface>
         ) : null}
 
-        <Button
-          mode="contained"
-          onPress={() => setPaid(true)}
-          buttonColor={colors.primary}
-          textColor={colors.background}
-          contentStyle={styles.buttonContent}
-        >
+        <Button mode="contained" onPress={pay} buttonColor={colors.primary} textColor={colors.background} contentStyle={styles.buttonContent}>
           Payer {money(total)}
         </Button>
+
+        <SectionHeader title={t('history')} description="Recharges et depenses du portefeuille." />
+        <View style={styles.history}>
+          {transactions.length ? (
+            transactions.map((transaction) => (
+              <Surface key={transaction.id} style={[styles.transactionCard, { backgroundColor: surface, borderColor: line }]}>
+                <View>
+                  <Text style={[styles.transactionTitle, { color: colors.text }]}>{transaction.label}</Text>
+                  <Text style={[styles.transactionDate, { color: muted }]}>{new Date(transaction.at).toLocaleString('fr-FR')}</Text>
+                </View>
+                <Text style={[styles.transactionAmount, { color: transaction.amount > 0 ? palette.green : palette.orange }]}>
+                  {money(transaction.amount)}
+                </Text>
+              </Surface>
+            ))
+          ) : (
+            <Text style={[styles.subtitle, { color: muted }]}>Aucune operation pour le moment.</Text>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -172,7 +233,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 108,
+    paddingBottom: 92,
     gap: 18,
   },
   header: {
@@ -287,7 +348,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   methodIcon: {
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 16,
   },
   methodText: {
     lineHeight: 19,
@@ -308,8 +370,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   formIcon: {
-    fontSize: 16,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 16,
   },
   form: {
     gap: 10,
@@ -317,23 +379,9 @@ const styles = StyleSheet.create({
   providerNote: {
     lineHeight: 20,
   },
-  securityCard: {
-    gap: 5,
-    padding: 14,
-    borderRadius: 18,
-    borderWidth: 1,
-  },
-  securityTitle: {
-    color: palette.text,
-    fontWeight: '900',
-  },
-  securityText: {
-    color: overlay.muted,
-    lineHeight: 20,
-  },
   successCard: {
     alignItems: 'center',
-    gap: 5,
+    gap: 8,
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
@@ -352,7 +400,33 @@ const styles = StyleSheet.create({
     color: overlay.muted,
     textAlign: 'center',
   },
+  pdfButton: {
+    alignSelf: 'stretch',
+    borderColor: palette.green,
+  },
   buttonContent: {
     minHeight: 48,
+  },
+  history: {
+    gap: 10,
+  },
+  transactionCard: {
+    padding: 13,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  transactionTitle: {
+    fontWeight: '900',
+  },
+  transactionDate: {
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  transactionAmount: {
+    fontWeight: '900',
   },
 });

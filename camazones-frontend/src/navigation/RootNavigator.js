@@ -1,33 +1,44 @@
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import HomeScreen from '../screens/home/HomeScreen';
 import ProductsScreen from '../screens/products/ProductsScreen';
+import ShopsScreen from '../screens/shops/ShopsScreen';
 import SellerScreen from '../screens/seller/SellerScreen';
 import MessagesScreen from '../screens/messages/MessagesScreen';
 import WalletScreen from '../screens/wallet/WalletScreen';
 import AuthScreen from '../screens/auth/AuthScreen';
 import { Text } from '../components/ui';
 import { darkPalette, overlay, palette, theme } from '../theme';
+import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
+import { translate } from '../i18n';
 
-const tabs = [
-  { name: 'Home', title: 'Home', icon: '🏠', component: HomeScreen },
-  { name: 'Products', title: 'Search', icon: '🔎', component: ProductsScreen },
-  { name: 'Seller', title: 'Profile', icon: '👤', component: SellerScreen },
-  { name: 'Messages', title: 'Chat', icon: '💬', component: MessagesScreen },
-  { name: 'Wallet', title: 'Pay', icon: '💳', component: WalletScreen },
+const visibleTabs = [
+  { name: 'Home', labelKey: 'home', icon: '⌂', component: HomeScreen },
+  { name: 'Products', labelKey: 'search', icon: '⌕', component: ProductsScreen },
+  { name: 'Shops', labelKey: 'shops', icon: '◇', component: ShopsScreen },
+  { name: 'Messages', labelKey: 'chat', icon: '✉', component: MessagesScreen },
+  { name: 'Seller', labelKey: 'profile', icon: '●', component: SellerScreen },
 ];
 
+const hiddenScreens = {
+  Wallet: WalletScreen,
+};
+
 export default function RootNavigator() {
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const isBootstrapping = useSelector((state) => state.auth.isBootstrapping);
+  const { darkMode, language } = useSelector((state) => state.settings);
   const [activeTab, setActiveTab] = useState('Home');
   const [params, setParams] = useState({});
-  const [darkMode, setDarkMode] = useState(false);
-
-  const activeConfig = useMemo(() => tabs.find((tab) => tab.name === activeTab) ?? tabs[0], [activeTab]);
-  const ActiveScreen = activeConfig.component;
   const activeTheme = darkMode ? darkPalette : palette;
+  const activeConfig = useMemo(
+    () => visibleTabs.find((tab) => tab.name === activeTab) ?? { name: activeTab, component: hiddenScreens[activeTab] ?? HomeScreen },
+    [activeTab]
+  );
+  const ActiveScreen = activeConfig.component;
+  const t = useMemo(() => (key) => translate(language, key), [language]);
 
   const navigation = useMemo(
     () => ({
@@ -35,6 +46,7 @@ export default function RootNavigator() {
         setParams((current) => ({ ...current, [name]: routeParams }));
         setActiveTab(name);
       },
+      goBack: () => setActiveTab('Home'),
     }),
     []
   );
@@ -42,10 +54,13 @@ export default function RootNavigator() {
   const appSettings = useMemo(
     () => ({
       darkMode,
-      setDarkMode,
+      setDarkMode: (value) => dispatch(setDarkModePersisted(value)),
+      language,
+      setLanguage: (value) => dispatch(setLanguagePersisted(value)),
       colors: activeTheme,
+      t,
     }),
-    [darkMode, activeTheme]
+    [darkMode, language, activeTheme, dispatch, t]
   );
 
   if (isBootstrapping) {
@@ -74,7 +89,7 @@ export default function RootNavigator() {
           },
         ]}
       >
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const active = activeTab === tab.name;
 
           return (
@@ -86,7 +101,7 @@ export default function RootNavigator() {
                     borderColor: darkMode ? darkPalette.line : overlay.line,
                     backgroundColor: darkMode ? darkPalette.surface : overlay.soft,
                   },
-                  active && { backgroundColor: activeTheme.primary, borderColor: activeTheme.secondary },
+                  active && { backgroundColor: activeTheme.primary, borderColor: activeTheme.primary },
                 ]}
               >
                 <Text style={[styles.tabIconText, { color: active ? activeTheme.background : activeTheme.primary }]}>
@@ -94,7 +109,7 @@ export default function RootNavigator() {
                 </Text>
               </View>
               <Text style={[styles.tabText, { color: active ? activeTheme.primary : darkMode ? darkPalette.muted : overlay.muted }]}>
-                {tab.title}
+                {t(tab.labelKey)}
               </Text>
             </Pressable>
           );
@@ -117,34 +132,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 94,
+    minHeight: 78,
     flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 10,
     borderTopWidth: 1,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
+    gap: 5,
   },
   tabIcon: {
-    width: 38,
-    height: 38,
+    width: 34,
+    height: 34,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   tabIconText: {
-    fontSize: 14,
-    lineHeight: 17,
+    fontSize: 15,
+    lineHeight: 18,
     fontWeight: '900',
   },
   tabText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900',
   },
 });
