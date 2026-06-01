@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AuthScreen from '../screens/auth/AuthScreen';
-import { Text } from '../components/ui';
+import { LoadingDots, Text } from '../components/ui';
 import { darkPalette, overlay, palette, theme } from '../theme';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
 import { translate } from '../i18n';
@@ -50,7 +50,7 @@ function ScreenLoader({ name, navigation, route, appSettings, backgroundColor, c
   if (!Screen) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor }]}>
-        <ActivityIndicator size="large" color={color} />
+        <LoadingDots color={color} label="Chargement" />
       </View>
     );
   }
@@ -100,7 +100,7 @@ export default function RootNavigator() {
   if (isBootstrapping) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <LoadingDots color={theme.colors.primary} label="Camazones" />
       </View>
     );
   }
@@ -173,11 +173,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 90,
+    minHeight: 88,
     flexDirection: 'row',
     paddingHorizontal: 8,
-    paddingTop: 10,
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 22,
     borderTopWidth: 1,
   },
   tab: {

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
   Text as NativeText,
@@ -32,6 +32,47 @@ export function HelperText({ visible, children }) {
   }
 
   return <Text style={styles.helperText}>{children}</Text>;
+}
+
+export function LoadingDots({ color = palette.primary, size = 8, label }) {
+  const values = useRef([new Animated.Value(0.35), new Animated.Value(0.35), new Animated.Value(0.35)]).current;
+
+  useEffect(() => {
+    const animations = values.map((value, index) =>
+      Animated.sequence([
+        Animated.delay(index * 120),
+        Animated.timing(value, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.timing(value, { toValue: 0.35, duration: 220, useNativeDriver: true }),
+      ])
+    );
+    const loop = Animated.loop(Animated.stagger(90, animations));
+    loop.start();
+    return () => loop.stop();
+  }, [values]);
+
+  return (
+    <View style={styles.loadingDotsWrap}>
+      <View style={styles.loadingDots}>
+        {values.map((value, index) => (
+          <Animated.View
+            key={String(index)}
+            style={[
+              styles.loadingDot,
+              {
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                backgroundColor: color,
+                opacity: value,
+                transform: [{ translateY: value.interpolate({ inputRange: [0.35, 1], outputRange: [0, -4] }) }],
+              },
+            ]}
+          />
+        ))}
+      </View>
+      {label ? <Text style={[styles.loadingLabel, { color }]}>{label}</Text> : null}
+    </View>
+  );
 }
 
 export function Button({
@@ -68,7 +109,7 @@ export function Button({
       ]}
     >
       <View style={[styles.buttonContent, contentStyle]}>
-        {loading ? <ActivityIndicator size="small" color={color} /> : <Text style={[styles.buttonText, { color }]}>{children}</Text>}
+        {loading ? <LoadingDots color={color} size={6} /> : <Text style={[styles.buttonText, { color }]}>{children}</Text>}
       </View>
     </Pressable>
   );
@@ -127,6 +168,27 @@ const variantStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  loadingDotsWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  loadingDots: {
+    minHeight: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  loadingLabel: {
+    fontSize: 12,
+    fontWeight: '900',
+  },
   helperSpace: {
     minHeight: 18,
   },

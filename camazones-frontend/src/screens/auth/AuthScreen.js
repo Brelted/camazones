@@ -121,7 +121,7 @@ export default function AuthScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.hero}>
-            <BrandLogo caption={t('authLogoCaption')} colors={colors} muted={muted} />
+            <BrandLogo caption={t('authLogoCaption')} colors={colors} muted={muted} centered />
             <Text style={[styles.heroTitle, { color: colors.text }]}>{t('authTitle')}</Text>
             <Text style={[styles.heroSubtitle, { color: muted }]}>{t('authSubtitle')}</Text>
           </View>
@@ -222,7 +222,7 @@ export default function AuthScreen() {
               />
               <Pressable onPress={() => setShowPassword((value) => !value)} style={[styles.passwordToggle, { borderColor: line, backgroundColor: soft }]}>
                 <Text style={[styles.passwordToggleText, { color: colors.primary }]}>
-                  {showPassword ? `🙈 ${t('hidePassword')}` : `👁 ${t('showPassword')}`}
+                  {showPassword ? `🙈 ${t('hidePassword')}` : `👁️ ${t('showPassword')}`}
                 </Text>
               </Pressable>
 

@@ -6,6 +6,8 @@ import { categories } from '../../data/marketplace';
 import { useMarketplaceData } from '../../services/marketplaceService';
 import { darkPalette, overlay, palette } from '../../theme';
 
+const logoCircle = require('../../../assets/brand/camazone-logo-circle.png');
+
 export default function HomeScreen({ navigation, appSettings }) {
   const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
   const darkMode = Boolean(appSettings?.darkMode);
@@ -22,8 +24,8 @@ export default function HomeScreen({ navigation, appSettings }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
           <View style={styles.logoRow}>
-            <View style={[styles.logoMark, { backgroundColor: colors.background }]}>
-              <Text style={[styles.logoText, { color: colors.primary }]}>C</Text>
+            <View style={[styles.logoMark, { backgroundColor: colors.background, borderColor: colors.green ?? palette.green }]}>
+              <Image source={logoCircle} style={styles.logoImage} resizeMode="cover" />
             </View>
             <View>
               <Text style={[styles.logoName, { color: colors.background }]}>CAMAZONE</Text>
@@ -206,17 +208,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   logoMark: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.card,
+    borderWidth: 1,
+    overflow: 'hidden',
   },
-  logoText: {
-    color: palette.orange,
-    fontSize: 19,
-    fontWeight: '900',
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   logoName: {
     color: palette.card,

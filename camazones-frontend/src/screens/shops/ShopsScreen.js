@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
 import { useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
@@ -26,6 +26,11 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
 
   const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
   const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
+  const sendShopMail = (shop) => {
+    const subject = encodeURIComponent(`Contact Camazones - ${shop.name}`);
+    const body = encodeURIComponent(`Bonjour ${shop.name},\n\nJe souhaite avoir plus d'informations sur votre boutique Camazones.\n\nMerci.`);
+    Linking.openURL(`mailto:${shop.email ?? 'contact@camazones.demo'}?subject=${subject}&body=${body}`);
+  };
 
   if (selectedShop) {
     return (
@@ -53,6 +58,9 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
           </Surface>
 
           <View style={styles.actions}>
+            <Pressable onPress={() => sendShopMail(selectedShop)} style={[styles.action, { backgroundColor: darkMode ? palette.darkSurface : overlay.orange, borderColor: colors.primary }]}>
+              <Text style={[styles.actionText, { color: colors.primary }]}>Mail</Text>
+            </Pressable>
             <Pressable onPress={() => openMessages(selectedShop.name)} style={[styles.action, { backgroundColor: colors.green ?? palette.green }]}>
               <Text style={[styles.actionText, { color: colors.background }]}>{t('sellerDm')}</Text>
             </Pressable>
@@ -199,6 +207,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   actionText: {
     fontWeight: '900',

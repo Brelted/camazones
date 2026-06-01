@@ -17,6 +17,7 @@
       "assets/adaptive-icon.png",
       "assets/splash.png",
       "assets/favicon.png",
+      "assets/brand/*",
       "assets/products/figma-style/*",
       "assets/profiles/*"
     ],

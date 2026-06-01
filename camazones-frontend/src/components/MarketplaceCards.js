@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Button, Surface, Text } from './ui';
 import { darkPalette, overlay, palette } from '../theme';
@@ -93,6 +93,12 @@ export function ShopCard({ shop, onPress }) {
 export function ProductCard({ item, onMessage, onBuy }) {
   const tokens = useCardTheme();
   const { product, seller, sellerType } = item;
+  const sendMail = () => {
+    const sellerEmail = seller.email ?? 'contact@camazones.demo';
+    const subject = encodeURIComponent(`Demande Camazones - ${product.title}`);
+    const body = encodeURIComponent(`Bonjour ${seller.name},\n\nJe suis interesse par ${product.title} (${product.price}). Est-ce encore disponible ?\n\nMerci.`);
+    Linking.openURL(`mailto:${sellerEmail}?subject=${subject}&body=${body}`);
+  };
 
   return (
     <Surface style={[styles.productCard, { backgroundColor: tokens.surface, borderColor: tokens.line }]}>
@@ -125,6 +131,9 @@ export function ProductCard({ item, onMessage, onBuy }) {
           <Text style={[styles.stock, { color: tokens.muted }]}>{product.stock}</Text>
         </View>
         <View style={styles.actions}>
+          <Button mode="outlined" compact onPress={sendMail} textColor={tokens.colors.primary} style={styles.outlineButton}>
+            Mail
+          </Button>
           <Button mode="outlined" compact onPress={onMessage} textColor={tokens.colors.primary} style={styles.outlineButton}>
             DM
           </Button>
@@ -348,6 +357,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
     gap: 8,
   },
   outlineButton: {
