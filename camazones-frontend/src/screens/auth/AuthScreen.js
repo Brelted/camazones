@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import BrandLogo from '../../components/BrandLogo';
-import { Badge } from '../../components/MarketplaceCards';
 import { Button, HelperText, Surface, Text, TextInput } from '../../components/ui';
-import { accountTypes } from '../../data/marketplace';
 import { translate } from '../../i18n';
 import { login, register } from '../../store/slices/authSlice';
 import { darkPalette, overlay, palette } from '../../theme';
+
+const accountTypes = [
+  {
+    id: 'independent',
+    icon: '👤',
+  },
+  {
+    id: 'professional',
+    icon: '🏪',
+  },
+];
 
 export default function AuthScreen() {
   const dispatch = useDispatch();
@@ -185,7 +194,11 @@ export default function AuthScreen() {
                     ))}
                   </ScrollView>
                   <View style={styles.selectedBadge}>
-                    <Badge type={selectedAccountType?.id === 'professional' ? 'professional' : 'independent'} />
+                    <View style={[styles.localBadge, { backgroundColor: soft, borderColor: line }]}>
+                      <Text style={[styles.localBadgeText, { color: colors.primary }]}>
+                        {selectedAccountType?.icon} {selectedAccountType?.id === 'professional' ? t('professionalAccountLabel') : t('independentAccountLabel')}
+                      </Text>
+                    </View>
                   </View>
                 </>
               ) : null}
@@ -209,7 +222,7 @@ export default function AuthScreen() {
               />
               <Pressable onPress={() => setShowPassword((value) => !value)} style={[styles.passwordToggle, { borderColor: line, backgroundColor: soft }]}>
                 <Text style={[styles.passwordToggleText, { color: colors.primary }]}>
-                  {showPassword ? `🙈 ${t('hidePassword')}` : `👁️ ${t('showPassword')}`}
+                  {showPassword ? `🙈 ${t('hidePassword')}` : `👁 ${t('showPassword')}`}
                 </Text>
               </Pressable>
 
@@ -315,6 +328,16 @@ const styles = StyleSheet.create({
   },
   selectedBadge: {
     flexDirection: 'row',
+  },
+  localBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  localBadgeText: {
+    fontSize: 11,
+    fontWeight: '900',
   },
   passwordToggle: {
     alignSelf: 'flex-start',

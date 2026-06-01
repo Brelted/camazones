@@ -1,34 +1,62 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import HomeScreen from '../screens/home/HomeScreen';
-import ProductsScreen from '../screens/products/ProductsScreen';
-import ShopsScreen from '../screens/shops/ShopsScreen';
-import SellerScreen from '../screens/seller/SellerScreen';
-import MessagesScreen from '../screens/messages/MessagesScreen';
-import WalletScreen from '../screens/wallet/WalletScreen';
 import AuthScreen from '../screens/auth/AuthScreen';
-import AdminScreen from '../screens/admin/AdminScreen';
-import GamesScreen from '../screens/games/GamesScreen';
 import { Text } from '../components/ui';
 import { darkPalette, overlay, palette, theme } from '../theme';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
 import { translate } from '../i18n';
 
 const baseTabs = [
-  { name: 'Home', labelKey: 'home', icon: '??', component: HomeScreen },
-  { name: 'Products', labelKey: 'search', icon: '??', component: ProductsScreen },
-  { name: 'Shops', labelKey: 'shops', icon: '??', component: ShopsScreen },
-  { name: 'Messages', labelKey: 'chat', icon: '??', component: MessagesScreen },
-  { name: 'Seller', labelKey: 'profile', icon: '??', component: SellerScreen },
+  { name: 'Home', labelKey: 'home', icon: '🏠' },
+  { name: 'Products', labelKey: 'search', icon: '🔎' },
+  { name: 'Shops', labelKey: 'shops', icon: '🏪' },
+  { name: 'Messages', labelKey: 'chat', icon: '💬' },
+  { name: 'Seller', labelKey: 'profile', icon: '👤' },
 ];
 
-const adminTab = { name: 'Admin', labelKey: 'admin', icon: '???', component: AdminScreen };
+const adminTab = { name: 'Admin', labelKey: 'admin', icon: '🛡️' };
 
-const hiddenScreens = {
-  Wallet: WalletScreen,
-  Games: GamesScreen,
+const screenLoaders = {
+  Home: () => require('../screens/home/HomeScreen').default,
+  Products: () => require('../screens/products/ProductsScreen').default,
+  Shops: () => require('../screens/shops/ShopsScreen').default,
+  Messages: () => require('../screens/messages/MessagesScreen').default,
+  Seller: () => require('../screens/seller/SellerScreen').default,
+  Wallet: () => require('../screens/wallet/WalletScreen').default,
+  Games: () => require('../screens/games/GamesScreen').default,
+  Admin: () => require('../screens/admin/AdminScreen').default,
 };
+
+function ScreenLoader({ name, navigation, route, appSettings, backgroundColor, color }) {
+  const [Screen, setScreen] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    setScreen(null);
+    const timer = setTimeout(() => {
+      const LoadedScreen = (screenLoaders[name] ?? screenLoaders.Home)();
+      if (alive) {
+        setScreen(() => LoadedScreen);
+      }
+    }, 0);
+
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [name]);
+
+  if (!Screen) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor }]}>
+        <ActivityIndicator size="large" color={color} />
+      </View>
+    );
+  }
+
+  return <Screen navigation={navigation} route={route} appSettings={appSettings} />;
+}
 
 export default function RootNavigator() {
   const dispatch = useDispatch();
@@ -40,11 +68,10 @@ export default function RootNavigator() {
   const [params, setParams] = useState({});
   const activeTheme = darkMode ? darkPalette : palette;
   const visibleTabs = useMemo(() => (user?.role === 'ADMIN' ? [...baseTabs, adminTab] : baseTabs), [user?.role]);
-  const activeConfig = useMemo(
-    () => visibleTabs.find((tab) => tab.name === activeTab) ?? { name: activeTab, component: hiddenScreens[activeTab] ?? HomeScreen },
+  const activeName = useMemo(
+    () => (visibleTabs.some((tab) => tab.name === activeTab) || screenLoaders[activeTab] ? activeTab : 'Home'),
     [activeTab, visibleTabs]
   );
-  const ActiveScreen = activeConfig.component;
   const t = useMemo(() => (key) => translate(language, key), [language]);
 
   const navigation = useMemo(
@@ -85,7 +112,14 @@ export default function RootNavigator() {
   return (
     <View style={[styles.shell, { backgroundColor: activeTheme.background }]}>
       <View style={styles.body}>
-        <ActiveScreen navigation={navigation} route={{ params: params[activeTab] ?? {} }} appSettings={appSettings} />
+        <ScreenLoader
+          name={activeName}
+          navigation={navigation}
+          route={{ params: params[activeName] ?? {} }}
+          appSettings={appSettings}
+          backgroundColor={activeTheme.background}
+          color={activeTheme.primary}
+        />
       </View>
       <View
         style={[
@@ -97,7 +131,7 @@ export default function RootNavigator() {
         ]}
       >
         {visibleTabs.map((tab) => {
-          const active = activeTab === tab.name;
+          const active = activeName === tab.name;
 
           return (
             <Pressable key={tab.name} onPress={() => setActiveTab(tab.name)} style={styles.tab}>
@@ -139,11 +173,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 88,
+    minHeight: 90,
     flexDirection: 'row',
     paddingHorizontal: 8,
     paddingTop: 10,
-    paddingBottom: 13,
+    paddingBottom: 14,
     borderTopWidth: 1,
   },
   tab: {
