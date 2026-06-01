@@ -200,6 +200,14 @@ export default function SellerScreen({ navigation, appSettings }) {
             <Text style={[styles.walletAction, { color: colors.primary }]}>{t('pay')} ›</Text>
           </Pressable>
 
+          <Pressable onPress={() => navigation.navigate('Games')} style={[styles.gamesCard, { borderColor: line, backgroundColor: darkMode ? palette.darkSurface : overlay.green }]}>
+            <View>
+              <Text style={[styles.walletTitle, { color: colors.text }]}>🎮 Mini-jeux</Text>
+              <Text style={[styles.walletText, { color: muted }]}>🐍 Snake · 🍉 Fruit Slash · 🧠 Memory · 🥷 Ninja</Text>
+            </View>
+            <Text style={[styles.walletAction, { color: colors.primary }]}>Jouer ›</Text>
+          </Pressable>
+
           <Button mode="contained" onPress={() => dispatch(logout())} buttonColor={palette.orange} textColor={palette.background}>
             {t('logout')}
           </Button>
@@ -405,6 +413,16 @@ const styles = StyleSheet.create({
   },
   walletCard: {
     minHeight: 72,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+  },
+  gamesCard: {
+    minHeight: 76,
     borderRadius: 18,
     borderWidth: 1,
     padding: 14,

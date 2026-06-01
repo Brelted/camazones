@@ -70,6 +70,8 @@ Comptes utiles :
 
 ```text
 admin@camazones.demo
+alan.independant@camazones.demo
+sony@camazones.demo
 koa@camazones.demo
 talia@camazones.demo
 noma@camazones.demo

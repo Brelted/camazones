@@ -16,18 +16,18 @@ import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/sett
 import { translate } from '../i18n';
 
 const baseTabs = [
-  { name: 'Home', labelKey: 'home', icon: 'H', component: HomeScreen },
-  { name: 'Products', labelKey: 'search', icon: 'S', component: ProductsScreen },
-  { name: 'Shops', labelKey: 'shops', icon: 'B', component: ShopsScreen },
-  { name: 'Messages', labelKey: 'chat', icon: 'DM', component: MessagesScreen },
-  { name: 'Games', labelKey: 'games', icon: 'G', component: GamesScreen },
-  { name: 'Seller', labelKey: 'profile', icon: 'P', component: SellerScreen },
+  { name: 'Home', labelKey: 'home', icon: '??', component: HomeScreen },
+  { name: 'Products', labelKey: 'search', icon: '??', component: ProductsScreen },
+  { name: 'Shops', labelKey: 'shops', icon: '??', component: ShopsScreen },
+  { name: 'Messages', labelKey: 'chat', icon: '??', component: MessagesScreen },
+  { name: 'Seller', labelKey: 'profile', icon: '??', component: SellerScreen },
 ];
 
-const adminTab = { name: 'Admin', labelKey: 'admin', icon: 'A', component: AdminScreen };
+const adminTab = { name: 'Admin', labelKey: 'admin', icon: '???', component: AdminScreen };
 
 const hiddenScreens = {
   Wallet: WalletScreen,
+  Games: GamesScreen,
 };
 
 export default function RootNavigator() {
@@ -139,11 +139,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 78,
+    minHeight: 88,
     flexDirection: 'row',
     paddingHorizontal: 8,
-    paddingTop: 8,
-    paddingBottom: 10,
+    paddingTop: 10,
+    paddingBottom: 13,
     borderTopWidth: 1,
   },
   tab: {
@@ -153,20 +153,20 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   tabIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   tabIconText: {
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '900',
   },
   tabText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900',
   },
 });

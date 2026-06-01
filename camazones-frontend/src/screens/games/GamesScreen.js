@@ -6,6 +6,14 @@ import { darkPalette, overlay, palette } from '../../theme';
 const boardSize = 12;
 const initialSnake = [{ x: 5, y: 5 }];
 const randomCell = () => ({ x: Math.floor(Math.random() * boardSize), y: Math.floor(Math.random() * boardSize) });
+const gameCatalog = [
+  { id: 'snake', label: 'Snake', icon: '🐍', text: 'Classique rapide' },
+  { id: 'fruits', label: 'Fruit Slash', icon: '🍉', text: 'Tape les fruits' },
+  { id: 'memory', label: 'Memory', icon: '🧠', text: 'Bientot jouable' },
+  { id: 'ninja', label: 'Ninja Cut', icon: '🥷', text: 'Mode arcade' },
+  { id: 'runner', label: 'Market Run', icon: '🏃', text: 'Sprint vendeur' },
+  { id: 'coins', label: 'Coin Tap', icon: '🪙', text: 'Bonus boutique' },
+];
 
 export default function GamesScreen({ appSettings }) {
   const [activeGame, setActiveGame] = useState('snake');
@@ -24,15 +32,26 @@ export default function GamesScreen({ appSettings }) {
           <Text style={[styles.subtitle, { color: muted }]}>Deux petits jeux legers pour garder l app vivante sans ralentir le demarrage.</Text>
         </View>
 
+        <View style={styles.gameCatalog}>
+          {gameCatalog.map((game) => (
+            <Pressable
+              key={game.id}
+              onPress={() => game.id === 'snake' || game.id === 'fruits' ? setActiveGame(game.id) : null}
+              style={[styles.gameChip, { backgroundColor: activeGame === game.id ? colors.primary : surface, borderColor: line }]}
+            >
+              <Text style={styles.gameChipIcon}>{game.icon}</Text>
+              <Text style={[styles.gameChipTitle, { color: activeGame === game.id ? colors.background : colors.text }]}>{game.label}</Text>
+              <Text style={[styles.gameChipText, { color: activeGame === game.id ? colors.background : muted }]}>{game.text}</Text>
+            </Pressable>
+          ))}
+        </View>
+
         <View style={[styles.switcher, { backgroundColor: darkMode ? palette.dark : overlay.soft }]}>
-          {[
-            { id: 'snake', label: 'Snake' },
-            { id: 'fruits', label: 'Fruit Slash' },
-          ].map((game) => {
+          {gameCatalog.slice(0, 2).map((game) => {
             const active = activeGame === game.id;
             return (
               <Pressable key={game.id} onPress={() => setActiveGame(game.id)} style={[styles.switchButton, active && { backgroundColor: colors.primary }]}>
-                <Text style={[styles.switchText, { color: active ? colors.background : colors.text }]}>{game.label}</Text>
+                <Text style={[styles.switchText, { color: active ? colors.background : colors.text }]}>{game.icon} {game.label}</Text>
               </Pressable>
             );
           })}
@@ -145,7 +164,7 @@ function FruitSlashGame({ colors, muted, line, darkMode }) {
           x: 8 + Math.random() * 74,
           y: 0,
           type: Math.random() > 0.82 ? 'bomb' : 'fruit',
-          label: Math.random() > 0.5 ? '●' : '◆',
+          label: Math.random() > 0.5 ? '🍉' : '🍍',
         },
       ]);
     }, 620);
@@ -195,7 +214,7 @@ function FruitSlashGame({ colors, muted, line, darkMode }) {
               },
             ]}
           >
-            <Text style={styles.fruitText}>{item.label}</Text>
+            <Text style={styles.fruitText}>{item.type === 'bomb' ? '💣' : item.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -259,6 +278,31 @@ const styles = StyleSheet.create({
   },
   switchText: {
     fontWeight: '900',
+  },
+  gameCatalog: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  gameChip: {
+    width: '48%',
+    minHeight: 112,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 12,
+    gap: 5,
+  },
+  gameChipIcon: {
+    fontSize: 26,
+  },
+  gameChipTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  gameChipText: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '700',
   },
   gameShell: {
     borderRadius: 22,
@@ -333,7 +377,7 @@ const styles = StyleSheet.create({
   },
   fruitText: {
     color: palette.background,
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '900',
   },
 });

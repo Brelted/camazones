@@ -46,6 +46,7 @@ src/
 - Profil modifiable, photo de profil, mode sombre et deconnexion.
 - Console admin si le compte connecte a le role `ADMIN`.
 - Mini-jeux integres : Snake et Fruit Slash.
+- Comptes demo ajoutes : `alan.independant@camazones.demo` et `sony@camazones.demo`.
 
 ## Lancement Expo Go
 

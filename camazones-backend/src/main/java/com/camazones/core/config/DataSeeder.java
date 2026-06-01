@@ -55,11 +55,14 @@ public class DataSeeder implements CommandLineRunner {
         User nomaOwner = createUser("noma@camazones.demo", "Studio", "Noma", "+237600000103", UserRole.SELLER, false, "Bafoussam");
         User sawaOwner = createUser("sawa@camazones.demo", "Sawa", "Deals", "+237600000104", UserRole.SELLER, false, "Limbe");
         User mila = createUser("mila@camazones.demo", "Mila", "Select", "+237600000201", UserRole.SELLER, false, "Douala");
+        User alan = createUser("alan.independant@camazones.demo", "Alan", "Independant", "+237600000301", UserRole.SELLER, true, "Douala");
+        User sonyOwner = createUser("sony@camazones.demo", "Sony", "Boutique", "+237600000302", UserRole.SELLER, true, "Douala");
 
         Shop koa = createShop(koaOwner, "Atelier Koa", "Mode premium, accessoires durables et finitions elegantes.", "Mode premium", "Douala", true, SubscriptionTier.PREMIUM);
         Shop talia = createShop(taliaOwner, "Talia Closet", "Vetements tendance, robes, chemises et accessoires propres.", "Vetements", "Yaounde", true, SubscriptionTier.FREE);
         Shop noma = createShop(nomaOwner, "Studio Noma", "Accessoires tech fiables et selection bien organisee.", "Tech", "Bafoussam", false, SubscriptionTier.PREMIUM);
         Shop sawa = createShop(sawaOwner, "Sawa Deals", "Selection mixte, prix visibles et offres rapides.", "Marketplace", "Limbe", false, SubscriptionTier.FREE);
+        Shop sony = createShop(sonyOwner, "Sony Store", "Boutique Sony avec consoles, audio, cameras et appareils premium.", "Appareils Sony", "Douala", true, SubscriptionTier.PREMIUM);
 
         List<String> fashion = List.of(
                 "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900",
@@ -86,8 +89,10 @@ public class DataSeeder implements CommandLineRunner {
         seedShopProducts(talia, taliaOwner, fashion, new String[]{"Mini Bag Cyan", "Dress Sand", "Basic Tee", "Red Runner", "Sun Glasses", "Clean Watch", "City Jacket", "Soft Perfume"});
         seedShopProducts(noma, nomaOwner, tech, new String[]{"Power Slim 20K", "Stand Lux", "Airbuds Noma", "Watch Pro", "Speaker Mini", "Clavier Slate", "Case Armor", "Cable Fast"});
         seedShopProducts(sawa, sawaOwner, List.of(fashion.get(5), fashion.get(2), tech.get(7), tech.get(0), tech.get(4), fashion.get(7), fashion.get(0), tech.get(1)), new String[]{"Basic Tee", "Mini Bag", "Airbuds Lite", "Phone Plus", "Speaker Go", "Perfume Clear", "Red Sneaker", "Laptop Air"});
+        seedShopProducts(sony, sonyOwner, tech, new String[]{"PlayStation 5 Slim", "Casque Sony WH", "Camera Alpha", "Sony Xperia Pro", "Speaker Sony Go", "Manette DualSense", "Barre de son Sony", "Chargeur Sony Fast"});
 
         createProduct(mila, null, "Watch Line", "Accessoires", "Montre sobre disponible rapidement.", "Douala", 18000, 2, fashion.get(4));
+        createProduct(alan, null, "Tablette Alan Clean", "Gadgets", "Tablette tres propre vendue par Alan independant.", "Douala", 65000, 1, tech.get(1));
         createProduct(admin, null, "Admin Test Product", "System", "Produit de verification admin.", "Douala", 1000, 1, tech.get(5));
 
         seedCommissions();
@@ -154,8 +159,8 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
-        List<Product> products = productRepository.findAll().stream().limit(12).toList();
-        BigDecimal rate = new BigDecimal("0.0750");
+        List<Product> products = productRepository.findAll();
+        BigDecimal rate = new BigDecimal("0.1000");
 
         for (int i = 0; i < products.size(); i++) {
             Product product = products.get(i);
@@ -174,5 +179,22 @@ public class DataSeeder implements CommandLineRunner {
             commission.setCreatedAt(LocalDateTime.now().minusDays(i % 6).minusHours(i));
             commissionRepository.save(commission);
         }
+
+        products.stream()
+                .filter(product -> "PlayStation 5 Slim".equals(product.getTitle()))
+                .findFirst()
+                .ifPresent(product -> {
+                    BigDecimal gross = BigDecimal.valueOf(350000);
+                    CommissionTransaction commission = new CommissionTransaction();
+                    commission.setOrderReference("CMZ-ALAN-SONY-350");
+                    commission.setSeller(product.getSeller());
+                    commission.setShop(product.getShop());
+                    commission.setProduct(product);
+                    commission.setGrossAmount(gross);
+                    commission.setCommissionRate(rate);
+                    commission.setCommissionAmount(gross.multiply(rate).setScale(2, RoundingMode.HALF_UP));
+                    commission.setCreatedAt(LocalDateTime.now().minusHours(2));
+                    commissionRepository.save(commission);
+                });
     }
 }

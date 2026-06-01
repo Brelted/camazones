@@ -20,6 +20,30 @@ export const demoAccounts = [
     },
   },
   {
+    email: 'alan.independant@camazones.demo',
+    password: 'Camazones2026!',
+    user: {
+      id: 'demo-alan-independant',
+      email: 'alan.independant@camazones.demo',
+      firstName: 'Alan',
+      lastName: 'Independant',
+      phone: '+237600000301',
+      role: 'SELLER',
+    },
+  },
+  {
+    email: 'sony@camazones.demo',
+    password: 'Camazones2026!',
+    user: {
+      id: 'demo-sony-store',
+      email: 'sony@camazones.demo',
+      firstName: 'Sony',
+      lastName: 'Boutique',
+      phone: '+237600000302',
+      role: 'SELLER',
+    },
+  },
+  {
     email: 'client@camazones.demo',
     password: 'Camazones2026!',
     user: {

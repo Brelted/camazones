@@ -126,6 +126,28 @@ export const shops = [
     ],
   },
   {
+    id: 'sony-store',
+    name: 'Sony Store',
+    city: 'Douala',
+    accountType: 'professional',
+    certifiedByAp: true,
+    premium: true,
+    visibilityRank: 96,
+    speciality: 'Appareils Sony',
+    tagline: 'Consoles, audio, cameras et appareils Sony avec garantie boutique.',
+    cover: productImages.noma4,
+    products: [
+      product('sony-ps5-slim', 'PlayStation 5 Slim', productImages.noma1, 'Consoles', '390 000 FCFA', '5 pieces', 'Console Sony recente, facture boutique et garantie.', { premium: true, certified: true }),
+      product('sony-wh-headset', 'Casque Sony WH', productImages.noma3, 'Audio', '155 000 FCFA', '8 pieces', 'Casque reduction de bruit, son propre et autonomie longue.', { premium: true }),
+      product('sony-alpha-camera', 'Camera Alpha', productImages.noma7, 'Camera', '520 000 FCFA', '3 pieces', 'Camera Sony Alpha pour createur, image nette et kit complet.', { premium: true, certified: true }),
+      product('sony-xperia-pro', 'Sony Xperia Pro', productImages.noma4, 'Mobile', '310 000 FCFA', '6 pieces', 'Smartphone Sony haut de gamme, ecran propre et charge rapide.', { premium: true }),
+      product('sony-speaker-go', 'Speaker Sony Go', productImages.noma5, 'Audio', '45 000 FCFA', '12 pieces', 'Enceinte Sony compacte, basse claire et bluetooth stable.'),
+      product('sony-dualsense', 'Manette DualSense', productImages.noma8, 'Accessoires', '42 000 FCFA', '10 pieces', 'Manette Sony originale pour PlayStation 5.', { certified: true }),
+      product('sony-soundbar', 'Barre de son Sony', productImages.noma6, 'Audio', '180 000 FCFA', '4 pieces', 'Barre de son salon avec rendu cinema et design sobre.', { premium: true }),
+      product('sony-fast-charge', 'Chargeur Sony Fast', productImages.noma2, 'Accessoires', '18 000 FCFA', 'En stock', 'Chargeur rapide compatible Xperia et accessoires Sony.'),
+    ],
+  },
+  {
     id: 'sawa-market',
     name: 'Sawa Deals',
     city: 'Limbe',
@@ -150,6 +172,21 @@ export const shops = [
 ];
 
 export const independentSellers = [
+  {
+    id: 'alan-independant',
+    name: 'Alan Independant',
+    city: 'Douala',
+    accountType: 'independent',
+    certifiedByAp: true,
+    premium: false,
+    sellsOften: true,
+    avatar: profilePhotos[2],
+    tagline: 'Client independant actif, vend et achete souvent sans vitrine.',
+    products: [
+      product('alan-tablette-clean', 'Tablette Alan Clean', productImages.noma2, 'Gadgets', '65 000 FCFA', '1 piece', 'Tablette tres propre, negociable et disponible a Douala.', { certified: true }),
+      product('alan-casque-lite', 'Casque Lite Alan', productImages.noma3, 'Audio', '19 000 FCFA', '1 piece', 'Casque leger vendu par Alan apres upgrade audio.'),
+    ],
+  },
   {
     id: 'mila-select',
     name: 'Mila Select',
@@ -183,6 +220,20 @@ export const independentSellers = [
 ];
 
 export const conversations = [
+  {
+    id: 'conv-alan-sony',
+    sellerName: 'Sony Store',
+    product: 'PlayStation 5 Slim',
+    unread: 3,
+    status: 'Negociation acceptee',
+    messages: [
+      { id: 'm1', from: 'buyer', text: 'Bonjour Sony, je suis Alan. La PS5 Slim est a 390 000 FCFA, possible de revoir le prix ?' },
+      { id: 'm2', from: 'seller', text: 'Bonjour Alan, elle est neuve avec garantie boutique. Vous proposez combien ?' },
+      { id: 'm3', from: 'buyer', text: 'Je peux payer 350 000 FCFA aujourd hui via Camazones Pay.' },
+      { id: 'm4', from: 'seller', text: 'Accorde. Sony accepte 350 000 FCFA si paiement aujourd hui.' },
+      { id: 'm5', from: 'buyer', text: 'Parfait, je confirme le paiement maintenant.' },
+    ],
+  },
   {
     id: 'conv-atelier-koa',
     sellerName: 'Atelier Koa',

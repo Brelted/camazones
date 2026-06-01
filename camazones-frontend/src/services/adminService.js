@@ -54,7 +54,7 @@ export const createFallbackAdminDashboard = () => {
 
   const weeklyCommissions = rankedProducts.slice(0, 10).map(({ product, seller }, index) => {
     const grossAmount = parsePrice(product.price) * (1 + (index % 3));
-    const commissionRate = 0.075;
+    const commissionRate = 0.10;
     return {
       id: `commission-${product.id}`,
       orderReference: `CMZ-WEEK-${String(index + 1).padStart(4, '0')}`,

@@ -16,6 +16,7 @@ export default function AuthScreen() {
   const { darkMode, language } = useSelector((state) => state.settings);
   const [mode, setMode] = useState('login');
   const [localError, setLocalError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
     firstName: '',
@@ -108,7 +109,7 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.hero}>
             <BrandLogo caption={t('authLogoCaption')} colors={colors} muted={muted} />
@@ -159,7 +160,12 @@ export default function AuthScreen() {
                     value={registerForm.phone}
                     onChangeText={(value) => updateRegisterField('phone', value)}
                   />
-                  <View style={styles.accountTypes}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.accountTypes}
+                    keyboardShouldPersistTaps="handled"
+                  >
                     {accountTypes.map((item) => (
                       <Pressable
                         key={item.id}
@@ -177,7 +183,7 @@ export default function AuthScreen() {
                         <Text style={[styles.accountTypeText, { color: muted }]}>{t(`${item.id}AccountText`)}</Text>
                       </Pressable>
                     ))}
-                  </View>
+                  </ScrollView>
                   <View style={styles.selectedBadge}>
                     <Badge type={selectedAccountType?.id === 'professional' ? 'professional' : 'independent'} />
                   </View>
@@ -195,12 +201,17 @@ export default function AuthScreen() {
               />
               <TextInput
                 label={t('password')}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 value={mode === 'login' ? loginForm.password : registerForm.password}
                 onChangeText={(value) =>
                   mode === 'login' ? updateLoginField('password', value) : updateRegisterField('password', value)
                 }
               />
+              <Pressable onPress={() => setShowPassword((value) => !value)} style={[styles.passwordToggle, { borderColor: line, backgroundColor: soft }]}>
+                <Text style={[styles.passwordToggleText, { color: colors.primary }]}>
+                  {showPassword ? `🙈 ${t('hidePassword')}` : `👁️ ${t('showPassword')}`}
+                </Text>
+              </Pressable>
 
               <HelperText type="error" visible={Boolean(validationError)}>
                 {validationError}
@@ -286,8 +297,10 @@ const styles = StyleSheet.create({
   },
   accountTypes: {
     gap: 10,
+    paddingRight: 4,
   },
   accountType: {
+    width: 220,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
@@ -302,6 +315,17 @@ const styles = StyleSheet.create({
   },
   selectedBadge: {
     flexDirection: 'row',
+  },
+  passwordToggle: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  passwordToggleText: {
+    fontSize: 12,
+    fontWeight: '900',
   },
   buttonContent: {
     paddingVertical: 8,
