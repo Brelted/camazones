@@ -78,6 +78,9 @@ public class AuthService implements UserDetailsService {
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash()))
             throw new BadCredentialsException("Email ou mot de passe incorrect.");
 
+        if (!user.isEnabled())
+            throw new BadCredentialsException("Compte bloque.");
+
         log.info("Connexion : {}", user.getEmail());
         return buildResponse(jwtProvider.generateToken(user.getEmail()), user);
     }

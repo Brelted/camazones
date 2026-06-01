@@ -44,6 +44,8 @@ src/
 - DM vendeur.
 - Paiement Orange Money, MTN MoMo, carte et wallet en parcours simule.
 - Profil modifiable, photo de profil, mode sombre et deconnexion.
+- Console admin si le compte connecte a le role `ADMIN`.
+- Mini-jeux integres : Snake et Fruit Slash.
 
 ## Lancement Expo Go
 

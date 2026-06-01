@@ -55,6 +55,8 @@ L'application detecte automatiquement l'IP LAN Expo pour joindre `http://IP_DU_P
 - Paiement Orange Money, MTN MoMo, carte, wallet.
 - Export de facture en PDF et partage mobile.
 - Badges AP, premium et etoile visible pour boutiques premium.
+- Console admin pour clients, boutiques, produits, blocages et commissions hebdomadaires.
+- Espace mini-jeux mobile avec Snake et Fruit Slash.
 
 ## Identifiants demo
 

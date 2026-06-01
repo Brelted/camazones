@@ -8,18 +8,23 @@ import SellerScreen from '../screens/seller/SellerScreen';
 import MessagesScreen from '../screens/messages/MessagesScreen';
 import WalletScreen from '../screens/wallet/WalletScreen';
 import AuthScreen from '../screens/auth/AuthScreen';
+import AdminScreen from '../screens/admin/AdminScreen';
+import GamesScreen from '../screens/games/GamesScreen';
 import { Text } from '../components/ui';
 import { darkPalette, overlay, palette, theme } from '../theme';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
 import { translate } from '../i18n';
 
-const visibleTabs = [
-  { name: 'Home', labelKey: 'home', icon: '⌂', component: HomeScreen },
-  { name: 'Products', labelKey: 'search', icon: '⌕', component: ProductsScreen },
-  { name: 'Shops', labelKey: 'shops', icon: '◇', component: ShopsScreen },
-  { name: 'Messages', labelKey: 'chat', icon: '✉', component: MessagesScreen },
-  { name: 'Seller', labelKey: 'profile', icon: '●', component: SellerScreen },
+const baseTabs = [
+  { name: 'Home', labelKey: 'home', icon: 'H', component: HomeScreen },
+  { name: 'Products', labelKey: 'search', icon: 'S', component: ProductsScreen },
+  { name: 'Shops', labelKey: 'shops', icon: 'B', component: ShopsScreen },
+  { name: 'Messages', labelKey: 'chat', icon: 'DM', component: MessagesScreen },
+  { name: 'Games', labelKey: 'games', icon: 'G', component: GamesScreen },
+  { name: 'Seller', labelKey: 'profile', icon: 'P', component: SellerScreen },
 ];
+
+const adminTab = { name: 'Admin', labelKey: 'admin', icon: 'A', component: AdminScreen };
 
 const hiddenScreens = {
   Wallet: WalletScreen,
@@ -29,13 +34,15 @@ export default function RootNavigator() {
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const isBootstrapping = useSelector((state) => state.auth.isBootstrapping);
+  const user = useSelector((state) => state.auth.user);
   const { darkMode, language } = useSelector((state) => state.settings);
   const [activeTab, setActiveTab] = useState('Home');
   const [params, setParams] = useState({});
   const activeTheme = darkMode ? darkPalette : palette;
+  const visibleTabs = useMemo(() => (user?.role === 'ADMIN' ? [...baseTabs, adminTab] : baseTabs), [user?.role]);
   const activeConfig = useMemo(
     () => visibleTabs.find((tab) => tab.name === activeTab) ?? { name: activeTab, component: hiddenScreens[activeTab] ?? HomeScreen },
-    [activeTab]
+    [activeTab, visibleTabs]
   );
   const ActiveScreen = activeConfig.component;
   const t = useMemo(() => (key) => translate(language, key), [language]);

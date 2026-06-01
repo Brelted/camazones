@@ -1,5 +1,7 @@
 package com.camazones.core.config;
 
+import com.camazones.admin.entity.CommissionTransaction;
+import com.camazones.admin.repository.CommissionRepository;
 import com.camazones.auth.entity.User;
 import com.camazones.auth.entity.UserRole;
 import com.camazones.auth.repository.UserRepository;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -23,15 +27,18 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ProductRepository productRepository;
+    private final CommissionRepository commissionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
                       ShopRepository shopRepository,
                       ProductRepository productRepository,
+                      CommissionRepository commissionRepository,
                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.shopRepository = shopRepository;
         this.productRepository = productRepository;
+        this.commissionRepository = commissionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -82,6 +89,8 @@ public class DataSeeder implements CommandLineRunner {
 
         createProduct(mila, null, "Watch Line", "Accessoires", "Montre sobre disponible rapidement.", "Douala", 18000, 2, fashion.get(4));
         createProduct(admin, null, "Admin Test Product", "System", "Produit de verification admin.", "Douala", 1000, 1, tech.get(5));
+
+        seedCommissions();
     }
 
     private User createUser(String email, String firstName, String lastName, String phone, UserRole role, boolean verified, String city) {
@@ -138,5 +147,32 @@ public class DataSeeder implements CommandLineRunner {
         product.setTotalReviews(18);
         product.getImages().add(new ProductImage(product, imageUrl, 0));
         return productRepository.save(product);
+    }
+
+    private void seedCommissions() {
+        if (commissionRepository.count() > 0) {
+            return;
+        }
+
+        List<Product> products = productRepository.findAll().stream().limit(12).toList();
+        BigDecimal rate = new BigDecimal("0.0750");
+
+        for (int i = 0; i < products.size(); i++) {
+            Product product = products.get(i);
+            BigDecimal quantity = BigDecimal.valueOf(1L + (i % 3));
+            BigDecimal gross = product.getPrice().multiply(quantity);
+            BigDecimal amount = gross.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+
+            CommissionTransaction commission = new CommissionTransaction();
+            commission.setOrderReference("CMZ-WEEK-" + String.format("%04d", i + 1));
+            commission.setSeller(product.getSeller());
+            commission.setShop(product.getShop());
+            commission.setProduct(product);
+            commission.setGrossAmount(gross);
+            commission.setCommissionRate(rate);
+            commission.setCommissionAmount(amount);
+            commission.setCreatedAt(LocalDateTime.now().minusDays(i % 6).minusHours(i));
+            commissionRepository.save(commission);
+        }
     }
 }

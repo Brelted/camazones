@@ -8,6 +8,18 @@ const authClient = axios.create({
 
 export const demoAccounts = [
   {
+    email: 'admin@camazones.demo',
+    password: 'Camazones2026!',
+    user: {
+      id: 'demo-admin',
+      email: 'admin@camazones.demo',
+      firstName: 'Admin',
+      lastName: 'Camazones',
+      phone: '+237600000000',
+      role: 'ADMIN',
+    },
+  },
+  {
     email: 'client@camazones.demo',
     password: 'Camazones2026!',
     user: {
