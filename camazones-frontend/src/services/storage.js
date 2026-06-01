@@ -1,4 +1,5 @@
 const memoryStorage = {};
+const STORAGE_TIMEOUT_MS = 1200;
 
 let nativeStorage = null;
 
@@ -8,11 +9,24 @@ try {
   nativeStorage = null;
 }
 
+const withTimeout = async (operation) => {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Storage timeout')), STORAGE_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 export const storage = {
   getItem: async (key) => {
     try {
       if (nativeStorage) {
-        return await nativeStorage.getItem(key);
+        return await withTimeout(nativeStorage.getItem(key));
       }
     } catch (error) {
       return memoryStorage[key] ?? null;
@@ -25,7 +39,7 @@ export const storage = {
 
     try {
       if (nativeStorage) {
-        await nativeStorage.setItem(key, value);
+        await withTimeout(nativeStorage.setItem(key, value));
       }
     } catch (error) {
       return;
@@ -36,7 +50,7 @@ export const storage = {
 
     try {
       if (nativeStorage) {
-        await nativeStorage.removeItem(key);
+        await withTimeout(nativeStorage.removeItem(key));
       }
     } catch (error) {
       return;

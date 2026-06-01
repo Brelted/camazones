@@ -9,6 +9,7 @@ import {
 } from '../data/marketplace';
 
 const MARKETPLACE_CACHE_KEY = '@camazones/marketplace-cache';
+const NETINFO_TIMEOUT_MS = 1200;
 
 const formatPrice = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
 const imageSource = (url, fallback) => (url ? { uri: url } : fallback);
@@ -117,7 +118,10 @@ export const useMarketplaceData = () => {
     let alive = true;
 
     const load = async () => {
-      const netState = await NetInfo.fetch();
+      const netState = await Promise.race([
+        NetInfo.fetch(),
+        new Promise((resolve) => setTimeout(() => resolve({ isConnected: true }), NETINFO_TIMEOUT_MS)),
+      ]);
       const offline = netState.isConnected === false;
 
       try {

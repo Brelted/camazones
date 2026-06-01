@@ -6,7 +6,7 @@ import { storage } from './storage';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 4500,
 });
 
 apiClient.interceptors.request.use(

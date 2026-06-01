@@ -57,9 +57,13 @@ const walletSlice = createSlice({
 });
 
 export const restoreWallet = () => async (dispatch) => {
-  const serialized = await storage.getItem(WALLET_STORAGE_KEY);
-  if (serialized) {
-    dispatch(walletRestored(JSON.parse(serialized)));
+  try {
+    const serialized = await storage.getItem(WALLET_STORAGE_KEY);
+    if (serialized) {
+      dispatch(walletRestored(JSON.parse(serialized)));
+    }
+  } catch (error) {
+    return;
   }
 };
 
