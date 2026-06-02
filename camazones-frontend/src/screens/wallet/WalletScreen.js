@@ -41,6 +41,7 @@ export default function WalletScreen({ route, appSettings }) {
   const changeField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
   const customerName = `${user?.firstName ?? 'Client'} ${user?.lastName ?? 'Camazones'}`.trim();
   const customerEmail = user?.email ?? 'client@camazones.demo';
+  const userTransactions = transactions.filter((transaction) => transaction.email === customerEmail);
 
   const recharge = async () => {
     const amount = Number(rechargeAmount.replace(/[^0-9]/g, ''));
@@ -235,8 +236,8 @@ export default function WalletScreen({ route, appSettings }) {
 
         <SectionHeader title={t('history')} description={t('walletHistoryDescription')} />
         <View style={styles.history}>
-          {transactions.length ? (
-            transactions.map((transaction) => (
+          {userTransactions.length ? (
+            userTransactions.map((transaction) => (
               <Surface key={transaction.id} style={[styles.transactionCard, { backgroundColor: surface, borderColor: line }]}>
                 <View>
                   <Text style={[styles.transactionTitle, { color: colors.text }]}>{transaction.label}</Text>

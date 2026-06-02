@@ -104,7 +104,7 @@ export default function MessagesScreen({ route, appSettings }) {
                 const isBuyer = message.from === 'buyer';
 
                 return (
-                  <View key={message.id} style={[styles.messageBubble, { backgroundColor: darkMode ? palette.dark : overlay.soft }, isBuyer && { backgroundColor: colors.primary }]}>
+                  <View key={message.id} style={[styles.messageBubble, { backgroundColor: darkMode ? palette.dark : overlay.soft }, !isBuyer && styles.messageBubbleSeller, isBuyer && { backgroundColor: colors.primary }]}>
                     <Text style={[styles.messageText, { color: colors.text }, isBuyer && { color: colors.background }]}>{message.text}</Text>
                   </View>
                 );
@@ -246,6 +246,9 @@ const styles = StyleSheet.create({
     padding: 11,
     borderRadius: 16,
     backgroundColor: overlay.soft,
+  },
+  messageBubbleSeller: {
+    alignSelf: 'flex-end',
   },
   messageBubbleBuyer: {
     alignSelf: 'flex-end',

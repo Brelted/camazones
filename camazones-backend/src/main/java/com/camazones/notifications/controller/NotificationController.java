@@ -1,6 +1,7 @@
 package com.camazones.notifications.controller;
 
 import com.camazones.notifications.dto.PurchaseReceiptRequest;
+import com.camazones.notifications.dto.WelcomeEmailRequest;
 import com.camazones.notifications.service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,12 @@ public class NotificationController {
     ResponseEntity<NotificationResponse> sendPurchaseReceipt(@Valid @RequestBody PurchaseReceiptRequest request) {
         emailService.sendPurchaseReceipt(request);
         return ResponseEntity.ok(new NotificationResponse(true, "Facture envoyee."));
+    }
+
+    @PostMapping("/welcome")
+    ResponseEntity<NotificationResponse> sendWelcome(@Valid @RequestBody WelcomeEmailRequest request) {
+        emailService.sendWelcomeEmail(request);
+        return ResponseEntity.ok(new NotificationResponse(true, "Email de bienvenue envoye."));
     }
 
     record NotificationResponse(boolean sent, String message) {}

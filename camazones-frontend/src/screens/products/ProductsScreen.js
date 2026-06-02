@@ -1,24 +1,34 @@
 import React, { useMemo, useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, EmptyState, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
+import { categories } from '../../data/marketplace';
 import { useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function ProductsScreen({ navigation, appSettings }) {
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const normalizedQuery = query.trim().toLowerCase();
   const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
-  const shopResults = useShopSearch(shops, query);
+  const baseShopResults = useShopSearch(shops, query);
+  const categoryMeta = categories.find((category) => category.id === selectedCategory) ?? categories[0];
+  const categoryMatch = categoryMeta?.match?.toLowerCase?.() ?? null;
+  const productMatchesCategory = (product) => !categoryMatch || product.category?.toLowerCase?.() === categoryMatch;
+  const shopResults = useMemo(
+    () => baseShopResults.filter((shop) => shop.products.some(productMatchesCategory)),
+    [baseShopResults, categoryMatch]
+  );
   const productResults = useMemo(() => {
+    const byCategory = rankedProducts.filter(({ product }) => productMatchesCategory(product));
     if (!normalizedQuery) {
-      return rankedProducts.slice(0, 8);
+      return byCategory.slice(0, 8);
     }
 
-    return rankedProducts.filter(({ product, seller }) =>
+    return byCategory.filter(({ product, seller }) =>
       `${product.title} ${product.category} ${product.description} ${seller.name}`.toLowerCase().includes(normalizedQuery)
     );
-  }, [normalizedQuery, rankedProducts]);
+  }, [categoryMatch, normalizedQuery, rankedProducts]);
 
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
@@ -41,6 +51,22 @@ export default function ProductsScreen({ navigation, appSettings }) {
 
         <TextInput value={query} onChangeText={setQuery} placeholder={t('searchExample')} style={styles.input} autoCapitalize="none" />
 
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryFilters}>
+          {categories.map((category) => {
+            const active = selectedCategory === category.id;
+            return (
+              <Pressable
+                key={category.id}
+                onPress={() => setSelectedCategory(category.id)}
+                style={[styles.categoryFilter, { borderColor: active ? colors.primary : line, backgroundColor: active ? colors.primary : surface }]}
+              >
+                <Text style={[styles.categoryFilterIcon, { color: active ? colors.background : colors.primary }]}>{category.icon}</Text>
+                <Text style={[styles.categoryFilterText, { color: active ? colors.background : colors.text }]}>{category.label}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
         {isOffline || error ? (
           <Surface style={styles.rankingNote}>
             <Text style={styles.rankingTitle}>{isOffline ? t('offlineCache') : 'API'}</Text>
@@ -58,7 +84,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
             shopResults.map((shop) => (
               <Surface key={shop.id} style={[styles.resultCard, { backgroundColor: surface, borderColor: line }]}>
                 <View style={styles.resultTop}>
-                  <Image source={shop.cover} style={styles.resultImage} resizeMode="cover" />
+                  <Image source={shop.logo ?? shop.cover} style={styles.resultImage} resizeMode="cover" />
                   <View style={styles.resultCopy}>
                     <View style={styles.resultNameRow}>
                       <Text style={[styles.resultName, { color: colors.text }]}>{shop.name}</Text>
@@ -138,6 +164,27 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: palette.surface,
+  },
+  categoryFilters: {
+    gap: 8,
+    paddingRight: 20,
+  },
+  categoryFilter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  categoryFilterIcon: {
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  categoryFilterText: {
+    fontSize: 12,
+    fontWeight: '900',
   },
   stack: {
     gap: 12,

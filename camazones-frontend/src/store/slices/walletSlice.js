@@ -35,7 +35,7 @@ const walletSlice = createSlice({
       const amount = action.payload.amount;
       state.balance += amount;
       state.transactions = [
-        { id: `${Date.now()}`, type: 'recharge', amount, label: action.payload.label, at: new Date().toISOString() },
+        { id: `${Date.now()}`, type: 'recharge', amount, label: action.payload.label, email: action.payload.email, at: new Date().toISOString() },
         ...state.transactions,
       ].slice(0, 20);
     },
@@ -78,7 +78,8 @@ export const restoreWallet = () => async (dispatch) => {
 };
 
 export const rechargeWallet = ({ amount, label }) => async (dispatch, getState) => {
-  dispatch(rechargeAdded({ amount, label }));
+  const email = getState().auth.user?.email;
+  dispatch(rechargeAdded({ amount, label, email }));
   await persist(getState().wallet);
 };
 

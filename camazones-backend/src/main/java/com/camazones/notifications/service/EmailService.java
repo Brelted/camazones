@@ -2,6 +2,7 @@ package com.camazones.notifications.service;
 
 import com.camazones.auth.entity.User;
 import com.camazones.notifications.dto.PurchaseReceiptRequest;
+import com.camazones.notifications.dto.WelcomeEmailRequest;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,23 @@ public class EmailService {
                 """.formatted(escape(fullName), escape(user.getEmail()), FORMATTER.format(LocalDateTime.now()))
         );
         send(user.getEmail(), "Bienvenue sur Camazones", html);
+    }
+
+    public void sendWelcomeEmail(WelcomeEmailRequest request) {
+        String html = layout(
+                "Bienvenue sur Camazones",
+                "Compte cree avec succes",
+                """
+                <p>Bonjour <strong>%s</strong>,</p>
+                <p>Votre compte Camazones est actif. Vous pouvez maintenant decouvrir les boutiques, publier des articles, discuter avec les vendeurs et payer vos achats en securite.</p>
+                <div class="box">
+                  <p><strong>Email:</strong> %s</p>
+                  <p><strong>Date:</strong> %s</p>
+                </div>
+                <p>Merci de rejoindre le marche certifie Camazones.</p>
+                """.formatted(escape(request.customerName()), escape(request.email()), FORMATTER.format(LocalDateTime.now()))
+        );
+        send(request.email(), "Bienvenue sur Camazones", html);
     }
 
     public void sendPurchaseReceipt(PurchaseReceiptRequest request) {

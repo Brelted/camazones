@@ -5,8 +5,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
-import { accountTypes, independentSellers, profilePhotos } from '../../data/marketplace';
-import { useMarketplaceData } from '../../services/marketplaceService';
+import { accountTypes, categories, independentSellers } from '../../data/marketplace';
+import { getShopIdForEmail, savePublishedProduct, useMarketplaceData } from '../../services/marketplaceService';
 import { exportInvoicePdf } from '../../services/pdfService';
 import { updateProfileRequest } from '../../services/profileService';
 import { logout } from '../../store/slices/authSlice';
@@ -28,6 +28,14 @@ export default function SellerScreen({ navigation, appSettings }) {
   const [activeType, setActiveType] = useState('professional');
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [productForm, setProductForm] = useState({
+    title: '',
+    category: 'Accessoires',
+    price: '',
+    stock: 'En stock',
+    description: '',
+  });
   const userEmail = user?.email ?? 'client@camazones.demo';
   const savedProfile = settings.profilesByEmail?.[userEmail];
   const savedPhoto = settings.photosByEmail?.[userEmail];
@@ -48,12 +56,21 @@ export default function SellerScreen({ navigation, appSettings }) {
   const line = darkMode ? darkPalette.line : overlay.line;
   const surface = darkMode ? darkPalette.surface : overlay.surface;
   const isProfessional = activeType === 'professional';
-  const avatarSource = profile.profilePictureUrl ? { uri: profile.profilePictureUrl } : profilePhotos[0];
+  const profileInitials = `${profile.firstName?.[0] ?? 'C'}${profile.lastName?.[0] ?? 'M'}`.toUpperCase();
+  const ownedShopId = getShopIdForEmail(userEmail);
+  const ownedShop = useMemo(() => shops.find((shop) => shop.id === ownedShopId), [ownedShopId, shops]);
+  const professionalShops = useMemo(() => {
+    if (!ownedShop) {
+      return shops.slice(0, 3);
+    }
+    return [ownedShop, ...shops.filter((shop) => shop.id !== ownedShop.id).slice(0, 2)];
+  }, [ownedShop, shops]);
   const t = appSettings?.t ?? ((key) => key);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeHistory = settings.historyByEmail?.[userEmail] ?? [];
+  const publishCategories = categories.filter((category) => category.match).map((category) => category.match);
   const purchaseHistory = wallet.transactions.filter(
-    (transaction) => transaction.type === 'payment' && (!transaction.email || transaction.email === userEmail)
+    (transaction) => transaction.type === 'payment' && transaction.email === userEmail
   );
 
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
@@ -146,13 +163,48 @@ export default function SellerScreen({ navigation, appSettings }) {
     }
   };
 
+  const changeProductField = (field, value) => setProductForm((current) => ({ ...current, [field]: value }));
+
+  const publishProduct = async () => {
+    const price = Number(productForm.price.replace(/[^0-9]/g, ''));
+    if (!productForm.title.trim() || !productForm.description.trim() || !price) {
+      Alert.alert('Article incomplet', 'Ajoute un nom, une description et un prix valide.');
+      return;
+    }
+
+    setPublishing(true);
+    try {
+      await savePublishedProduct({
+        user,
+        payload: {
+          ...productForm,
+          price,
+          city: profile.city,
+        },
+      });
+      setProductForm({ title: '', category: 'Accessoires', price: '', stock: 'En stock', description: '' });
+      if (ownedShop) {
+        setActiveType('professional');
+      }
+      Alert.alert('Article publie', ownedShop ? 'Il apparaitra dans ta vitrine et la recherche.' : 'Il apparaitra dans la recherche comme vendeur independant.');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <SafeAreaView style={screenStyle}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Surface style={[styles.profileCard, { backgroundColor: surface, borderColor: line }]}>
           <View style={styles.profileTop}>
             <Pressable onPress={pickProfilePhoto}>
-              <Image source={avatarSource} style={styles.avatarPhoto} resizeMode="cover" />
+              <View style={[styles.avatarPhoto, { backgroundColor: darkMode ? palette.darkSurface : overlay.green, borderColor: line }]}>
+                {profile.profilePictureUrl ? (
+                  <Image source={{ uri: profile.profilePictureUrl }} style={styles.avatarImage} resizeMode="cover" />
+                ) : (
+                  <Text style={[styles.avatarInitials, { color: colors.primary }]}>{profileInitials}</Text>
+                )}
+              </View>
             </Pressable>
             <View style={styles.profileCopy}>
               <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('profile')}</Text>
@@ -234,6 +286,36 @@ export default function SellerScreen({ navigation, appSettings }) {
 
           <Button mode="contained" onPress={() => dispatch(logout())} buttonColor={palette.orange} textColor={palette.background}>
             {t('logout')}
+          </Button>
+        </Surface>
+
+        <SectionHeader
+          title={ownedShop ? `Publier dans ${ownedShop.name}` : 'Publier un article'}
+          description={ownedShop ? 'Tes articles apparaissent dans ta vitrine et dans la recherche.' : 'Ton article apparait comme annonce independante dans la recherche.'}
+        />
+        <Surface style={[styles.publishCard, { backgroundColor: surface, borderColor: line }]}>
+          <TextInput label="Nom article" value={productForm.title} onChangeText={(value) => changeProductField('title', value)} />
+          <View style={styles.categoryPicker}>
+            {publishCategories.map((category) => {
+              const active = productForm.category === category;
+              return (
+                <Pressable
+                  key={category}
+                  onPress={() => changeProductField('category', category)}
+                  style={[styles.categoryChip, { borderColor: active ? colors.primary : line, backgroundColor: active ? colors.primary : darkMode ? palette.dark : overlay.soft }]}
+                >
+                  <Text style={[styles.categoryChipText, { color: active ? colors.background : colors.text }]}>{category}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={styles.row}>
+            <TextInput label="Prix FCFA" value={productForm.price} onChangeText={(value) => changeProductField('price', value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" style={styles.flexInput} />
+            <TextInput label="Stock" value={productForm.stock} onChangeText={(value) => changeProductField('stock', value)} style={styles.flexInput} />
+          </View>
+          <TextInput label="Description article" value={productForm.description} onChangeText={(value) => changeProductField('description', value)} multiline />
+          <Button mode="contained" onPress={publishProduct} loading={publishing} buttonColor={colors.primary} textColor={colors.background}>
+            Publier l'article
           </Button>
         </Surface>
 
@@ -324,7 +406,7 @@ export default function SellerScreen({ navigation, appSettings }) {
           <>
             <SectionHeader title={t('professionalShops')} description={t('professionalShopsText')} />
             <View style={styles.stack}>
-              {shops.slice(0, 3).map((shop) => (
+              {professionalShops.map((shop) => (
                 <Surface key={shop.id} style={[styles.shopLine, { backgroundColor: surface, borderColor: line }]}>
                   <View style={styles.typeTop}>
                     <Text style={[styles.profileName, { color: colors.text }]}>{shop.name}</Text>
@@ -401,7 +483,19 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
     backgroundColor: overlay.soft,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarInitials: {
+    fontSize: 24,
+    fontWeight: '900',
   },
   sellerPhoto: {
     width: 48,
@@ -438,6 +532,27 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 10,
+  },
+  publishCard: {
+    gap: 12,
+    padding: 16,
+    borderRadius: 22,
+    borderWidth: 1,
+  },
+  categoryPicker: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '900',
   },
   row: {
     flexDirection: 'row',

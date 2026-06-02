@@ -63,7 +63,11 @@ export function ShopCard({ shop, onPress }) {
         <Image source={shop.cover} style={styles.shopCover} resizeMode="cover" />
         <View style={styles.cardTop}>
           <View style={[styles.avatar, { backgroundColor: tokens.colors.primary }, shop.premium && styles.avatarPremium]}>
-            <Text style={[styles.avatarText, { color: tokens.colors.background }]}>{shop.name.slice(0, 1)}</Text>
+            {shop.logo ? (
+              <Image source={shop.logo} style={styles.shopLogo} resizeMode="cover" />
+            ) : (
+              <Text style={[styles.avatarText, { color: tokens.colors.background }]}>{shop.name.slice(0, 1)}</Text>
+            )}
           </View>
           <View style={styles.cardTitleBlock}>
             <View style={styles.titleRow}>
@@ -200,6 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   avatarPremium: {
     backgroundColor: palette.orange,
@@ -207,6 +212,10 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
     fontWeight: '900',
+  },
+  shopLogo: {
+    width: '100%',
+    height: '100%',
   },
   cardTitleBlock: {
     flex: 1,

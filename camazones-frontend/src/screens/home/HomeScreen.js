@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation, appSettings }) {
       return undefined;
     }
 
-    const cardStep = 192;
+    const cardStep = 296;
     const timer = setInterval(() => {
       setCarouselIndex((current) => {
         const next = (current + 1) % trendingItems.length;
@@ -75,7 +75,7 @@ export default function HomeScreen({ navigation, appSettings }) {
           <Text style={[styles.viewAll, { color: colors.primary }]}>{t('quick')}</Text>
         </View>
 
-        <View style={styles.categoryRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
           {categories.map((category) => (
             <Pressable key={category.id} onPress={() => navigation.navigate('Products')} style={styles.categoryItem}>
               <View style={[styles.categoryIcon, { backgroundColor: cardSurface, borderColor: line }]}>
@@ -84,7 +84,7 @@ export default function HomeScreen({ navigation, appSettings }) {
               <Text style={[styles.categoryLabel, { color: colors.text }]}>{t(category.id) || category.label}</Text>
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
 
         <Surface style={styles.banner}>
           <View style={styles.bannerOrange} />
@@ -351,11 +351,10 @@ const styles = StyleSheet.create({
   categoryRow: {
     paddingHorizontal: 18,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 10,
   },
   categoryItem: {
-    flex: 1,
+    width: 78,
     alignItems: 'center',
     gap: 8,
   },
@@ -442,10 +441,10 @@ const styles = StyleSheet.create({
     width: 18,
   },
   trendCard: {
-    width: 180,
-    minHeight: 268,
-    borderRadius: 20,
-    padding: 10,
+    width: 284,
+    minHeight: 374,
+    borderRadius: 24,
+    padding: 12,
     backgroundColor: palette.card,
     borderWidth: 1,
     borderColor: overlay.line,
@@ -458,8 +457,8 @@ const styles = StyleSheet.create({
   },
   trendImage: {
     width: '100%',
-    height: 138,
-    borderRadius: 16,
+    height: 226,
+    borderRadius: 19,
     backgroundColor: palette.khaki,
   },
   productGrid: {

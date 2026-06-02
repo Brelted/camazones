@@ -15,15 +15,15 @@ export const palette = {
 };
 
 export const darkPalette = {
-  background: '#14161B',
-  surface: '#20242B',
-  text: '#F6F1EA',
-  primary: '#C8A878',
-  secondary: '#D8793A',
-  orange: '#D8793A',
-  green: '#74A57F',
-  muted: 'rgba(246, 241, 234, 0.68)',
-  line: 'rgba(246, 241, 234, 0.14)',
+  background: '#070908',
+  surface: '#10140F',
+  text: '#F6E7CA',
+  primary: '#FF6A18',
+  secondary: '#97B06A',
+  orange: '#FF6A18',
+  green: '#34D37C',
+  muted: 'rgba(246, 231, 202, 0.68)',
+  line: 'rgba(246, 231, 202, 0.13)',
 };
 
 export const overlay = {

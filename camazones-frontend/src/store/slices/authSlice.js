@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { AUTH_STORAGE_KEY } from '../../services/apiConfig';
 import { loginRequest, registerRequest } from '../../services/authService';
+import { sendWelcomeEmail } from '../../services/notificationService';
 import { storage } from '../../services/storage';
 
 const initialState = {
@@ -103,6 +104,12 @@ export const login = (credentials) => async (dispatch) => {
 
     await storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
     dispatch(authSuccess(authData));
+    if (response?.demo) {
+      sendWelcomeEmail({
+        email: authData.user.email,
+        customerName: `${authData.user.firstName ?? ''} ${authData.user.lastName ?? ''}`.trim() || 'Client Camazones',
+      }).catch(() => {});
+    }
     return authData;
   } catch (error) {
     dispatch(authFailure(getErrorMessage(error)));

@@ -7,6 +7,8 @@ const productImages = {
   koa_chemise_lin: require('../../assets/products/camazone-catalog/koa-chemise-lin-chemise-lin-creme.jpg'),
   koa_veste_city: require('../../assets/products/camazone-catalog/koa-veste-city-veste-city-noire.jpg'),
   koa_parfum_bois: require('../../assets/products/camazone-catalog/koa-parfum-bois-parfum-bois-doux.jpg'),
+  koa_ceinture_tresse: require('../../assets/products/camazone-catalog/koa-ceinture-tresse-ceinture-tressee.jpg'),
+  koa_sandales_nuit: require('../../assets/products/camazone-catalog/koa-sandales-nuit-sandales-nuit.jpg'),
   talia_mini_bag: require('../../assets/products/camazone-catalog/talia-mini-bag-mini-bag-cyan.jpg'),
   talia_robe_sand: require('../../assets/products/camazone-catalog/talia-robe-sand-robe-sand.jpg'),
   talia_basic_tee: require('../../assets/products/camazone-catalog/talia-basic-tee-t-shirt-basic.jpg'),
@@ -15,6 +17,8 @@ const productImages = {
   talia_watch_clean: require('../../assets/products/camazone-catalog/talia-watch-clean-clean-watch.jpg'),
   talia_jacket_city: require('../../assets/products/camazone-catalog/talia-jacket-city-city-jacket.jpg'),
   talia_perfume_soft: require('../../assets/products/camazone-catalog/talia-perfume-soft-soft-perfume.jpg'),
+  talia_jupe_crepe: require('../../assets/products/camazone-catalog/talia-jupe-crepe-jupe-crepe.jpg'),
+  talia_foulard_satin: require('../../assets/products/camazone-catalog/talia-foulard-satin-foulard-satin.jpg'),
   noma_smartphone_clear: require('../../assets/products/camazone-catalog/noma-smartphone-clear-smartphone-clear-x.jpg'),
   noma_laptop_desk: require('../../assets/products/camazone-catalog/noma-laptop-desk-laptop-desk-14.jpg'),
   noma_casque_pro: require('../../assets/products/camazone-catalog/noma-casque-pro-casque-noma-pro.jpg'),
@@ -23,6 +27,8 @@ const productImages = {
   noma_clavier_slate: require('../../assets/products/camazone-catalog/noma-clavier-slate-clavier-slate.jpg'),
   noma_camera_compact: require('../../assets/products/camazone-catalog/noma-camera-compact-camera-compact.jpg'),
   noma_earbuds_fast: require('../../assets/products/camazone-catalog/noma-earbuds-fast-earbuds-fast.jpg'),
+  noma_power_bank_30k: require('../../assets/products/camazone-catalog/noma-power-bank-30k-power-bank-30k.jpg'),
+  noma_router_wifi_pro: require('../../assets/products/camazone-catalog/noma-router-wifi-pro-router-wifi-pro.jpg'),
   sony_xperia_slim: require('../../assets/products/camazone-catalog/sony-xperia-slim-sony-xperia-slim.jpg'),
   sony_tv_bravia_55: require('../../assets/products/camazone-catalog/sony-tv-bravia-55-sony-tv-bravia-55.jpg'),
   sony_wh_headset: require('../../assets/products/camazone-catalog/sony-wh-headset-casque-sony-wh.jpg'),
@@ -31,6 +37,8 @@ const productImages = {
   sony_speaker_go: require('../../assets/products/camazone-catalog/sony-speaker-go-speaker-sony-go.jpg'),
   sony_earbuds_sense: require('../../assets/products/camazone-catalog/sony-earbuds-sense-sony-earbuds-sense.jpg'),
   sony_soundbar_cinema: require('../../assets/products/camazone-catalog/sony-soundbar-cinema-sony-soundbar-cinema.jpg'),
+  sony_ps5_slim: require('../../assets/products/camazone-catalog/sony-ps5-slim-playstation-5-slim.jpg'),
+  sony_dualsense: require('../../assets/products/camazone-catalog/sony-dualsense-manette-dualsense.jpg'),
   sawa_basic_tee: require('../../assets/products/camazone-catalog/sawa-basic-tee-basic-tee-coton.jpg'),
   sawa_mini_bag: require('../../assets/products/camazone-catalog/sawa-mini-bag-mini-bag-orange.jpg'),
   sawa_airbuds_lite: require('../../assets/products/camazone-catalog/sawa-airbuds-lite-airbuds-lite.jpg'),
@@ -39,6 +47,8 @@ const productImages = {
   sawa_perfume_clear: require('../../assets/products/camazone-catalog/sawa-perfume-clear-perfume-clear.jpg'),
   sawa_red_sneaker: require('../../assets/products/camazone-catalog/sawa-red-sneaker-red-sneaker.jpg'),
   sawa_laptop_air: require('../../assets/products/camazone-catalog/sawa-laptop-air-laptop-air-13.jpg'),
+  sawa_sandale_beach: require('../../assets/products/camazone-catalog/sawa-sandale-beach-sandale-beach.jpg'),
+  sawa_blender_compact: require('../../assets/products/camazone-catalog/sawa-blender-compact-blender-compact.jpg'),
   mboa_collier_or: require('../../assets/products/camazone-catalog/mboa-collier-or-collier-or-mboa.jpg'),
   mboa_bague_saphir: require('../../assets/products/camazone-catalog/mboa-bague-saphir-bague-saphir.jpg'),
   mboa_bracelet_cuir: require('../../assets/products/camazone-catalog/mboa-bracelet-cuir-bracelet-cuir.jpg'),
@@ -47,6 +57,8 @@ const productImages = {
   mboa_chaine_argent: require('../../assets/products/camazone-catalog/mboa-chaine-argent-chaine-argent.jpg'),
   mboa_parure_douce: require('../../assets/products/camazone-catalog/mboa-parure-douce-parure-douce.jpg'),
   mboa_bague_mariage: require('../../assets/products/camazone-catalog/mboa-bague-mariage-bague-mariage.jpg'),
+  mboa_broche_emeraude: require('../../assets/products/camazone-catalog/mboa-broche-emeraude-broche-emeraude.jpg'),
+  mboa_coffret_bijoux: require('../../assets/products/camazone-catalog/mboa-coffret-bijoux-coffret-bijoux.jpg'),
   oud_royal: require('../../assets/products/camazone-catalog/oud-royal-oud-royal.jpg'),
   oud_vanille: require('../../assets/products/camazone-catalog/oud-vanille-vanille-ambree.jpg'),
   oud_musc_blanc: require('../../assets/products/camazone-catalog/oud-musc-blanc-musc-blanc.jpg'),
@@ -55,6 +67,8 @@ const productImages = {
   oud_brume_florale: require('../../assets/products/camazone-catalog/oud-brume-florale-brume-florale.jpg'),
   oud_creme_main: require('../../assets/products/camazone-catalog/oud-creme-main-creme-main.jpg'),
   oud_savon_noir: require('../../assets/products/camazone-catalog/oud-savon-noir-savon-noir.jpg'),
+  oud_encens_ambre: require('../../assets/products/camazone-catalog/oud-encens-ambre-encens-ambre.jpg'),
+  oud_diffuseur_oud: require('../../assets/products/camazone-catalog/oud-diffuseur-oud-diffuseur-oud.jpg'),
   sika_marmite_alu: require('../../assets/products/camazone-catalog/sika-marmite-alu-marmite-alu-12l.jpg'),
   sika_poele_granit: require('../../assets/products/camazone-catalog/sika-poele-granit-poele-granit.jpg'),
   sika_set_couteaux: require('../../assets/products/camazone-catalog/sika-set-couteaux-set-couteaux.jpg'),
@@ -63,6 +77,8 @@ const productImages = {
   sika_verres_clean: require('../../assets/products/camazone-catalog/sika-verres-clean-verres-clean.jpg'),
   sika_bouilloire_inoX: require('../../assets/products/camazone-catalog/sika-bouilloire-inoX-bouilloire-inox.jpg'),
   sika_range_epices: require('../../assets/products/camazone-catalog/sika-range-epices-range-epices.jpg'),
+  sika_planche_bambou: require('../../assets/products/camazone-catalog/sika-planche-bambou-planche-bambou.jpg'),
+  sika_thermos_1l: require('../../assets/products/camazone-catalog/sika-thermos-1l-thermos-1l.jpg'),
   vision_tv_43: require('../../assets/products/camazone-catalog/vision-tv-43-tv-vision-43-4k.jpg'),
   vision_tv_65: require('../../assets/products/camazone-catalog/vision-tv-65-tv-vision-65-oled.jpg'),
   vision_projecteur_mini: require('../../assets/products/camazone-catalog/vision-projecteur-mini-projecteur-mini.jpg'),
@@ -71,6 +87,8 @@ const productImages = {
   vision_climatiseur_12k: require('../../assets/products/camazone-catalog/vision-climatiseur-12k-climatiseur-12k.jpg'),
   vision_ventilateur_pro: require('../../assets/products/camazone-catalog/vision-ventilateur-pro-ventilateur-pro.jpg'),
   vision_regulateur: require('../../assets/products/camazone-catalog/vision-regulateur-regulateur-tension.jpg'),
+  vision_frigo_compact: require('../../assets/products/camazone-catalog/vision-frigo-compact-frigo-compact.jpg'),
+  vision_camera_interieur: require('../../assets/products/camazone-catalog/vision-camera-interieur-camera-interieur.jpg'),
   kids_robe_fille: require('../../assets/products/camazone-catalog/kids-robe-fille-robe-fille-rose.jpg'),
   kids_basket_school: require('../../assets/products/camazone-catalog/kids-basket-school-basket-school.jpg'),
   kids_sac_ecole: require('../../assets/products/camazone-catalog/kids-sac-ecole-sac-ecole-bleu.jpg'),
@@ -79,12 +97,35 @@ const productImages = {
   kids_casque_mini: require('../../assets/products/camazone-catalog/kids-casque-mini-casque-mini.jpg'),
   kids_montre_fun: require('../../assets/products/camazone-catalog/kids-montre-fun-montre-fun-kids.jpg'),
   kids_parfum_doux: require('../../assets/products/camazone-catalog/kids-parfum-doux-parfum-doux-kids.jpg'),
+  kids_jeu_construction: require('../../assets/products/camazone-catalog/kids-jeu-construction-jeu-construction.jpg'),
+  kids_tablette_edu: require('../../assets/products/camazone-catalog/kids-tablette-edu-tablette-edu.jpg'),
+};
+const shopLogos = {
+  atelier_koa: require('../../assets/shops/logos/atelier-koa.png'),
+  talia_closet: require('../../assets/shops/logos/talia-closet.png'),
+  studio_noma: require('../../assets/shops/logos/studio-noma.png'),
+  sony_store: require('../../assets/shops/logos/sony-store.png'),
+  sawa_deals: require('../../assets/shops/logos/sawa-deals.png'),
+  bijoux_mboa: require('../../assets/shops/logos/bijoux-mboa.png'),
+  maison_oud: require('../../assets/shops/logos/maison-oud.png'),
+  cuisine_sika: require('../../assets/shops/logos/cuisine-sika.png'),
+  vision_home: require('../../assets/shops/logos/vision-home.png'),
+  mboa_kids: require('../../assets/shops/logos/mboa-kids.png'),
 };
 export const categories = [
-  { id: 'clothes', label: 'Vetements', icon: '??' },
-  { id: 'gadgets', label: 'Gadgets', icon: '??' },
-  { id: 'shoes', label: 'Chaussures', icon: '??' },
-  { id: 'more', label: 'Maison', icon: '??' },
+  { id: 'all', label: 'Toutes', icon: '◆', match: null },
+  { id: 'clothes', label: 'Vetements', icon: '▣', match: 'Vetements' },
+  { id: 'gadgets', label: 'Gadgets', icon: '◈', match: 'Gadgets' },
+  { id: 'accessories', label: 'Accessoires', icon: '◌', match: 'Accessoires' },
+  { id: 'phones', label: 'Telephones', icon: '▤', match: 'Telephones' },
+  { id: 'tv', label: 'TV', icon: '▰', match: 'Televisions' },
+  { id: 'audio', label: 'Audio', icon: '◉', match: 'Audio' },
+  { id: 'gaming', label: 'Gaming', icon: '▸', match: 'Gaming' },
+  { id: 'beauty', label: 'Parfums', icon: '✦', match: 'Parfums' },
+  { id: 'jewelry', label: 'Bijoux', icon: '◇', match: 'Bijoux' },
+  { id: 'appliances', label: 'Electro', icon: '◧', match: 'Electromenager' },
+  { id: 'home', label: 'Maison', icon: '⌂', match: 'Ustensiles' },
+  { id: 'shoes', label: 'Chaussures', icon: '▲', match: 'Chaussures' },
 ];
 
 export const profilePhotos = [
@@ -116,6 +157,7 @@ export const shops = [
     visibilityRank: 98,
     speciality: 'Mode premium',
     tagline: 'Pieces sobres, accessoires durables et finitions elegantes pour une vitrine haut de gamme.',
+    logo: shopLogos.atelier_koa,
     cover: productImages.koa_sac_kaya,
     products: [
       product('koa-sac-kaya', 'Sac Kaya cuir', productImages.koa_sac_kaya, 'Accessoires', '35 000 FCFA', 'En stock', 'Sac cuir structure, fermeture solide et finition doree discrete.', { premium: true, certified: true }),
@@ -126,6 +168,8 @@ export const shops = [
       product('koa-chemise-lin', 'Chemise Lin creme', productImages.koa_chemise_lin, 'Vetements', '24 000 FCFA', '10 pieces', 'Chemise respirante, coupe droite et teinte naturelle.'),
       product('koa-veste-city', 'Veste City noire', productImages.koa_veste_city, 'Vetements', '34 500 FCFA', 'En stock', 'Veste noire elegante, coupe urbaine et finition premium.', { certified: true }),
       product('koa-parfum-bois', 'Parfum Bois doux', productImages.koa_parfum_bois, 'Parfums', '31 000 FCFA', '5 pieces', 'Parfum boise doux, flacon sobre et tenue longue.', { premium: true }),
+      product('koa-ceinture-tresse', 'Ceinture Tressee', productImages.koa_ceinture_tresse, 'Accessoires', '18 500 FCFA', '14 pieces', 'Ceinture tressee solide avec boucle metal sobre.', { certified: true }),
+      product('koa-sandales-nuit', 'Sandales Nuit', productImages.koa_sandales_nuit, 'Chaussures', '27 000 FCFA', '8 paires', 'Sandales noires confortables avec finition chic.', { premium: true }),
     ],
   },
   {
@@ -139,6 +183,7 @@ export const shops = [
     visibilityRank: 84,
     speciality: 'Vetements tendance',
     tagline: 'Robes, chemises, sacs et bijoux modernes pour achats rapides.',
+    logo: shopLogos.talia_closet,
     cover: productImages.talia_mini_bag,
     products: [
       product('talia-mini-bag', 'Mini Bag cyan', productImages.talia_mini_bag, 'Accessoires', '28 000 FCFA', '7 pieces', 'Petit sac cyan, format ville et bandouliere solide.', { certified: true }),
@@ -149,6 +194,8 @@ export const shops = [
       product('talia-watch-clean', 'Clean Watch', productImages.talia_watch_clean, 'Bijoux', '22 000 FCFA', '6 pieces', 'Montre fine avec bracelet cuir et cadran lisible.'),
       product('talia-jacket-city', 'City Jacket', productImages.talia_jacket_city, 'Vetements', '34 000 FCFA', 'En stock', 'Veste urbaine legere pour soiree et travail.'),
       product('talia-perfume-soft', 'Soft Perfume', productImages.talia_perfume_soft, 'Parfums', '31 000 FCFA', '3 pieces', 'Parfum feminin doux avec note florale propre.'),
+      product('talia-jupe-crepe', 'Jupe Crepe', productImages.talia_jupe_crepe, 'Vetements', '18 500 FCFA', '11 pieces', 'Jupe crepe elegante, coupe fluide et couleur douce.'),
+      product('talia-foulard-satin', 'Foulard Satin', productImages.talia_foulard_satin, 'Accessoires', '9 500 FCFA', 'En stock', 'Foulard satin leger pour finir une tenue propre.'),
     ],
   },
   {
@@ -162,6 +209,7 @@ export const shops = [
     visibilityRank: 91,
     speciality: 'Tech et mobilite',
     tagline: 'Telephones, laptops et accessoires tech fiables avec service rapide.',
+    logo: shopLogos.studio_noma,
     cover: productImages.noma_smartphone_clear,
     products: [
       product('noma-smartphone-clear', 'Smartphone Clear X', productImages.noma_smartphone_clear, 'Telephones', '145 000 FCFA', '12 pieces', 'Telephone 128 Go, ecran net et batterie longue duree.', { premium: true }),
@@ -172,6 +220,8 @@ export const shops = [
       product('noma-clavier-slate', 'Clavier Slate', productImages.noma_clavier_slate, 'Bureau', '32 000 FCFA', '4 pieces', 'Clavier silencieux, format bureau et touches stables.'),
       product('noma-camera-compact', 'Camera Compact', productImages.noma_camera_compact, 'Cameras', '175 000 FCFA', 'En stock', 'Camera compacte pour photos produits et contenu boutique.', { premium: true }),
       product('noma-earbuds-fast', 'Earbuds Fast', productImages.noma_earbuds_fast, 'Audio', '25 000 FCFA', 'En stock', 'Ecouteurs sans fil avec boitier compact et connexion rapide.'),
+      product('noma-power-bank-30k', 'Power Bank 30K', productImages.noma_power_bank_30k, 'Gadgets', '34 000 FCFA', '9 pieces', 'Batterie externe 30000 mAh avec charge rapide.', { premium: true }),
+      product('noma-router-wifi-pro', 'Router Wifi Pro', productImages.noma_router_wifi_pro, 'Gadgets', '45 000 FCFA', '6 pieces', 'Routeur wifi stable pour maison et petite boutique.'),
     ],
   },
   {
@@ -185,6 +235,7 @@ export const shops = [
     visibilityRank: 96,
     speciality: 'Sony mobile audio TV',
     tagline: 'Telephones, TV, cameras et audio Sony avec garantie boutique.',
+    logo: shopLogos.sony_store,
     cover: productImages.sony_xperia_slim,
     products: [
       product('sony-xperia-slim', 'Sony Xperia Slim', productImages.sony_xperia_slim, 'Telephones', '390 000 FCFA', '5 pieces', 'Smartphone Sony premium, ecran OLED et charge rapide.', { premium: true, certified: true }),
@@ -195,6 +246,8 @@ export const shops = [
       product('sony-speaker-go', 'Speaker Sony Go', productImages.sony_speaker_go, 'Audio', '45 000 FCFA', '12 pieces', 'Enceinte Sony compacte, basse claire et bluetooth stable.'),
       product('sony-earbuds-sense', 'Sony Earbuds Sense', productImages.sony_earbuds_sense, 'Audio', '42 000 FCFA', '10 pieces', 'Ecouteurs Sony compacts, boitier propre et autonomie fiable.', { certified: true }),
       product('sony-soundbar-cinema', 'Sony Soundbar Cinema', productImages.sony_soundbar_cinema, 'Audio', '180 000 FCFA', '4 pieces', 'Barre de son salon, rendu cinema et design sobre.', { premium: true }),
+      product('sony-ps5-slim', 'PlayStation 5 Slim', productImages.sony_ps5_slim, 'Gaming', '440 000 FCFA', '3 pieces', 'Console PlayStation 5 Slim neuve avec garantie Sony.', { premium: true, certified: true }),
+      product('sony-dualsense', 'Manette DualSense', productImages.sony_dualsense, 'Gaming', '55 000 FCFA', '8 pieces', 'Manette DualSense originale, retour haptique et finition propre.', { certified: true }),
     ],
   },
   {
@@ -208,6 +261,7 @@ export const shops = [
     visibilityRank: 73,
     speciality: 'Prix doux et mixte',
     tagline: 'Selection mixte avec prix visibles, gadgets, mode et accessoires.',
+    logo: shopLogos.sawa_deals,
     cover: productImages.sawa_basic_tee,
     products: [
       product('sawa-basic-tee', 'Basic Tee coton', productImages.sawa_basic_tee, 'Vetements', '8 500 FCFA', 'En stock', 'T-shirt coton propre pour usage quotidien.'),
@@ -218,6 +272,8 @@ export const shops = [
       product('sawa-perfume-clear', 'Perfume Clear', productImages.sawa_perfume_clear, 'Parfums', '24 000 FCFA', '9 pieces', 'Parfum frais, flacon clair et senteur propre.'),
       product('sawa-red-sneaker', 'Red Sneaker', productImages.sawa_red_sneaker, 'Chaussures', '38 000 FCFA', 'En stock', 'Sneaker rouge visible, semelle souple et style street.'),
       product('sawa-laptop-air', 'Laptop Air 13', productImages.sawa_laptop_air, 'Ordinateurs', '260 000 FCFA', '6 pieces', 'Laptop leger 13 pouces pour etudes et bureau.'),
+      product('sawa-sandale-beach', 'Sandale Beach', productImages.sawa_sandale_beach, 'Chaussures', '16 000 FCFA', '18 paires', 'Sandale legere pour plage et marche quotidienne.'),
+      product('sawa-blender-compact', 'Blender Compact', productImages.sawa_blender_compact, 'Electromenager', '32 000 FCFA', '7 pieces', 'Blender compact pour jus frais et cuisine rapide.'),
     ],
   },
   {
@@ -231,6 +287,7 @@ export const shops = [
     visibilityRank: 82,
     speciality: 'Bijoux et montres',
     tagline: 'Bagues, colliers, bracelets et montres pour cadeaux elegants.',
+    logo: shopLogos.bijoux_mboa,
     cover: productImages.mboa_collier_or,
     products: [
       product('mboa-collier-or', 'Collier Or Mboa', productImages.mboa_collier_or, 'Bijoux', '85 000 FCFA', '6 pieces', 'Collier couleur or, maillons fins et boite cadeau.', { certified: true }),
@@ -241,6 +298,8 @@ export const shops = [
       product('mboa-chaine-argent', 'Chaine Argent', productImages.mboa_chaine_argent, 'Bijoux', '45 000 FCFA', '7 pieces', 'Chaine argent brillante, longueur moyenne.'),
       product('mboa-parure-douce', 'Parure Douce', productImages.mboa_parure_douce, 'Bijoux', '95 000 FCFA', '3 sets', 'Parure collier et boucles pour ceremonie.', { premium: true, certified: true }),
       product('mboa-bague-mariage', 'Bague Mariage', productImages.mboa_bague_mariage, 'Bijoux', '120 000 FCFA', '2 pieces', 'Bague premium avec finition lisse et coffret.', { premium: true, certified: true }),
+      product('mboa-broche-emeraude', 'Broche Emeraude', productImages.mboa_broche_emeraude, 'Bijoux', '35 000 FCFA', '5 pieces', 'Broche elegante couleur emeraude pour veste et robe.', { certified: true }),
+      product('mboa-coffret-bijoux', 'Coffret Bijoux', productImages.mboa_coffret_bijoux, 'Bijoux', '25 000 FCFA', 'En stock', 'Coffret de rangement bijoux, doux et compact.'),
     ],
   },
   {
@@ -254,6 +313,7 @@ export const shops = [
     visibilityRank: 89,
     speciality: 'Parfums et soins',
     tagline: 'Parfums doux, huiles et coffrets pour une signature elegante.',
+    logo: shopLogos.maison_oud,
     cover: productImages.oud_royal,
     products: [
       product('oud-royal', 'Oud Royal', productImages.oud_royal, 'Parfums', '85 000 FCFA', '5 pieces', 'Parfum oud profond, flacon lourd et tenue longue.', { premium: true, certified: true }),
@@ -264,6 +324,8 @@ export const shops = [
       product('oud-brume-florale', 'Brume Florale', productImages.oud_brume_florale, 'Parfums', '21 000 FCFA', '8 pieces', 'Brume legere florale pour usage quotidien.'),
       product('oud-creme-main', 'Creme Main', productImages.oud_creme_main, 'Soins', '9 500 FCFA', 'En stock', 'Creme mains hydratante, parfum doux.'),
       product('oud-savon-noir', 'Savon Noir', productImages.oud_savon_noir, 'Soins', '7 500 FCFA', '20 pieces', 'Savon noir naturel pour routine soin.'),
+      product('oud-encens-ambre', 'Encens Ambre', productImages.oud_encens_ambre, 'Parfums', '12 000 FCFA', '15 pieces', 'Encens ambre doux pour maison et boutique.'),
+      product('oud-diffuseur-oud', 'Diffuseur Oud', productImages.oud_diffuseur_oud, 'Parfums', '29 000 FCFA', '8 pieces', 'Diffuseur oud discret avec batonnets et flacon sobre.', { premium: true }),
     ],
   },
   {
@@ -277,6 +339,7 @@ export const shops = [
     visibilityRank: 78,
     speciality: 'Ustensiles cuisine',
     tagline: 'Ustensiles solides, marmites, mixeurs et accessoires maison.',
+    logo: shopLogos.cuisine_sika,
     cover: productImages.sika_marmite_alu,
     products: [
       product('sika-marmite-alu', 'Marmite Alu 12L', productImages.sika_marmite_alu, 'Ustensiles', '28 000 FCFA', '12 pieces', 'Marmite aluminium 12 litres, couvercle solide.'),
@@ -287,6 +350,8 @@ export const shops = [
       product('sika-verres-clean', 'Verres Clean', productImages.sika_verres_clean, 'Vaisselle', '12 000 FCFA', '15 sets', 'Set de verres transparents pour table familiale.'),
       product('sika-bouilloire-inoX', 'Bouilloire Inox', productImages.sika_bouilloire_inoX, 'Electromenager', '24 500 FCFA', '7 pieces', 'Bouilloire inox rapide avec poignee isolee.'),
       product('sika-range-epices', 'Range Epices', productImages.sika_range_epices, 'Ustensiles', '9 500 FCFA', 'En stock', 'Petit rangement epices, pratique pour plan de travail.'),
+      product('sika-planche-bambou', 'Planche Bambou', productImages.sika_planche_bambou, 'Ustensiles', '8 500 FCFA', 'En stock', 'Planche bambou solide pour decoupe propre.'),
+      product('sika-thermos-1l', 'Thermos 1L', productImages.sika_thermos_1l, 'Ustensiles', '11 500 FCFA', '16 pieces', 'Thermos 1 litre garde chaud et froid pendant la journee.'),
     ],
   },
   {
@@ -300,6 +365,7 @@ export const shops = [
     visibilityRank: 93,
     speciality: 'TV et maison',
     tagline: 'Televisions, son, appareils maison et livraison securisee.',
+    logo: shopLogos.vision_home,
     cover: productImages.vision_tv_43,
     products: [
       product('vision-tv-43', 'TV Vision 43 4K', productImages.vision_tv_43, 'Televisions', '265 000 FCFA', '6 pieces', 'Television 43 pouces 4K, image claire et cadre fin.', { premium: true, certified: true }),
@@ -310,6 +376,8 @@ export const shops = [
       product('vision-climatiseur-12k', 'Climatiseur 12K', productImages.vision_climatiseur_12k, 'Electromenager', '320 000 FCFA', '3 pieces', 'Climatiseur 12000 BTU, froid rapide et faible bruit.', { premium: true }),
       product('vision-ventilateur-pro', 'Ventilateur Pro', productImages.vision_ventilateur_pro, 'Electromenager', '42 000 FCFA', '8 pieces', 'Ventilateur puissant avec pied reglable.'),
       product('vision-regulateur', 'Regulateur Tension', productImages.vision_regulateur, 'Accessoires', '35 000 FCFA', '10 pieces', 'Regulateur pour proteger TV et appareils sensibles.'),
+      product('vision-frigo-compact', 'Frigo Compact', productImages.vision_frigo_compact, 'Electromenager', '210 000 FCFA', '4 pieces', 'Frigo compact pour studio, chambre et petite boutique.', { premium: true }),
+      product('vision-camera-interieur', 'Camera Interieur', productImages.vision_camera_interieur, 'Securite', '65 000 FCFA', '8 pieces', 'Camera interieur connectee pour surveillance maison.'),
     ],
   },
   {
@@ -323,6 +391,7 @@ export const shops = [
     visibilityRank: 74,
     speciality: 'Famille et enfants',
     tagline: 'Vetements enfants, sacs, petits accessoires et articles utiles.',
+    logo: shopLogos.mboa_kids,
     cover: productImages.kids_robe_fille,
     products: [
       product('kids-robe-fille', 'Robe Fille Rose', productImages.kids_robe_fille, 'Vetements', '15 000 FCFA', '12 pieces', 'Robe enfant rose, tissu doux et coupe confortable.'),
@@ -333,6 +402,8 @@ export const shops = [
       product('kids-casque-mini', 'Casque Mini', productImages.kids_casque_mini, 'Audio', '16 500 FCFA', '8 pieces', 'Casque enfant volume limite et mousse douce.'),
       product('kids-montre-fun', 'Montre Fun Kids', productImages.kids_montre_fun, 'Accessoires', '9 500 FCFA', '10 pieces', 'Montre enfant coloree et facile a lire.'),
       product('kids-parfum-doux', 'Parfum Doux Kids', productImages.kids_parfum_doux, 'Parfums', '11 000 FCFA', '6 pieces', 'Petite eau parfumee douce pour enfant.'),
+      product('kids-jeu-construction', 'Jeu Construction', productImages.kids_jeu_construction, 'Jouets', '21 000 FCFA', '10 pieces', 'Jeu de construction enfant, pieces colorees et solides.'),
+      product('kids-tablette-edu', 'Tablette Edu', productImages.kids_tablette_edu, 'Gadgets', '58 000 FCFA', '5 pieces', 'Tablette educative enfant avec coque renforcee.'),
     ],
   },
 ];
@@ -460,6 +531,17 @@ export const accountTypes = [
 
 export const getAllProducts = () =>
   shops.flatMap((shop) => shop.products.map((item) => ({ product: item, seller: shop, sellerType: 'shop' })));
+
+export const shopAccountMap = shops.reduce((accumulator, shop) => {
+  accumulator[shop.email.toLowerCase()] = shop.id;
+  return accumulator;
+}, {
+  'sony@camazones.demo': 'sony-store',
+  'koa@camazones.demo': 'atelier-koa',
+  'talia@camazones.demo': 'talia-closet',
+  'noma@camazones.demo': 'studio-noma',
+  'sawa@camazones.demo': 'sawa-deals',
+});
 
 export const getRankedProducts = () =>
   [...getAllProducts()].sort((left, right) => {

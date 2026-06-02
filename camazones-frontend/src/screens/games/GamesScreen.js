@@ -11,7 +11,7 @@ const gameCatalog = [
   { id: 'fruits', label: 'Fruit Slash', icon: '🍉', text: 'Tape les fruits, evite les bombes', engine: 'fruit' },
   { id: 'ninja', label: 'Ninja Cut', icon: '🥷', text: 'Version rapide facon ninja', engine: 'fruit' },
   { id: 'coins', label: 'Coin Tap', icon: '🪙', text: 'Clique la piece avant le timer', engine: 'tap' },
-  { id: 'memory', label: 'Memory Shop', icon: '🧠', text: 'Reflexe et concentration', engine: 'tap' },
+  { id: 'memory', label: 'Memory Coins', icon: 'M', text: 'Memorise la piece, fond fatal', engine: 'memory' },
   { id: 'runner', label: 'Market Run', icon: '🏃', text: 'Mini challenge vendeur', engine: 'tap' },
 ];
 
@@ -64,6 +64,8 @@ export default function GamesScreen({ navigation, appSettings }) {
             <SnakeGame colors={colors} muted={muted} line={line} darkMode={darkMode} />
           ) : activeGame.engine === 'fruit' ? (
             <FruitSlashGame colors={colors} muted={muted} line={line} darkMode={darkMode} title={activeGame.label} />
+          ) : activeGame.engine === 'memory' ? (
+            <MemoryCoinGame colors={colors} muted={muted} line={line} darkMode={darkMode} />
           ) : (
             <TapMiniGame colors={colors} muted={muted} line={line} darkMode={darkMode} title={activeGame.label} icon={activeGame.icon} />
           )}
@@ -286,6 +288,106 @@ function FruitSlashGame({ colors, muted, line, darkMode, title }) {
   );
 }
 
+function MemoryCoinGame({ colors, muted, line, darkMode }) {
+  const createRound = () => {
+    const coins = Array.from({ length: 6 }, (_, index) => ({
+      id: `coin-${index}`,
+      x: 10 + (index % 3) * 31 + Math.random() * 5,
+      y: 14 + Math.floor(index / 3) * 38 + Math.random() * 5,
+    }));
+    return { coins, targetId: coins[Math.floor(Math.random() * coins.length)].id };
+  };
+  const [round, setRound] = useState(createRound);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(9);
+  const [running, setRunning] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
+
+  useEffect(() => {
+    if (!running || gameOver) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      setTimeLeft((current) => {
+        if (current <= 1) {
+          setRunning(false);
+          setGameOver(true);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 720);
+    return () => clearInterval(timer);
+  }, [running, gameOver]);
+
+  const lose = () => {
+    if (!gameOver) {
+      setRunning(false);
+      setGameOver(true);
+    }
+  };
+
+  const tapCoin = (coin, event) => {
+    event?.stopPropagation?.();
+    if (gameOver) {
+      return;
+    }
+    if (coin.id !== round.targetId) {
+      lose();
+      return;
+    }
+    const nextScore = score + 1;
+    setScore(nextScore);
+    setTimeLeft(Math.max(4, 9 - nextScore));
+    setRound(createRound());
+  };
+
+  const reset = () => {
+    setRound(createRound());
+    setScore(0);
+    setTimeLeft(9);
+    setRunning(true);
+    setGameOver(false);
+  };
+
+  return (
+    <View style={styles.gameContent}>
+      <GameHeader title="Memory Coins" score={score} muted={muted} colors={colors} extra={gameOver ? 'Perdu: mauvais toucher ou temps fini' : `Temps: ${timeLeft}s`} />
+      <Pressable onPress={lose} style={[styles.memoryArena, { borderColor: gameOver ? palette.orange : line, backgroundColor: darkMode ? palette.dark : overlay.soft }]}>
+        {round.coins.map((coin) => {
+          const active = coin.id === round.targetId;
+          return (
+            <Pressable
+              key={coin.id}
+              onPress={(event) => tapCoin(coin, event)}
+              style={[
+                styles.memoryCoin,
+                {
+                  left: `${coin.x}%`,
+                  top: `${coin.y}%`,
+                  backgroundColor: active ? colors.orange ?? palette.orange : colors.green ?? palette.green,
+                  borderColor: active ? palette.text : colors.primary,
+                  opacity: gameOver ? 0.5 : 1,
+                },
+              ]}
+            >
+              <Text style={styles.memoryCoinText}>{active ? '$' : '¢'}</Text>
+            </Pressable>
+          );
+        })}
+        <View pointerEvents="none" style={styles.memoryRule}>
+          <Text style={[styles.memoryRuleText, { color: muted }]}>Touche uniquement la piece orange.</Text>
+        </View>
+      </Pressable>
+      {gameOver ? (
+        <Button compact mode="contained" onPress={reset} buttonColor={colors.primary} textColor={colors.background}>Rejouer</Button>
+      ) : (
+        <Button compact mode="outlined" onPress={() => setRunning((value) => !value)}>{running ? 'Pause' : 'Play'}</Button>
+      )}
+    </View>
+  );
+}
+
 function TapMiniGame({ colors, muted, line, darkMode, title, icon }) {
   const [score, setScore] = useState(0);
   const [target, setTarget] = useState({ x: 42, y: 42 });
@@ -495,5 +597,38 @@ const styles = StyleSheet.create({
   tapTargetText: {
     fontSize: 24,
     lineHeight: 28,
+  },
+  memoryArena: {
+    height: 340,
+    borderRadius: 20,
+    borderWidth: 2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  memoryCoin: {
+    position: 'absolute',
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memoryCoinText: {
+    color: palette.background,
+    fontSize: 22,
+    lineHeight: 25,
+    fontWeight: '900',
+  },
+  memoryRule: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    alignItems: 'center',
+  },
+  memoryRuleText: {
+    fontSize: 12,
+    fontWeight: '900',
   },
 });

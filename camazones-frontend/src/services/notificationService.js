@@ -14,3 +14,12 @@ export const sendPurchaseReceiptEmail = async (payload) => {
     return false;
   }
 };
+
+export const sendWelcomeEmail = async (payload) => {
+  try {
+    await notificationClient.post('/notifications/welcome', payload);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
