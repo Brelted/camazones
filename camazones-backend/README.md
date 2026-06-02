@@ -12,8 +12,8 @@ API REST Spring Boot pour la plateforme Camazones.
 - Spring Data JPA
 - Spring Validation
 - JWT avec JJWT
-- H2 en developpement
-- PostgreSQL prevu pour production
+- MySQL Connector/J
+- WAMP MySQL
 
 ## Architecture actuelle
 
@@ -34,7 +34,8 @@ src/main/resources/
 - Base URL configuree sous `/api`.
 - Endpoint de sante disponible.
 - Configuration JWT externalisable.
-- H2 configure pour le developpement local.
+- WAMP MySQL configure par defaut.
+- Les inscriptions `/auth/register` sont persistees dans la table `users`.
 - Dependances pretes pour l'auth, les produits, les boutiques et le paiement.
 
 ## Endpoint disponible
@@ -55,6 +56,8 @@ GET http://localhost:8080/api/health
 ```powershell
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
 mvn clean install
+$env:WAMP_DB_USER="root"
+Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
 mvn spring-boot:run
 ```
 
@@ -70,7 +73,7 @@ http://localhost:8080/api
 server.port=8080
 server.address=0.0.0.0
 server.servlet.context-path=/api
-spring.datasource.url=jdbc:h2:mem:camazones
+spring.datasource.url=jdbc:mysql://localhost:3306/camazones
 jwt.secret=${JWT_SECRET:local-dev-only-secret-minimum-256bits-camazones-2026}
 ```
 

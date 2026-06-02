@@ -7,7 +7,7 @@ Camazones est une marketplace mobile Expo + Spring Boot qui connecte acheteurs, 
 ```text
 camazones/
 |-- camazones-frontend/   App mobile Expo SDK 54
-|-- camazones-backend/    API Spring Boot + JWT + H2 dev
+|-- camazones-backend/    API Spring Boot + JWT + WAMP MySQL
 |-- camazones-docs/       Documentation projet
 |-- Lean-Canva/           Lean canvas HTML
 |-- REQUIREMENTS.md       Prerequis et dependances
@@ -19,6 +19,8 @@ camazones/
 cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
 $env:JAVA_HOME="C:\Users\Alan\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
 $env:Path="$env:JAVA_HOME\bin;C:\ProgramData\chocolatey\lib\maven\apache-maven-3.9.16\bin;$env:Path"
+$env:WAMP_DB_USER="root"
+Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
 mvn spring-boot:run
 ```
 
@@ -43,7 +45,8 @@ L'application detecte automatiquement l'IP LAN Expo pour joindre `http://IP_DU_P
 
 - Authentification JWT login/register avec restauration de session.
 - Frontend connecte a l'API backend avec cache local et fallback offline.
-- Donnees seedees en base H2 au demarrage: boutiques, produits, comptes demo.
+- Donnees seedees en base WAMP MySQL au demarrage: boutiques, produits, comptes demo.
+- Les nouvelles inscriptions passent par `/auth/register` et sont enregistrees dans la table `users`.
 - Zone Boutiques dediee aux vitrines professionnelles uniquement.
 - Recherche globale avec filtre deroulant par categorie et produits correspondants.
 - Carousel horizontal de produits tendance.

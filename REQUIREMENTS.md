@@ -34,8 +34,8 @@
 - Spring Data JPA
 - Spring Validation
 - JJWT `0.12.3`
-- H2 en developpement
-- PostgreSQL driver pour production
+- MySQL Connector/J
+- WAMP MySQL `3306`
 
 ## Variables
 
@@ -49,6 +49,8 @@ Backend recommande :
 
 ```powershell
 $env:JWT_SECRET="cle-secrete-production-256-bits-minimum"
+$env:WAMP_DB_USER="root"
+Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
 ```
 
 ## Compatibilite
@@ -62,7 +64,8 @@ $env:JWT_SECRET="cle-secrete-production-256-bits-minimum"
 ## Fonctionnel
 
 - Auth JWT.
-- API connectee a la base H2 dev.
+- API connectee a la base WAMP MySQL.
+- Inscriptions persistantes dans la table `users`.
 - Cache offline cote app.
 - Vitrines boutiques.
 - Produits boutiques et vendeurs independants.

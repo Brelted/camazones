@@ -18,7 +18,7 @@ public class CommissionTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "order_reference", nullable = false, unique = true, length = 80)

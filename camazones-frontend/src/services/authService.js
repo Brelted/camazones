@@ -201,7 +201,6 @@ export const demoAccounts = [
   },
 ];
 
-const createShortId = (prefix = 'USR') => `${prefix}${Date.now().toString(36).toUpperCase()}`.replace(/[^A-Z0-9]/g, '').slice(0, 8).padEnd(8, '0');
 const createDemoToken = (email) => `demo-jwt-${email.replace(/[^a-z0-9]/gi, '-')}-${Date.now()}`;
 
 const createDemoPayload = (user) => ({
@@ -210,13 +209,9 @@ const createDemoPayload = (user) => ({
   demo: true,
 });
 
-const shouldUseDemoFallback = (error) =>
-  USE_DEMO_AUTH && (!error.response || [404, 405, 501].includes(error.response?.status) || error.message === 'Network Error');
-
-const shouldUseDemoLoginFallback = (error, payload) => {
-  const knownDemoEmail = demoAccounts.some((item) => item.email.toLowerCase() === payload.email?.toLowerCase());
+const shouldUseDemoLoginFallback = (error) => {
   const demoFriendlyStatus = !error.response || [401, 403, 404, 405, 501].includes(error.response?.status) || error.message === 'Network Error';
-  return demoFriendlyStatus && (USE_DEMO_AUTH || knownDemoEmail);
+  return USE_DEMO_AUTH && demoFriendlyStatus;
 };
 
 export const loginRequest = async (payload) => {
@@ -224,7 +219,7 @@ export const loginRequest = async (payload) => {
     const response = await authClient.post('/auth/login', payload);
     return response.data;
   } catch (error) {
-    if (!shouldUseDemoLoginFallback(error, payload)) {
+    if (!shouldUseDemoLoginFallback(error)) {
       throw error;
     }
 
@@ -241,21 +236,6 @@ export const loginRequest = async (payload) => {
 };
 
 export const registerRequest = async (payload) => {
-  try {
-    const response = await authClient.post('/auth/register', payload);
-    return response.data;
-  } catch (error) {
-    if (!shouldUseDemoFallback(error)) {
-      throw error;
-    }
-
-    return createDemoPayload({
-      id: createShortId('USR'),
-      email: payload.email,
-      role: 'CLIENT_INDEPENDANT',
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      phone: payload.phone,
-    });
-  }
+  const response = await authClient.post('/auth/register', payload);
+  return response.data;
 };
