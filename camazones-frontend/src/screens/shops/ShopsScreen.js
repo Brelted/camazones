@@ -11,6 +11,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
   const [selectedShopId, setSelectedShopId] = useState(route?.params?.shopId ?? null);
   const results = useShopSearch(shops, query);
   const selectedShop = useMemo(() => shops.find((shop) => shop.id === selectedShopId), [shops, selectedShopId]);
+  const otherShops = useMemo(() => shops.filter((shop) => shop.id !== selectedShopId), [shops, selectedShopId]);
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
@@ -68,6 +69,26 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
               <Text style={[styles.actionText, { color: colors.background }]}>{t('buy')}</Text>
             </Pressable>
           </View>
+
+          <SectionHeader title="Autres vitrines" description={`${otherShops.length} boutiques visibles dans Camazones`} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.otherShops}>
+            {otherShops.map((shop) => (
+              <Pressable
+                key={shop.id}
+                onPress={() => setSelectedShopId(shop.id)}
+                style={[styles.otherShopCard, { backgroundColor: surface, borderColor: line }]}
+              >
+                <Image source={shop.logo ?? shop.cover} style={styles.otherShopLogo} resizeMode="cover" />
+                <View style={styles.otherShopCopy}>
+                  <View style={styles.nameRow}>
+                    <Text style={[styles.otherShopName, { color: colors.text }]} numberOfLines={1}>{shop.name}</Text>
+                    {shop.premium ? <Text style={styles.star}>★</Text> : null}
+                  </View>
+                  <Text style={[styles.otherShopMeta, { color: muted }]} numberOfLines={1}>{shop.products.length} articles · {shop.city}</Text>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
 
           <SectionHeader title={t('storefront')} description={`${selectedShop.products.length} ${t('visibleArticlesInShop')}`} />
           <View style={styles.stack}>
@@ -200,6 +221,36 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: 10,
+  },
+  otherShops: {
+    gap: 10,
+    paddingRight: 20,
+  },
+  otherShopCard: {
+    width: 176,
+    minHeight: 152,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+  },
+  otherShopLogo: {
+    width: 52,
+    height: 52,
+    borderRadius: 17,
+    backgroundColor: overlay.soft,
+  },
+  otherShopCopy: {
+    gap: 4,
+  },
+  otherShopName: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  otherShopMeta: {
+    fontSize: 12,
+    fontWeight: '800',
   },
   action: {
     flex: 1,

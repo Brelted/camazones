@@ -99,6 +99,12 @@ const productImages = {
   kids_parfum_doux: require('../../assets/products/camazone-catalog/kids-parfum-doux-parfum-doux-kids.jpg'),
   kids_jeu_construction: require('../../assets/products/camazone-catalog/kids-jeu-construction-jeu-construction.jpg'),
   kids_tablette_edu: require('../../assets/products/camazone-catalog/kids-tablette-edu-tablette-edu.jpg'),
+  alan_laptop_clean: require('../../assets/products/camazone-catalog/alan-laptop-clean-laptop-alan-clean.jpg'),
+  alan_casque_lite: require('../../assets/products/camazone-catalog/alan-casque-lite-casque-lite-alan.jpg'),
+  mila_watch_line: require('../../assets/products/camazone-catalog/mila-watch-line-watch-line.jpg'),
+  mila_sac_ville: require('../../assets/products/camazone-catalog/mila-sac-ville-sac-ville.jpg'),
+  leo_headset_noir: require('../../assets/products/camazone-catalog/leo-headset-noir-headset-noir.jpg'),
+  leo_speaker_go: require('../../assets/products/camazone-catalog/leo-speaker-go-speaker-go.jpg'),
 };
 const shopLogos = {
   atelier_koa: require('../../assets/shops/logos/atelier-koa.png'),
@@ -420,8 +426,8 @@ export const independentSellers = [
     avatar: profilePhotos[2],
     tagline: 'Client independant actif, vend et achete souvent sans vitrine.',
     products: [
-      product('alan-laptop-clean', 'Laptop Alan Clean', productImages.noma_laptop_desk, 'Gadgets', '165 000 FCFA', '1 piece', 'Laptop tres propre, negociable et disponible a Douala.', { certified: true }),
-      product('alan-casque-lite', 'Casque Lite Alan', productImages.noma_casque_pro, 'Audio', '19 000 FCFA', '1 piece', 'Casque leger vendu par Alan apres upgrade audio.'),
+      product('alan-laptop-clean', 'Laptop Alan Clean', productImages.alan_laptop_clean, 'Gadgets', '165 000 FCFA', '1 piece', 'Laptop tres propre, negociable et disponible a Douala.', { certified: true }),
+      product('alan-casque-lite', 'Casque Lite Alan', productImages.alan_casque_lite, 'Audio', '19 000 FCFA', '1 piece', 'Casque leger vendu par Alan apres upgrade audio.'),
     ],
   },
   {
@@ -436,8 +442,8 @@ export const independentSellers = [
     avatar: profilePhotos[0],
     tagline: 'Client actif qui vend souvent sans vitrine publique.',
     products: [
-      product('mila-watch-line', 'Watch Line', productImages.koa_montre_line, 'Bijoux', '18 000 FCFA', '2 pieces', 'Montre sobre, bracelet acier et cadran fin.'),
-      product('mila-sac-ville', 'Sac Ville', productImages.koa_sac_kaya, 'Accessoires', '20 000 FCFA', '1 piece', 'Sac propre, peu utilise et disponible rapidement.'),
+      product('mila-watch-line', 'Watch Line', productImages.mila_watch_line, 'Bijoux', '18 000 FCFA', '2 pieces', 'Montre sobre, bracelet acier et cadran fin.'),
+      product('mila-sac-ville', 'Sac Ville', productImages.mila_sac_ville, 'Accessoires', '20 000 FCFA', '1 piece', 'Sac propre, peu utilise et disponible rapidement.'),
     ],
   },
   {
@@ -452,8 +458,8 @@ export const independentSellers = [
     avatar: profilePhotos[1],
     tagline: 'Vendeur independant reconnu, annonces ponctuelles et contact rapide.',
     products: [
-      product('leo-headset-noir', 'Headset Noir', productImages.noma_casque_pro, 'Audio', '21 000 FCFA', '3 pieces', 'Casque leger, finition sombre et son equilibre.', { certified: true }),
-      product('leo-speaker-go', 'Speaker Go', productImages.noma_speaker_mini, 'Audio', '17 000 FCFA', '2 pieces', 'Petite enceinte propre avec autonomie correcte.'),
+      product('leo-headset-noir', 'Headset Noir', productImages.leo_headset_noir, 'Audio', '21 000 FCFA', '3 pieces', 'Casque leger, finition sombre et son equilibre.', { certified: true }),
+      product('leo-speaker-go', 'Speaker Go', productImages.leo_speaker_go, 'Audio', '17 000 FCFA', '2 pieces', 'Petite enceinte propre avec autonomie correcte.'),
     ],
   },
 ];

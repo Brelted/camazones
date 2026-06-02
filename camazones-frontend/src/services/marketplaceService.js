@@ -30,6 +30,30 @@ const localShopById = localShops.reduce((accumulator, shop) => {
 
 export const getShopIdForEmail = (email) => shopAccountMap[email?.toLowerCase?.()] ?? null;
 
+const createLocalMarketplaceData = () => ({
+  shops: localShops,
+  rankedProducts: getLocalRankedProducts(),
+});
+
+const ensureCompleteMarketplaceData = (data) => {
+  const existingShopKeys = new Set((data.shops ?? []).map((shop) => `${shop.id ?? ''}:${shop.name ?? ''}`.toLowerCase()));
+  const missingLocalShops = localShops.filter((shop) => !existingShopKeys.has(`${shop.id}:${shop.name}`.toLowerCase()));
+  const existingProductIds = new Set((data.rankedProducts ?? []).map(({ product }) => product.id));
+  const missingRankedProducts = missingLocalShops.flatMap((shop) =>
+    shop.products
+      .filter((product) => !existingProductIds.has(product.id))
+      .map((product) => ({ product, seller: shop, sellerType: 'shop' }))
+  );
+
+  return {
+    ...data,
+    shops: [...(data.shops ?? []), ...missingLocalShops],
+    rankedProducts: [...(data.rankedProducts ?? []), ...missingRankedProducts].sort(
+      (left, right) => Number(right.seller.premium) - Number(left.seller.premium)
+    ),
+  };
+};
+
 const createShortId = (prefix = 'PRD') => `${prefix}${Date.now().toString(36).toUpperCase()}`.replace(/[^A-Z0-9]/g, '').slice(0, 8).padEnd(8, '0');
 
 const fallbackImageFor = (category, shopId) => {
@@ -207,7 +231,7 @@ export const fetchMarketplace = async () => {
       )
     );
 
-  return {
+  return ensureCompleteMarketplaceData({
     shops: shops.length ? shops : localShops,
     rankedProducts: [
       ...shops.flatMap((shop) => shop.products.map((product) => ({ product, seller: shop, sellerType: 'shop' }))),
@@ -215,7 +239,7 @@ export const fetchMarketplace = async () => {
       ...independentSellers.flatMap((seller) => seller.products.map((product) => ({ product, seller, sellerType: 'independent' }))),
     ].sort((left, right) => Number(right.seller.premium) - Number(left.seller.premium)),
     syncedAt: new Date().toISOString(),
-  };
+  });
 };
 
 export const useMarketplaceData = () => {
@@ -248,8 +272,7 @@ export const useMarketplaceData = () => {
           setState({ ...data, isLoading: false, isOffline: false, error: null });
         }
       } catch (error) {
-        const cached = await storage.getItem(MARKETPLACE_CACHE_KEY);
-        const baseData = cached ? JSON.parse(cached) : { shops: localShops, rankedProducts: getLocalRankedProducts() };
+        const baseData = createLocalMarketplaceData();
         const data = mergePublishedProducts(baseData, await loadPublishedProducts());
         if (alive) {
           setState({ ...data, isLoading: false, isOffline: true, error: offline ? null : 'API indisponible, cache local affiche.' });
