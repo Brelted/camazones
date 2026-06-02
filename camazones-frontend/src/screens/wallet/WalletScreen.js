@@ -4,12 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, SectionHeader } from '../../components/MarketplaceCards';
 import { paymentMethods } from '../../data/marketplace';
+import { sendPurchaseReceiptEmail } from '../../services/notificationService';
 import { exportInvoicePdf } from '../../services/pdfService';
 import { payOrder, rechargeWallet, saveInvoice } from '../../store/slices/walletSlice';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function WalletScreen({ route, appSettings }) {
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
   const { balance, transactions, lastInvoice } = useSelector((state) => state.wallet);
   const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0].id);
   const [paid, setPaid] = useState(false);
@@ -37,6 +39,8 @@ export default function WalletScreen({ route, appSettings }) {
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+  const customerName = `${user?.firstName ?? 'Client'} ${user?.lastName ?? 'Camazones'}`.trim();
+  const customerEmail = user?.email ?? 'client@camazones.demo';
 
   const recharge = async () => {
     const amount = Number(rechargeAmount.replace(/[^0-9]/g, ''));
@@ -59,8 +63,18 @@ export default function WalletScreen({ route, appSettings }) {
       productTitle,
       total: money(total),
       method: selected.label,
+      customerName,
+      email: customerEmail,
     };
     await dispatch(payOrder({ amount: total, label: productTitle, fromWallet: selectedMethod === 'wallet', invoice }));
+    await sendPurchaseReceiptEmail({
+      email: customerEmail,
+      customerName,
+      productTitle,
+      total: money(total),
+      method: selected.label,
+      transactionId: invoice.id,
+    });
     setPaid(true);
   };
 
@@ -70,12 +84,36 @@ export default function WalletScreen({ route, appSettings }) {
       productTitle,
       total: money(total),
       method: selected.label,
+      customerName,
+      email: customerEmail,
     };
     const uri = await exportInvoicePdf({
       productTitle: invoice.productTitle,
       total: invoice.total,
       method: invoice.method,
       transactionId: invoice.id,
+      customerName: invoice.customerName ?? customerName,
+      email: invoice.email ?? customerEmail,
+    });
+    await dispatch(saveInvoice({ ...invoice, uri }));
+  };
+
+  const exportTransactionPdf = async (transaction) => {
+    const invoice = transaction.invoice ?? {
+      id: transaction.id,
+      productTitle: transaction.label,
+      total: money(Math.abs(transaction.amount)),
+      method: transaction.method ?? 'Camazones Pay',
+      customerName,
+      email: customerEmail,
+    };
+    const uri = await exportInvoicePdf({
+      productTitle: invoice.productTitle,
+      total: invoice.total,
+      method: invoice.method,
+      transactionId: invoice.id,
+      customerName: invoice.customerName ?? customerName,
+      email: invoice.email ?? customerEmail,
     });
     await dispatch(saveInvoice({ ...invoice, uri }));
   };
@@ -204,9 +242,16 @@ export default function WalletScreen({ route, appSettings }) {
                   <Text style={[styles.transactionTitle, { color: colors.text }]}>{transaction.label}</Text>
                   <Text style={[styles.transactionDate, { color: muted }]}>{new Date(transaction.at).toLocaleString('fr-FR')}</Text>
                 </View>
-                <Text style={[styles.transactionAmount, { color: transaction.amount > 0 ? palette.green : palette.orange }]}>
-                  {money(transaction.amount)}
-                </Text>
+                <View style={styles.transactionRight}>
+                  <Text style={[styles.transactionAmount, { color: transaction.amount > 0 ? palette.green : palette.orange }]}>
+                    {money(transaction.amount)}
+                  </Text>
+                  {transaction.type === 'payment' ? (
+                    <Pressable onPress={() => exportTransactionPdf(transaction)} style={[styles.pdfChip, { borderColor: colors.green ?? palette.green }]}>
+                      <Text style={[styles.pdfChipText, { color: colors.green ?? palette.green }]}>PDF</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
               </Surface>
             ))
           ) : (
@@ -427,6 +472,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   transactionAmount: {
+    fontWeight: '900',
+  },
+  transactionRight: {
+    alignItems: 'flex-end',
+    gap: 7,
+  },
+  pdfChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  pdfChipText: {
+    fontSize: 11,
     fontWeight: '900',
   },
 });

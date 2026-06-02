@@ -74,6 +74,16 @@ spring.datasource.url=jdbc:h2:mem:camazones
 jwt.secret=${JWT_SECRET:local-dev-only-secret-minimum-256bits-camazones-2026}
 ```
 
+### Email factures
+
+```powershell
+$env:CAMAZONES_MAIL_ENABLED="true"
+$env:CAMAZONES_MAIL_USERNAME="codex.ess237@gmail.com"
+$env:CAMAZONES_MAIL_FROM="codex.ess237@gmail.com"
+$env:CAMAZONES_MAIL_PASSWORD="<mot_de_passe_ou_app_password_gmail>"
+mvn spring-boot:run
+```
+
 ## Modules prevus
 
 - Auth : inscription, connexion, JWT, profil utilisateur.

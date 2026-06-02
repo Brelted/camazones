@@ -4,6 +4,7 @@ import com.camazones.auth.dto.*;
 import com.camazones.auth.entity.User;
 import com.camazones.auth.entity.UserRole;
 import com.camazones.auth.repository.UserRepository;
+import com.camazones.notifications.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,13 +26,16 @@ public class AuthService implements UserDetailsService {
     private final UserRepository  userRepository;
     private final JwtProvider     jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public AuthService(UserRepository userRepository,
                        JwtProvider jwtProvider,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       EmailService emailService) {
         this.userRepository  = userRepository;
         this.jwtProvider     = jwtProvider;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     // ── UserDetailsService ────────────────────────────────────────────────
@@ -65,6 +69,7 @@ public class AuthService implements UserDetailsService {
 
         user = userRepository.save(user);
         log.info("Nouvel utilisateur : {} ({})", user.getEmail(), user.getId());
+        emailService.sendWelcomeEmail(user);
 
         return buildResponse(jwtProvider.generateToken(user.getEmail()), user);
     }

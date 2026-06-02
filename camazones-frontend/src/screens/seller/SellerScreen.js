@@ -7,6 +7,7 @@ import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
 import { accountTypes, independentSellers, profilePhotos } from '../../data/marketplace';
 import { useMarketplaceData } from '../../services/marketplaceService';
+import { exportInvoicePdf } from '../../services/pdfService';
 import { updateProfileRequest } from '../../services/profileService';
 import { logout } from '../../store/slices/authSlice';
 import {
@@ -15,6 +16,7 @@ import {
   setLanguagePersisted,
   setProfilePhotoPersisted,
 } from '../../store/slices/settingsSlice';
+import { saveInvoice } from '../../store/slices/walletSlice';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function SellerScreen({ navigation, appSettings }) {
@@ -50,9 +52,31 @@ export default function SellerScreen({ navigation, appSettings }) {
   const t = appSettings?.t ?? ((key) => key);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeHistory = settings.historyByEmail?.[userEmail] ?? [];
+  const purchaseHistory = wallet.transactions.filter(
+    (transaction) => transaction.type === 'payment' && (!transaction.email || transaction.email === userEmail)
+  );
 
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
   const changeField = (field, value) => setProfile((current) => ({ ...current, [field]: value }));
+  const downloadReceipt = async (transaction) => {
+    const invoice = transaction.invoice ?? {
+      id: transaction.id,
+      productTitle: transaction.label,
+      total: money(Math.abs(transaction.amount)),
+      method: transaction.method ?? 'Camazones Pay',
+      customerName: `${profile.firstName} ${profile.lastName}`.trim(),
+      email: userEmail,
+    };
+    const uri = await exportInvoicePdf({
+      productTitle: invoice.productTitle,
+      total: invoice.total,
+      method: invoice.method,
+      transactionId: invoice.id,
+      customerName: invoice.customerName ?? `${profile.firstName} ${profile.lastName}`.trim(),
+      email: invoice.email ?? userEmail,
+    });
+    await dispatch(saveInvoice({ ...invoice, uri }));
+  };
 
   useEffect(() => {
     const nextSavedProfile = settings.profilesByEmail?.[userEmail];
@@ -213,7 +237,51 @@ export default function SellerScreen({ navigation, appSettings }) {
           </Button>
         </Surface>
 
-        <SectionHeader title={t('history')} description={t('profileHistoryText')} />
+        <SectionHeader title="Historique des achats" description="Tes derniers paiements Camazones sont visibles ici." />
+        <View style={styles.purchaseSummary}>
+          <Surface style={[styles.purchaseHero, { backgroundColor: darkMode ? palette.darkSurface : overlay.orange, borderColor: line }]}>
+            <View>
+              <Text style={[styles.purchaseHeroLabel, { color: muted }]}>Achats Camazones</Text>
+              <Text style={[styles.purchaseHeroValue, { color: colors.text }]}>{purchaseHistory.length}</Text>
+            </View>
+            <View style={[styles.purchaseIcon, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.purchaseIconText, { color: colors.background }]}>🧾</Text>
+            </View>
+          </Surface>
+        </View>
+        <View style={styles.stack}>
+          {purchaseHistory.length ? (
+            purchaseHistory.slice(0, 8).map((transaction) => (
+              <Pressable key={transaction.id} onPress={() => navigation.navigate('Wallet', { productTitle: transaction.label })}>
+                <Surface style={[styles.purchaseCard, { backgroundColor: surface, borderColor: line }]}>
+                  <View style={styles.purchaseLeft}>
+                    <View style={[styles.purchaseThumb, { backgroundColor: darkMode ? palette.dark : overlay.green }]}>
+                      <Text style={styles.purchaseThumbText}>✓</Text>
+                    </View>
+                    <View style={styles.purchaseCopy}>
+                      <Text style={[styles.historyTitle, { color: colors.text }]}>{transaction.label}</Text>
+                      <Text style={[styles.historyDate, { color: muted }]}>{new Date(transaction.at).toLocaleString('fr-FR')}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.purchaseRight}>
+                    <Text style={[styles.purchaseAmount, { color: colors.primary }]}>{money(Math.abs(transaction.amount))}</Text>
+                    <Text style={[styles.purchaseStatus, { color: colors.green ?? palette.green }]}>Payé</Text>
+                    <Pressable onPress={() => downloadReceipt(transaction)} style={[styles.receiptButton, { borderColor: colors.green ?? palette.green }]}>
+                      <Text style={[styles.receiptButtonText, { color: colors.green ?? palette.green }]}>PDF</Text>
+                    </Pressable>
+                  </View>
+                </Surface>
+              </Pressable>
+            ))
+          ) : (
+            <Surface style={[styles.emptyPurchase, { backgroundColor: surface, borderColor: line }]}>
+              <Text style={[styles.emptyPurchaseTitle, { color: colors.text }]}>Aucun achat pour le moment</Text>
+              <Text style={[styles.emptyPurchaseText, { color: muted }]}>Tes paiements Camazones apparaitront ici apres validation.</Text>
+            </Surface>
+          )}
+        </View>
+
+        <SectionHeader title="Activité du profil" description={t('profileHistoryText')} />
         <View style={styles.stack}>
           {changeHistory.length ? (
             changeHistory.map((item) => (
@@ -517,6 +585,109 @@ const styles = StyleSheet.create({
     padding: 13,
     borderRadius: 16,
     borderWidth: 1,
+  },
+  purchaseSummary: {
+    gap: 12,
+  },
+  purchaseHero: {
+    minHeight: 92,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  purchaseHeroLabel: {
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  purchaseHeroValue: {
+    marginTop: 4,
+    fontSize: 34,
+    lineHeight: 38,
+    fontWeight: '900',
+  },
+  purchaseIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  purchaseIconText: {
+    fontSize: 21,
+    lineHeight: 24,
+  },
+  purchaseCard: {
+    minHeight: 74,
+    padding: 13,
+    borderRadius: 18,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  purchaseLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  purchaseThumb: {
+    width: 42,
+    height: 42,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  purchaseThumbText: {
+    color: palette.green,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  purchaseCopy: {
+    flex: 1,
+  },
+  purchaseRight: {
+    alignItems: 'flex-end',
+    gap: 3,
+  },
+  purchaseAmount: {
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  purchaseStatus: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  receiptButton: {
+    marginTop: 3,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  receiptButtonText: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  emptyPurchase: {
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 5,
+  },
+  emptyPurchaseTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  emptyPurchaseText: {
+    lineHeight: 20,
+    fontWeight: '700',
   },
   historyTitle: {
     fontWeight: '900',

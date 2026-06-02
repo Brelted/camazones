@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { Surface, Text } from '../../components/ui';
 import { ShopCard } from '../../components/MarketplaceCards';
@@ -10,6 +10,8 @@ const logoCircle = require('../../../assets/brand/camazone-logo-circle.png');
 
 export default function HomeScreen({ navigation, appSettings }) {
   const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
+  const carouselRef = useRef(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
@@ -18,11 +20,31 @@ export default function HomeScreen({ navigation, appSettings }) {
   const t = appSettings?.t ?? ((key) => key);
   const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
   const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
+  const trendingItems = useMemo(() => rankedProducts.slice(0, 10), [rankedProducts]);
+
+  useEffect(() => {
+    if (trendingItems.length < 2) {
+      return undefined;
+    }
+
+    const cardStep = 192;
+    const timer = setInterval(() => {
+      setCarouselIndex((current) => {
+        const next = (current + 1) % trendingItems.length;
+        carouselRef.current?.scrollTo({ x: next * cardStep, animated: true });
+        return next;
+      });
+    }, 2800);
+
+    return () => clearInterval(timer);
+  }, [trendingItems.length]);
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
+          <View style={styles.topGlowGreen} />
+          <View style={styles.topGlowCream} />
           <View style={styles.logoRow}>
             <View style={[styles.logoMark, { backgroundColor: colors.background, borderColor: colors.green ?? palette.green }]}>
               <Image source={logoCircle} style={styles.logoImage} resizeMode="cover" />
@@ -73,11 +95,11 @@ export default function HomeScreen({ navigation, appSettings }) {
 
         <View style={styles.sectionInline}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('trending')}</Text>
-          <Text style={[styles.viewAll, { color: colors.primary }]}>{t('carousel')}</Text>
+          <Text style={[styles.viewAll, { color: colors.primary }]}>Auto</Text>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
-          {rankedProducts.slice(0, 10).map((item) => (
+        <ScrollView ref={carouselRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel}>
+          {trendingItems.map((item) => (
             <TrendProductCard
               key={item.product.id}
               item={item}
@@ -87,6 +109,18 @@ export default function HomeScreen({ navigation, appSettings }) {
             />
           ))}
         </ScrollView>
+        <View style={styles.carouselDots}>
+          {trendingItems.map((item, index) => (
+            <View
+              key={`dot-${item.product.id}`}
+              style={[
+                styles.carouselDot,
+                { backgroundColor: index === carouselIndex ? colors.primary : darkMode ? darkPalette.line : overlay.line },
+                index === carouselIndex && styles.carouselDotActive,
+              ]}
+            />
+          ))}
+        </View>
 
         <View style={styles.sectionInline}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('featuredProducts')}</Text>
@@ -141,7 +175,7 @@ function TrendProductCard({ item, onMessage, onBuy, appSettings }) {
           <Text style={styles.gridMiniText}>DM</Text>
         </Pressable>
         <Pressable onPress={onBuy} style={styles.gridBuyButton}>
-          <Text style={styles.gridBuyText}>Buy</Text>
+          <Text style={styles.gridBuyText}>Payer</Text>
         </Pressable>
       </View>
     </Surface>
@@ -178,7 +212,7 @@ function GridProductCard({ item, onMessage, onBuy, appSettings }) {
             <Text style={styles.gridMiniText}>DM</Text>
           </Pressable>
           <Pressable onPress={onBuy} style={styles.gridBuyButton}>
-            <Text style={styles.gridBuyText}>Buy</Text>
+            <Text style={styles.gridBuyText}>Payer</Text>
           </Pressable>
         </View>
       </View>
@@ -198,9 +232,30 @@ const styles = StyleSheet.create({
   topBar: {
     paddingTop: 18,
     paddingHorizontal: 18,
-    paddingBottom: 18,
+    paddingBottom: 22,
     backgroundColor: palette.orange,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
     gap: 14,
+  },
+  topGlowGreen: {
+    position: 'absolute',
+    right: -72,
+    top: -58,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(32,199,106,0.30)',
+  },
+  topGlowCream: {
+    position: 'absolute',
+    left: -50,
+    bottom: -86,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(246,231,202,0.18)',
   },
   logoRow: {
     flexDirection: 'row',
@@ -305,14 +360,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryIcon: {
-    width: 54,
-    height: 54,
-    borderRadius: 18,
+    width: 58,
+    height: 58,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.card,
     borderWidth: 1,
     borderColor: 'rgba(31,31,31,0.06)',
+    shadowColor: '#1F1F1F',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
   categoryEmoji: {
     fontSize: 19,
@@ -324,12 +384,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   banner: {
-    minHeight: 78,
+    minHeight: 86,
     marginHorizontal: 18,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 22,
+    padding: 16,
     overflow: 'hidden',
     backgroundColor: palette.orange,
+    elevation: 2,
   },
   bannerOrange: {
     position: 'absolute',
@@ -365,20 +426,40 @@ const styles = StyleSheet.create({
     paddingRight: 18,
     gap: 12,
   },
+  carouselDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: -6,
+  },
+  carouselDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  carouselDotActive: {
+    width: 18,
+  },
   trendCard: {
-    width: 168,
-    minHeight: 248,
-    borderRadius: 12,
-    padding: 8,
+    width: 180,
+    minHeight: 268,
+    borderRadius: 20,
+    padding: 10,
     backgroundColor: palette.card,
     borderWidth: 1,
     borderColor: overlay.line,
-    gap: 7,
+    gap: 8,
+    shadowColor: '#1F1F1F',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
   trendImage: {
     width: '100%',
-    height: 128,
-    borderRadius: 9,
+    height: 138,
+    borderRadius: 16,
     backgroundColor: palette.khaki,
   },
   productGrid: {
@@ -389,17 +470,22 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '48%',
-    minHeight: 236,
-    borderRadius: 10,
-    padding: 8,
+    minHeight: 250,
+    borderRadius: 18,
+    padding: 9,
     backgroundColor: palette.card,
     borderWidth: 1,
     borderColor: overlay.line,
     gap: 7,
+    shadowColor: '#1F1F1F',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   gridImageWrap: {
-    height: 126,
-    borderRadius: 8,
+    height: 132,
+    borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: palette.khaki,
   },

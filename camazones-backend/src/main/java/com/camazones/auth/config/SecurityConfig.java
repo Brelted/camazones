@@ -41,7 +41,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/health", "/h2-console/**").permitAll()
+                .requestMatchers("/auth/**", "/health", "/h2-console/**", "/notifications/purchase-receipt").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/products/**", "/shops/**").permitAll()
                 .anyRequest().authenticated()

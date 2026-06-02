@@ -1,7 +1,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
-export const exportInvoicePdf = async ({ productTitle, total, method, transactionId }) => {
+export const exportInvoicePdf = async ({ productTitle, total, method, transactionId, customerName, email }) => {
   const html = `
     <html>
       <body style="font-family: Arial, sans-serif; padding: 32px; color: #1F1F1F; background: #F6F1EA;">
@@ -9,6 +9,8 @@ export const exportInvoicePdf = async ({ productTitle, total, method, transactio
           <h1 style="margin: 0; color: #FF5A00;">Camazones</h1>
           <p style="margin-top: 4px;">Facture achat marketplace</p>
           <hr />
+          <p><strong>Client:</strong> ${customerName ?? 'Client Camazones'}</p>
+          <p><strong>Email:</strong> ${email ?? 'client@camazones.demo'}</p>
           <p><strong>Produit:</strong> ${productTitle}</p>
           <p><strong>Methode:</strong> ${method}</p>
           <p><strong>Total:</strong> ${total}</p>

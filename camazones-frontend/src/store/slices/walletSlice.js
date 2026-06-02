@@ -44,11 +44,21 @@ const walletSlice = createSlice({
       if (action.payload.fromWallet) {
         state.balance = Math.max(0, state.balance - amount);
       }
+      const invoice = action.payload.invoice ?? null;
       state.transactions = [
-        { id: `${Date.now()}`, type: 'payment', amount: -amount, label: action.payload.label, at: new Date().toISOString() },
+        {
+          id: invoice?.id ?? `${Date.now()}`,
+          type: 'payment',
+          amount: -amount,
+          label: action.payload.label,
+          email: action.payload.email,
+          method: invoice?.method,
+          invoice,
+          at: new Date().toISOString(),
+        },
         ...state.transactions,
       ].slice(0, 20);
-      state.lastInvoice = action.payload.invoice;
+      state.lastInvoice = invoice;
     },
     invoiceSaved: (state, action) => {
       state.lastInvoice = action.payload;
@@ -73,7 +83,8 @@ export const rechargeWallet = ({ amount, label }) => async (dispatch, getState) 
 };
 
 export const payOrder = ({ amount, label, fromWallet, invoice }) => async (dispatch, getState) => {
-  dispatch(paymentAdded({ amount, label, fromWallet, invoice }));
+  const email = getState().auth.user?.email;
+  dispatch(paymentAdded({ amount, label, fromWallet, invoice, email }));
   await persist(getState().wallet);
 };
 
