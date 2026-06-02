@@ -50,50 +50,48 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         User admin = createUser("admin@camazones.demo", "Admin", "Camazones", "+237600000000", UserRole.ADMIN, true, "Douala");
-        User koaOwner = createUser("koa@camazones.demo", "Atelier", "Koa", "+237600000101", UserRole.SELLER, true, "Douala");
-        User taliaOwner = createUser("talia@camazones.demo", "Talia", "Closet", "+237600000102", UserRole.SELLER, true, "Yaounde");
-        User nomaOwner = createUser("noma@camazones.demo", "Studio", "Noma", "+237600000103", UserRole.SELLER, false, "Bafoussam");
-        User sawaOwner = createUser("sawa@camazones.demo", "Sawa", "Deals", "+237600000104", UserRole.SELLER, false, "Limbe");
+        User client = createUser("client@camazones.demo", "Client", "Demo", "+237600000001", UserRole.BUYER, false, "Douala");
+        User koaOwner = createUser("atelier.koa@camazones.demo", "Atelier", "Koa", "+237600000101", UserRole.SELLER, true, "Douala");
+        User taliaOwner = createUser("talia.closet@camazones.demo", "Talia", "Closet", "+237600000102", UserRole.SELLER, true, "Yaounde");
+        User nomaOwner = createUser("studio.noma@camazones.demo", "Studio", "Noma", "+237600000103", UserRole.SELLER, false, "Bafoussam");
+        User sawaOwner = createUser("sawa.deals@camazones.demo", "Sawa", "Deals", "+237600000104", UserRole.SELLER, false, "Limbe");
+        User bijouxOwner = createUser("bijoux.mboa@camazones.demo", "Bijoux", "Mboa", "+237600000105", UserRole.SELLER, true, "Douala");
+        User oudOwner = createUser("maison.oud@camazones.demo", "Maison", "Oud", "+237600000106", UserRole.SELLER, true, "Yaounde");
+        User sikaOwner = createUser("cuisine.sika@camazones.demo", "Cuisine", "Sika", "+237600000107", UserRole.SELLER, false, "Bafoussam");
+        User visionOwner = createUser("vision.home@camazones.demo", "Vision", "Home", "+237600000108", UserRole.SELLER, true, "Douala");
+        User kidsOwner = createUser("mboa.kids@camazones.demo", "Mboa", "Kids", "+237600000109", UserRole.SELLER, false, "Garoua");
         User mila = createUser("mila@camazones.demo", "Mila", "Select", "+237600000201", UserRole.SELLER, false, "Douala");
         User alan = createUser("alan.independant@camazones.demo", "Alan", "Independant", "+237600000301", UserRole.SELLER, true, "Douala");
         User sonyOwner = createUser("sony@camazones.demo", "Sony", "Boutique", "+237600000302", UserRole.SELLER, true, "Douala");
+        createUser("boutique@camazones.demo", "Boutique", "Demo", "+237600000002", UserRole.SELLER, false, "Douala");
+        createUser("premium@camazones.demo", "Premium", "Demo", "+237600000003", UserRole.SELLER, true, "Douala");
 
         Shop koa = createShop(koaOwner, "Atelier Koa", "Mode premium, accessoires durables et finitions elegantes.", "Mode premium", "Douala", true, SubscriptionTier.PREMIUM);
         Shop talia = createShop(taliaOwner, "Talia Closet", "Vetements tendance, robes, chemises et accessoires propres.", "Vetements", "Yaounde", true, SubscriptionTier.FREE);
         Shop noma = createShop(nomaOwner, "Studio Noma", "Accessoires tech fiables et selection bien organisee.", "Tech", "Bafoussam", false, SubscriptionTier.PREMIUM);
         Shop sawa = createShop(sawaOwner, "Sawa Deals", "Selection mixte, prix visibles et offres rapides.", "Marketplace", "Limbe", false, SubscriptionTier.FREE);
         Shop sony = createShop(sonyOwner, "Sony Store", "Boutique Sony avec consoles, audio, cameras et appareils premium.", "Appareils Sony", "Douala", true, SubscriptionTier.PREMIUM);
+        Shop bijoux = createShop(bijouxOwner, "Bijoux Mboa", "Bagues, colliers, bracelets et montres pour cadeaux elegants.", "Bijoux et montres", "Douala", true, SubscriptionTier.FREE);
+        Shop oud = createShop(oudOwner, "Maison Oud", "Parfums doux, huiles et coffrets pour une signature elegante.", "Parfums et soins", "Yaounde", true, SubscriptionTier.PREMIUM);
+        Shop sika = createShop(sikaOwner, "Cuisine Sika", "Ustensiles solides, marmites, mixeurs et accessoires maison.", "Ustensiles cuisine", "Bafoussam", false, SubscriptionTier.FREE);
+        Shop vision = createShop(visionOwner, "Vision Home", "Televisions, son, appareils maison et livraison securisee.", "TV et maison", "Douala", true, SubscriptionTier.PREMIUM);
+        Shop kids = createShop(kidsOwner, "Mboa Kids", "Vetements enfants, sacs, petits accessoires et articles utiles.", "Famille et enfants", "Garoua", false, SubscriptionTier.FREE);
 
-        List<String> fashion = List.of(
-                "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900",
-                "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=900",
-                "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900",
-                "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900",
-                "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=900",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900",
-                "https://images.unsplash.com/photo-1541643600914-78b084683601?w=900"
-        );
-        List<String> tech = List.of(
-                "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=900",
-                "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=900",
-                "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900",
-                "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=900",
-                "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900",
-                "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=900",
-                "https://images.unsplash.com/photo-1601593346740-925612772716?w=900",
-                "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900"
-        );
+        seedShopProducts(koa, koaOwner, new String[]{"Sac Kaya cuir", "Robe Lina beige", "Sneaker Rouge", "Lunettes Sol", "Montre Line acier", "Chemise Lin creme", "Veste City noire", "Parfum Bois doux", "Ceinture Tressee", "Sandales Nuit"});
+        seedShopProducts(talia, taliaOwner, new String[]{"Mini Bag cyan", "Robe Sand", "T-shirt Basic", "Red Runner", "Bracelet Or fin", "Clean Watch", "City Jacket", "Soft Perfume", "Jupe Crepe", "Foulard Satin"});
+        seedShopProducts(noma, nomaOwner, new String[]{"Smartphone Clear X", "Laptop Desk 14", "Casque Noma Pro", "Watch Pro", "Speaker Mini", "Clavier Slate", "Camera Compact", "Earbuds Fast", "Power Bank 30K", "Router Wifi Pro"});
+        seedShopProducts(sony, sonyOwner, new String[]{"Sony Xperia Slim", "Sony TV Bravia 55", "Casque Sony WH", "Camera Sony Alpha", "Sony Watch Pro", "Speaker Sony Go", "Sony Earbuds Sense", "Sony Soundbar Cinema", "PlayStation 5 Slim", "Manette DualSense"});
+        seedShopProducts(sawa, sawaOwner, new String[]{"Basic Tee coton", "Mini Bag orange", "Airbuds Lite", "Phone Plus 64", "Speaker Go", "Perfume Clear", "Red Sneaker", "Laptop Air 13", "Sandale Beach", "Blender Compact"});
+        seedShopProducts(bijoux, bijouxOwner, new String[]{"Collier Or Mboa", "Bague Saphir", "Bracelet Cuir", "Boucles Pearl", "Montre Classic", "Chaine Argent", "Parure Douce", "Bague Mariage", "Broche Emeraude", "Coffret Bijoux"});
+        seedShopProducts(oud, oudOwner, new String[]{"Oud Royal", "Vanille Ambree", "Musc Blanc", "Coffret Luxe", "Huile Corps", "Brume Florale", "Creme Main", "Savon Noir", "Encens Ambre", "Diffuseur Oud"});
+        seedShopProducts(sika, sikaOwner, new String[]{"Marmite Alu 12L", "Poele Granit", "Set Couteaux", "Mixeur Plus", "Assiettes Ceram", "Verres Clean", "Bouilloire Inox", "Range Epices", "Planche Bambou", "Thermos 1L"});
+        seedShopProducts(vision, visionOwner, new String[]{"TV Vision 43 4K", "TV Vision 65 OLED", "Projecteur Mini", "Soundbar Home", "Support TV mural", "Climatiseur 12K", "Ventilateur Pro", "Regulateur Tension", "Frigo Compact", "Camera Interieur"});
+        seedShopProducts(kids, kidsOwner, new String[]{"Robe Fille Rose", "Basket School", "Sac Ecole Bleu", "Gourde Inox", "Pyjama Coton", "Casque Mini", "Montre Fun Kids", "Parfum Doux Kids", "Jeu Construction", "Tablette Edu"});
 
-        seedShopProducts(koa, koaOwner, fashion, new String[]{"Sac Kaya", "Veste Nuit", "Sneaker Ivoire", "Lunettes Sol", "Montre Line", "Chemise Lin", "Portefeuille Nova", "Parfum Bois"});
-        seedShopProducts(talia, taliaOwner, fashion, new String[]{"Mini Bag Cyan", "Dress Sand", "Basic Tee", "Red Runner", "Sun Glasses", "Clean Watch", "City Jacket", "Soft Perfume"});
-        seedShopProducts(noma, nomaOwner, tech, new String[]{"Power Slim 20K", "Stand Lux", "Airbuds Noma", "Watch Pro", "Speaker Mini", "Clavier Slate", "Case Armor", "Cable Fast"});
-        seedShopProducts(sawa, sawaOwner, List.of(fashion.get(5), fashion.get(2), tech.get(7), tech.get(0), tech.get(4), fashion.get(7), fashion.get(0), tech.get(1)), new String[]{"Basic Tee", "Mini Bag", "Airbuds Lite", "Phone Plus", "Speaker Go", "Perfume Clear", "Red Sneaker", "Laptop Air"});
-        seedShopProducts(sony, sonyOwner, tech, new String[]{"PlayStation 5 Slim", "Casque Sony WH", "Camera Alpha", "Sony Xperia Pro", "Speaker Sony Go", "Manette DualSense", "Barre de son Sony", "Chargeur Sony Fast"});
-
-        createProduct(mila, null, "Watch Line", "Accessoires", "Montre sobre disponible rapidement.", "Douala", 18000, 2, fashion.get(4));
-        createProduct(alan, null, "Tablette Alan Clean", "Gadgets", "Tablette tres propre vendue par Alan independant.", "Douala", 65000, 1, tech.get(1));
-        createProduct(admin, null, "Admin Test Product", "System", "Produit de verification admin.", "Douala", 1000, 1, tech.get(5));
+        createProduct(mila, null, "Watch Line", "Bijoux", "Montre sobre disponible rapidement.", "Douala", 18000, 2, null);
+        createProduct(alan, null, "Tablette Alan Clean", "Gadgets", "Tablette tres propre vendue par Alan independant.", "Douala", 65000, 1, null);
+        createProduct(client, null, "Sac Client Clean", "Accessoires", "Article client demo pour test de publication independante.", "Douala", 12000, 1, null);
+        createProduct(admin, null, "Admin Test Product", "System", "Produit de verification admin.", "Douala", 1000, 1, null);
 
         seedCommissions();
     }
@@ -129,10 +127,57 @@ public class DataSeeder implements CommandLineRunner {
         return shopRepository.save(shop);
     }
 
-    private void seedShopProducts(Shop shop, User owner, List<String> images, String[] titles) {
+    private void seedShopProducts(Shop shop, User owner, String[] titles) {
         for (int i = 0; i < titles.length; i++) {
-            createProduct(owner, shop, titles[i], i % 2 == 0 ? "Mode" : "Gadgets", "Article Camazones pret pour vitrine, stock clair et vendeur joignable.", shop.getCity(), 8500 + (i * 4200), 4 + i, images.get(i));
+            String category = categoryFor(titles[i]);
+            createProduct(owner, shop, titles[i], category, descriptionFor(titles[i], category), shop.getCity(), priceFor(titles[i], category, i), 4 + i, null);
         }
+    }
+
+    private String categoryFor(String title) {
+        String value = title.toLowerCase();
+        if (value.contains("xperia") || value.contains("phone") || value.contains("smartphone")) return "Telephones";
+        if (value.contains("tv ")) return "Televisions";
+        if (value.contains("laptop") || value.contains("clavier") || value.contains("router") || value.contains("power bank") || value.contains("tablette")) return "Gadgets";
+        if (value.contains("casque") || value.contains("speaker") || value.contains("earbuds") || value.contains("soundbar") || value.contains("airbuds")) return "Audio";
+        if (value.contains("playstation") || value.contains("dualsense")) return "Gaming";
+        if (value.contains("camera")) return "Cameras";
+        if (value.contains("robe") || value.contains("chemise") || value.contains("tee") || value.contains("jacket") || value.contains("jupe") || value.contains("pyjama")) return "Vetements";
+        if (value.contains("sneaker") || value.contains("runner") || value.contains("sandale") || value.contains("basket")) return "Chaussures";
+        if (value.contains("parfum") || value.contains("oud") || value.contains("musc") || value.contains("brume") || value.contains("savon") || value.contains("encens") || value.contains("diffuseur")) return "Parfums";
+        if (value.contains("montre") || value.contains("watch") || value.contains("bague") || value.contains("bracelet") || value.contains("collier") || value.contains("chaine") || value.contains("parure") || value.contains("broche") || value.contains("bijoux")) return "Bijoux";
+        if (value.contains("marmite") || value.contains("poele") || value.contains("couteaux") || value.contains("assiettes") || value.contains("verres") || value.contains("bouilloire") || value.contains("epices") || value.contains("planche") || value.contains("thermos") || value.contains("gourde")) return "Ustensiles";
+        if (value.contains("mixeur") || value.contains("blender") || value.contains("climatiseur") || value.contains("ventilateur") || value.contains("frigo")) return "Electromenager";
+        if (value.contains("jeu")) return "Jouets";
+        return "Accessoires";
+    }
+
+    private int priceFor(String title, String category, int index) {
+        String value = title.toLowerCase();
+        if (value.contains("oled")) return 890000;
+        if (value.contains("bravia")) return 650000;
+        if (value.contains("alpha")) return 520000;
+        if (value.contains("playstation")) return 440000;
+        if (value.contains("xperia")) return 390000;
+        if (value.contains("laptop")) return 260000 + (index * 10000);
+        if (value.contains("climatiseur")) return 320000;
+        if (value.contains("frigo")) return 210000;
+        if (value.contains("soundbar") || value.contains("projecteur")) return 165000 + (index * 5000);
+        if (value.contains("camera")) return 65000 + (index * 15000);
+        if (value.contains("telephone") || "Telephones".equals(category)) return 95000 + (index * 12000);
+        if ("Gaming".equals(category)) return 55000 + (index * 9000);
+        if ("Audio".equals(category)) return 18500 + (index * 6500);
+        if ("Bijoux".equals(category)) return 18000 + (index * 8500);
+        if ("Parfums".equals(category)) return 12000 + (index * 7000);
+        if ("Electromenager".equals(category)) return 24500 + (index * 9000);
+        if ("Ustensiles".equals(category)) return 7500 + (index * 3500);
+        if ("Chaussures".equals(category)) return 16000 + (index * 4000);
+        if ("Vetements".equals(category)) return 8500 + (index * 4500);
+        return 9000 + (index * 3500);
+    }
+
+    private String descriptionFor(String title, String category) {
+        return title + " disponible chez Camazones, categorie " + category + ", stock clair et vendeur joignable.";
     }
 
     private Product createProduct(User seller, Shop shop, String title, String category, String description, String city, int price, int stock, String imageUrl) {
@@ -150,7 +195,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
         product.setRating(new BigDecimal("4.6"));
         product.setTotalReviews(18);
-        product.getImages().add(new ProductImage(product, imageUrl, 0));
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            product.getImages().add(new ProductImage(product, imageUrl, 0));
+        }
         return productRepository.save(product);
     }
 
