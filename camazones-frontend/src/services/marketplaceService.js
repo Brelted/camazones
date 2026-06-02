@@ -62,6 +62,7 @@ export const savePublishedProduct = async ({ user, payload }) => {
     price: `${Number(payload.price || 0).toLocaleString('fr-FR')} FCFA`,
     stock: payload.stock?.trim() || 'En stock',
     description: payload.description.trim(),
+    imageUri: payload.imageUri ?? null,
     sellerEmail: email,
     sellerName: `${user?.firstName ?? 'Client'} ${user?.lastName ?? 'Camazones'}`.trim(),
     city: payload.city?.trim() || 'Douala',
@@ -93,7 +94,7 @@ const mergePublishedProducts = (data, publishedProducts) => {
     const product = {
       id: record.id,
       title: record.title,
-      image: fallbackImageFor(record.category, record.shopId),
+      image: record.imageUri ? { uri: record.imageUri } : fallbackImageFor(record.category, record.shopId),
       category: record.category,
       price: record.price,
       stock: record.stock,

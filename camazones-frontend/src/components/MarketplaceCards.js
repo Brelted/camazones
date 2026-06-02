@@ -350,9 +350,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   productBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
     gap: 12,
   },
   price: {
@@ -367,7 +364,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-end',
     gap: 8,
   },
   outlineButton: {

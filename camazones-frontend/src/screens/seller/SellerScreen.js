@@ -35,6 +35,7 @@ export default function SellerScreen({ navigation, appSettings }) {
     price: '',
     stock: 'En stock',
     description: '',
+    imageUri: null,
   });
   const userEmail = user?.email ?? 'client@camazones.demo';
   const savedProfile = settings.profilesByEmail?.[userEmail];
@@ -68,7 +69,7 @@ export default function SellerScreen({ navigation, appSettings }) {
   const t = appSettings?.t ?? ((key) => key);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeHistory = settings.historyByEmail?.[userEmail] ?? [];
-  const publishCategories = categories.filter((category) => category.match).map((category) => category.match);
+  const publishCategories = categories.filter((category) => category.match);
   const purchaseHistory = wallet.transactions.filter(
     (transaction) => transaction.type === 'payment' && transaction.email === userEmail
   );
@@ -165,6 +166,33 @@ export default function SellerScreen({ navigation, appSettings }) {
 
   const changeProductField = (field, value) => setProductForm((current) => ({ ...current, [field]: value }));
 
+  const pickProductImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t('permissionRequired'), t('photoPermissionText'));
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.85,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.uri) {
+      return;
+    }
+
+    const image = await ImageManipulator.manipulateAsync(
+      result.assets[0].uri,
+      [{ resize: { width: 900 } }],
+      { compress: 0.76, format: ImageManipulator.SaveFormat.JPEG }
+    );
+
+    changeProductField('imageUri', image.uri);
+  };
+
   const publishProduct = async () => {
     const price = Number(productForm.price.replace(/[^0-9]/g, ''));
     if (!productForm.title.trim() || !productForm.description.trim() || !price) {
@@ -182,7 +210,7 @@ export default function SellerScreen({ navigation, appSettings }) {
           city: profile.city,
         },
       });
-      setProductForm({ title: '', category: 'Accessoires', price: '', stock: 'En stock', description: '' });
+      setProductForm({ title: '', category: 'Accessoires', price: '', stock: 'En stock', description: '', imageUri: null });
       if (ownedShop) {
         setActiveType('professional');
       }
@@ -281,7 +309,7 @@ export default function SellerScreen({ navigation, appSettings }) {
               <Text style={[styles.walletTitle, { color: colors.text }]}>🎮 Mini-jeux</Text>
               <Text style={[styles.walletText, { color: muted }]}>🐍 Snake · 🍉 Fruit Slash · 🧠 Memory · 🥷 Ninja</Text>
             </View>
-            <Text style={[styles.walletAction, { color: colors.primary }]}>Jouer ›</Text>
+            <Text style={[styles.walletAction, { color: colors.primary }]}>›</Text>
           </Pressable>
 
           <Button mode="contained" onPress={() => dispatch(logout())} buttonColor={palette.orange} textColor={palette.background}>
@@ -297,14 +325,14 @@ export default function SellerScreen({ navigation, appSettings }) {
           <TextInput label="Nom article" value={productForm.title} onChangeText={(value) => changeProductField('title', value)} />
           <View style={styles.categoryPicker}>
             {publishCategories.map((category) => {
-              const active = productForm.category === category;
+              const active = productForm.category === category.match;
               return (
                 <Pressable
-                  key={category}
-                  onPress={() => changeProductField('category', category)}
+                  key={category.id}
+                  onPress={() => changeProductField('category', category.match)}
                   style={[styles.categoryChip, { borderColor: active ? colors.primary : line, backgroundColor: active ? colors.primary : darkMode ? palette.dark : overlay.soft }]}
                 >
-                  <Text style={[styles.categoryChipText, { color: active ? colors.background : colors.text }]}>{category}</Text>
+                  <Text style={[styles.categoryChipText, { color: active ? colors.background : colors.text }]}>{category.icon} {category.match}</Text>
                 </Pressable>
               );
             })}
@@ -313,6 +341,17 @@ export default function SellerScreen({ navigation, appSettings }) {
             <TextInput label="Prix FCFA" value={productForm.price} onChangeText={(value) => changeProductField('price', value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" style={styles.flexInput} />
             <TextInput label="Stock" value={productForm.stock} onChangeText={(value) => changeProductField('stock', value)} style={styles.flexInput} />
           </View>
+          <Pressable onPress={pickProductImage} style={[styles.productImagePicker, { borderColor: line, backgroundColor: darkMode ? palette.dark : overlay.soft }]}>
+            {productForm.imageUri ? (
+              <Image source={{ uri: productForm.imageUri }} style={styles.productImagePreview} resizeMode="cover" />
+            ) : (
+              <View style={styles.productImageEmpty}>
+                <Text style={styles.productImageIcon}>📷</Text>
+                <Text style={[styles.productImageText, { color: colors.text }]}>Televerser une image article</Text>
+                <Text style={[styles.productImageHint, { color: muted }]}>L'image sera visible dans la vitrine et la recherche.</Text>
+              </View>
+            )}
+          </Pressable>
           <TextInput label="Description article" value={productForm.description} onChangeText={(value) => changeProductField('description', value)} multiline />
           <Button mode="contained" onPress={publishProduct} loading={publishing} buttonColor={colors.primary} textColor={colors.background}>
             Publier l'article
@@ -554,6 +593,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
   },
+  productImagePicker: {
+    minHeight: 150,
+    borderWidth: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  productImagePreview: {
+    width: '100%',
+    height: 170,
+  },
+  productImageEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+    gap: 6,
+  },
+  productImageIcon: {
+    fontSize: 26,
+    lineHeight: 30,
+  },
+  productImageText: {
+    fontSize: 14,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  productImageHint: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 17,
+  },
   row: {
     flexDirection: 'row',
     gap: 10,
@@ -623,6 +694,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   walletAction: {
+    minWidth: 18,
+    textAlign: 'right',
     fontSize: 14,
     fontWeight: '900',
   },

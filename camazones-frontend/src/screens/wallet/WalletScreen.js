@@ -131,7 +131,7 @@ export default function WalletScreen({ route, appSettings }) {
         <Surface style={[styles.checkoutCard, { backgroundColor: surface, borderColor: line }]}>
           <View style={styles.checkoutTop}>
             <View style={[styles.paymentIcon, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.paymentIconText, { color: colors.background }]}>✓</Text>
+              <Text style={[styles.paymentIconText, { color: colors.background }]}>{selected.icon}</Text>
             </View>
             <View style={styles.checkoutCopy}>
               <Text style={[styles.checkoutTitle, { color: colors.text }]}>{productTitle}</Text>
@@ -230,7 +230,7 @@ export default function WalletScreen({ route, appSettings }) {
           </Surface>
         ) : null}
 
-        <Button mode="contained" onPress={pay} buttonColor={colors.primary} textColor={colors.background} contentStyle={styles.buttonContent}>
+        <Button mode="contained" onPress={pay} buttonColor={colors.primary} textColor={colors.background} contentStyle={styles.buttonContent} style={styles.payButton}>
           Payer {money(total)}
         </Button>
 
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   paymentIconText: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '900',
   },
   checkoutTitle: {
@@ -394,8 +394,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   methodIcon: {
-    fontSize: 14,
-    lineHeight: 16,
+    fontSize: 18,
+    lineHeight: 22,
   },
   methodText: {
     lineHeight: 19,
@@ -416,8 +416,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   formIcon: {
-    fontSize: 14,
-    lineHeight: 16,
+    fontSize: 18,
+    lineHeight: 22,
   },
   form: {
     gap: 10,
@@ -452,6 +452,9 @@ const styles = StyleSheet.create({
   },
   buttonContent: {
     minHeight: 48,
+  },
+  payButton: {
+    marginTop: 8,
   },
   history: {
     gap: 10,

@@ -9,6 +9,7 @@ import { darkPalette, overlay, palette } from '../../theme';
 export default function ProductsScreen({ navigation, appSettings }) {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const normalizedQuery = query.trim().toLowerCase();
   const { shops, rankedProducts, isOffline, error } = useMarketplaceData();
   const baseShopResults = useShopSearch(shops, query);
@@ -51,21 +52,39 @@ export default function ProductsScreen({ navigation, appSettings }) {
 
         <TextInput value={query} onChangeText={setQuery} placeholder={t('searchExample')} style={styles.input} autoCapitalize="none" />
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryFilters}>
-          {categories.map((category) => {
-            const active = selectedCategory === category.id;
-            return (
-              <Pressable
-                key={category.id}
-                onPress={() => setSelectedCategory(category.id)}
-                style={[styles.categoryFilter, { borderColor: active ? colors.primary : line, backgroundColor: active ? colors.primary : surface }]}
-              >
-                <Text style={[styles.categoryFilterIcon, { color: active ? colors.background : colors.primary }]}>{category.icon}</Text>
-                <Text style={[styles.categoryFilterText, { color: active ? colors.background : colors.text }]}>{category.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.dropdownWrap}>
+          <Pressable
+            onPress={() => setCategoryOpen((open) => !open)}
+            style={[styles.dropdownButton, { borderColor: line, backgroundColor: surface }]}
+          >
+            <Text style={styles.dropdownIcon}>{categoryMeta.icon}</Text>
+            <View style={styles.dropdownCopy}>
+              <Text style={[styles.dropdownLabel, { color: muted }]}>Filtre categorie</Text>
+              <Text style={[styles.dropdownValue, { color: colors.text }]}>{categoryMeta.label}</Text>
+            </View>
+            <Text style={[styles.dropdownArrow, { color: colors.primary }]}>{categoryOpen ? '⌃' : '⌄'}</Text>
+          </Pressable>
+          {categoryOpen ? (
+            <View style={[styles.dropdownPanel, { borderColor: line, backgroundColor: surface }]}>
+              {categories.map((category) => {
+                const active = selectedCategory === category.id;
+                return (
+                  <Pressable
+                    key={category.id}
+                    onPress={() => {
+                      setSelectedCategory(category.id);
+                      setCategoryOpen(false);
+                    }}
+                    style={[styles.dropdownOption, { backgroundColor: active ? colors.primary : 'transparent' }]}
+                  >
+                    <Text style={styles.optionIcon}>{category.icon}</Text>
+                    <Text style={[styles.optionText, { color: active ? colors.background : colors.text }]}>{category.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
+        </View>
 
         {isOffline || error ? (
           <Surface style={styles.rankingNote}>
@@ -165,25 +184,59 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: palette.surface,
   },
-  categoryFilters: {
+  dropdownWrap: {
     gap: 8,
-    paddingRight: 20,
   },
-  categoryFilter: {
+  dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 999,
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 18,
     borderWidth: 1,
   },
-  categoryFilterIcon: {
-    fontSize: 12,
+  dropdownIcon: {
+    fontSize: 19,
+    lineHeight: 24,
+  },
+  dropdownCopy: {
+    flex: 1,
+    gap: 1,
+  },
+  dropdownLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  dropdownValue: {
+    fontSize: 15,
     fontWeight: '900',
   },
-  categoryFilterText: {
-    fontSize: 12,
+  dropdownArrow: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  dropdownPanel: {
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 8,
+    gap: 4,
+  },
+  dropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+  },
+  optionIcon: {
+    fontSize: 17,
+    lineHeight: 22,
+  },
+  optionText: {
+    fontSize: 14,
     fontWeight: '900',
   },
   stack: {

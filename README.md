@@ -45,18 +45,68 @@ L'application detecte automatiquement l'IP LAN Expo pour joindre `http://IP_DU_P
 - Frontend connecte a l'API backend avec cache local et fallback offline.
 - Donnees seedees en base H2 au demarrage: boutiques, produits, comptes demo.
 - Zone Boutiques dediee aux vitrines professionnelles uniquement.
-- Recherche globale avec boutiques et produits correspondants.
+- Recherche globale avec filtre deroulant par categorie et produits correspondants.
 - Carousel horizontal de produits tendance.
-- Profil modifiable avec photo depuis le telephone, compression image et historique.
+- Profil modifiable avec photo, publication article avec image televersee et historique.
 - Mode sombre optionnel dans le Profil, persistant.
 - Langue FR/EN dans le Profil, persistante.
 - Pay deplace dans le Profil.
 - Portefeuille Camazone rechargeable avec historique.
-- Paiement Orange Money, MTN MoMo, carte, wallet.
+- Paiement Orange Money, MTN MoMo, carte, wallet avec emojis discrets.
 - Export de facture en PDF et partage mobile.
 - Badges AP, premium et etoile visible pour boutiques premium.
 - Console admin pour clients, boutiques, produits, blocages et commissions hebdomadaires.
 - Espace mini-jeux mobile avec Snake et Fruit Slash.
+- Logo Camazone rond avec carte du Cameroun visible au centre.
+
+## Fichiers principaux
+
+```text
+camazones-frontend/src/App.js
+Point d'entree React Native, Provider Redux, theme global et navigation.
+
+camazones-frontend/src/navigation/RootNavigator.js
+Controle la navigation selon auth, onglets, admin, jeux, messages et paiement.
+
+camazones-frontend/src/screens/auth/AuthScreen.js
+Ecran connexion/inscription, restauration JWT et choix type compte.
+
+camazones-frontend/src/data/marketplace.js
+Catalogue local: boutiques, produits, categories emoji, moyens de paiement et comptes.
+
+camazones-frontend/src/services/marketplaceService.js
+Connexion API marketplace, cache offline, merge des produits publies et upload image local.
+
+camazones-frontend/src/screens/home/HomeScreen.js
+Accueil avec vitrines, carousel automatique et produits mis en avant.
+
+camazones-frontend/src/screens/products/ProductsScreen.js
+Recherche globale, filtre deroulant categorie, boutiques et produits trouves.
+
+camazones-frontend/src/screens/seller/SellerScreen.js
+Profil, photo utilisateur, mode sombre, publication article avec image et historique achats.
+
+camazones-frontend/src/screens/wallet/WalletScreen.js
+Paiement, recharge wallet, methodes Orange Money/MTN/carte/wallet et historique.
+
+camazones-frontend/src/services/pdfService.js
+Generation et partage des factures PDF signees.
+
+camazones-frontend/src/components/MarketplaceCards.js
+Cartes boutiques, produits, badges, boutons message/mail/payer.
+
+camazones-frontend/assets/brand/
+Logo rond, logo large et marque Camazone utilises par l'application.
+
+camazones-backend/src/main/java/com/camazones/core/config/DataSeeder.java
+Seed backend: users demo, boutiques, produits, conversations et commissions.
+
+camazones-backend/src/main/resources/db/wamp/camazones_wamp_schema.sql
+Script SQL WAMP/MySQL avec schema, donnees demo et prix synchronises.
+
+camazones-docs/COMPTES_DEMO.md
+Liste complete des comptes demo et leurs mots de passe.
+```
 
 ## Identifiants demo
 
