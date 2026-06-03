@@ -8,7 +8,7 @@ const badgeMeta = {
   ap: { label: 'Reconnu AP', icon: 'AP' },
   premium: { label: 'Premium', icon: '⭐' },
   professional: { label: 'Boutique pro', icon: '🏪' },
-  independent: { label: 'Independant', icon: '👤' },
+  independent: { label: 'Indépendant', icon: '👤' },
 };
 
 const useCardTheme = () => {
@@ -86,7 +86,7 @@ export function ShopCard({ shop, onPress }) {
         </View>
         <View style={styles.metricsRow}>
           <Metric label="Articles" value={String(shop.products.length)} />
-          <Metric label="Visibilite" value={shop.premium ? 'Haute' : 'Claire'} />
+          <Metric label="Visibilité" value={shop.premium ? 'Haute' : 'Claire'} />
           <Metric label="Rang" value={`${shop.visibilityRank ?? 76}%`} />
         </View>
       </Surface>
@@ -100,7 +100,7 @@ export function ProductCard({ item, onMessage, onBuy }) {
   const sendMail = () => {
     const sellerEmail = seller.email ?? 'contact@camazones.demo';
     const subject = encodeURIComponent(`Demande Camazones - ${product.title}`);
-    const body = encodeURIComponent(`Bonjour ${seller.name},\n\nJe suis interesse par ${product.title} (${product.price}). Est-ce encore disponible ?\n\nMerci.`);
+    const body = encodeURIComponent(`Bonjour ${seller.name},\n\nJe suis intéressé par ${product.title} (${product.price}). Est-ce encore disponible ?\n\nMerci.`);
     Linking.openURL(`mailto:${sellerEmail}?subject=${subject}&body=${body}`);
   };
 
@@ -181,16 +181,16 @@ const styles = StyleSheet.create({
     opacity: 0.76,
   },
   card: {
-    padding: 14,
-    borderRadius: 18,
+    padding: 16,
+    borderRadius: 24,
     borderWidth: 1,
     gap: 12,
     overflow: 'hidden',
   },
   shopCover: {
     width: '100%',
-    height: 130,
-    borderRadius: 15,
+    height: 134,
+    borderRadius: 20,
     backgroundColor: overlay.soft,
   },
   cardTop: {
@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   chevron: {
-    color: palette.green,
+    color: palette.secondary,
     fontSize: 30,
     fontWeight: '900',
   },
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   metric: {
     flex: 1,
     padding: 10,
-    borderRadius: 14,
+    borderRadius: 16,
   },
   metricValue: {
     fontSize: 15,
@@ -296,15 +296,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   productCard: {
-    padding: 14,
-    borderRadius: 18,
+    padding: 16,
+    borderRadius: 24,
     borderWidth: 1,
     gap: 12,
   },
   productImageWrap: {
     position: 'relative',
     padding: 6,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: 'rgba(255, 248, 234, 0.72)',
     borderWidth: 1,
     borderColor: 'rgba(31, 31, 31, 0.08)',
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: 198,
-    borderRadius: 15,
+    borderRadius: 19,
     backgroundColor: overlay.soft,
   },
   imageBadge: {
@@ -337,10 +337,10 @@ const styles = StyleSheet.create({
   productIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: palette.green,
+    backgroundColor: palette.secondary,
   },
   productIconPremium: {
     backgroundColor: palette.orange,
@@ -372,12 +372,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   outlineButton: {
-    borderColor: palette.green,
+    borderColor: palette.secondary,
   },
   sectionHeader: {
     gap: 5,
-    padding: 12,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 20,
     borderWidth: 1,
   },
   sectionTitle: {
@@ -391,12 +391,12 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     padding: 24,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     gap: 8,
   },
   emptyIcon: {
-    color: palette.green,
+    color: palette.secondary,
     fontSize: 22,
     fontWeight: '900',
   },

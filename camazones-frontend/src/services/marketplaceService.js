@@ -1,10 +1,8 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import apiClient from './apiClient';
-import { storage } from './storage';
 import { getProductVisual, getShopVisuals } from '../data/visualAssets';
 
-const MARKETPLACE_CACHE_KEY = '@camazones/wamp-marketplace-cache-v2';
 const NETINFO_TIMEOUT_MS = 1200;
 
 const formatPrice = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
@@ -177,16 +175,10 @@ export const useMarketplaceData = () => {
           throw new Error('offline');
         }
         const data = await fetchMarketplace();
-        await storage.setItem(MARKETPLACE_CACHE_KEY, JSON.stringify(data));
         if (alive) {
           setState({ ...data, isLoading: false, isOffline: false, error: null });
         }
       } catch (error) {
-        const cached = await storage.getItem(MARKETPLACE_CACHE_KEY);
-        if (alive && cached) {
-          setState({ ...JSON.parse(cached), isLoading: false, isOffline: true, error: offline ? null : 'API indisponible, dernier cache WAMP affiche.' });
-          return;
-        }
         if (alive) {
           setState({ shops: [], rankedProducts: [], isLoading: false, isOffline: true, error: offline ? null : 'API WAMP indisponible.' });
         }

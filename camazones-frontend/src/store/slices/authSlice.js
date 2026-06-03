@@ -97,6 +97,23 @@ export const restoreAuth = () => async (dispatch) => {
   }
 };
 
+export const validateSession = () => async (dispatch, getState) => {
+  const token = getState().auth.token;
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const profile = await profileRequest(token);
+    dispatch(authSuccess({ token, user: profile }));
+    return profile;
+  } catch (error) {
+    await storage.removeItem(AUTH_STORAGE_KEY);
+    dispatch(clearAuth());
+    return null;
+  }
+};
+
 export const login = (credentials) => async (dispatch) => {
   dispatch(authStart());
 

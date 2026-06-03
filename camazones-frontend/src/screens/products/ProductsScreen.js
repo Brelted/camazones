@@ -14,6 +14,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
   const searchInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const recordingRef = useRef(false);
+  const autoStopTimerRef = useRef(null);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [query, setQuery] = useState('');
   const [voiceActive, setVoiceActive] = useState(false);
@@ -98,6 +99,10 @@ export default function ProductsScreen({ navigation, appSettings }) {
   };
 
   const stopVoiceSearch = async () => {
+    if (autoStopTimerRef.current) {
+      clearTimeout(autoStopTimerRef.current);
+      autoStopTimerRef.current = null;
+    }
     if (!recordingRef.current && !voiceActive) {
       return;
     }
@@ -176,6 +181,9 @@ export default function ProductsScreen({ navigation, appSettings }) {
       await audioRecorder.prepareToRecordAsync();
       recordingRef.current = true;
       await audioRecorder.record();
+      autoStopTimerRef.current = setTimeout(() => {
+        stopVoiceSearch();
+      }, 7000);
     } catch (error) {
       recordingRef.current = false;
       setVoiceActive(false);
@@ -213,10 +221,8 @@ export default function ProductsScreen({ navigation, appSettings }) {
             <Text style={[styles.searchButtonText, { color: colors.background }]}>🔎</Text>
           </Pressable>
           <Pressable
-            delayLongPress={520}
-            onLongPress={startVoiceSearch}
-            onPressIn={explainVoiceHold}
-            onPressOut={stopVoiceSearch}
+            onPress={voiceActive ? stopVoiceSearch : startVoiceSearch}
+            onLongPress={explainVoiceHold}
             style={[styles.voiceButton, { backgroundColor: voiceActive ? colors.green ?? palette.green : colors.primary }]}
           >
             <Text style={[styles.voiceIcon, { color: colors.background }]}>🎙️</Text>

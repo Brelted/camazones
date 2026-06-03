@@ -11,8 +11,8 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
   const [query, setQuery] = useState('');
   const [selectedShopId, setSelectedShopId] = useState(route?.params?.shopId ?? null);
   const results = useShopSearch(shops, query);
-  const selectedShop = useMemo(() => shops.find((shop) => shop.id === selectedShopId), [shops, selectedShopId]);
-  const otherShops = useMemo(() => shops.filter((shop) => shop.id !== selectedShopId), [shops, selectedShopId]);
+  const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(selectedShopId)), [shops, selectedShopId]);
+  const otherShops = useMemo(() => shops.filter((shop) => String(shop.id) !== String(selectedShopId)), [shops, selectedShopId]);
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
@@ -71,7 +71,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
             <Pressable onPress={() => sendShopMail(selectedShop)} style={[styles.action, { backgroundColor: darkMode ? palette.darkSurface : overlay.orange, borderColor: colors.primary }]}>
               <Text style={[styles.actionText, { color: colors.primary }]}>Mail</Text>
             </Pressable>
-            <Pressable onPress={() => openMessages(selectedShop)} style={[styles.action, { backgroundColor: colors.green ?? palette.green }]}>
+            <Pressable onPress={() => openMessages(selectedShop)} style={[styles.action, { backgroundColor: colors.secondary ?? palette.secondary }]}>
               <Text style={[styles.actionText, { color: colors.background }]}>{t('sellerDm')}</Text>
             </Pressable>
             <Pressable onPress={() => openPayment(selectedShop.products[0])} style={[styles.action, { backgroundColor: colors.primary }]}>
@@ -190,17 +190,17 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   hero: {
-    borderRadius: 22,
+    borderRadius: 28,
     overflow: 'hidden',
     borderWidth: 1,
   },
   heroImage: {
     width: '100%',
-    height: 190,
+    height: 196,
     backgroundColor: overlay.soft,
   },
   heroCopy: {
-    padding: 15,
+    padding: 16,
     gap: 9,
   },
   nameRow: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   otherShopCard: {
     width: 176,
     minHeight: 152,
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
     padding: 12,
     gap: 10,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   otherShopLogo: {
     width: 52,
     height: 52,
-    borderRadius: 17,
+    borderRadius: 18,
     backgroundColor: overlay.soft,
   },
   otherShopCopy: {
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   action: {
     flex: 1,
     minHeight: 46,
-    borderRadius: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

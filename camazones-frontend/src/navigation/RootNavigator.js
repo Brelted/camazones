@@ -6,6 +6,7 @@ import AuthScreen from '../screens/auth/AuthScreen';
 import { LoadingDots, Text } from '../components/ui';
 import SplashAnimation from '../components/SplashAnimation';
 import { darkPalette, overlay, palette } from '../theme';
+import { validateSession } from '../store/slices/authSlice';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
 import { translate } from '../i18n';
 
@@ -116,6 +117,16 @@ export default function RootNavigator() {
 
     return () => clearTimeout(timer);
   }, [activeName, isAuthenticated, language]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return undefined;
+    }
+
+    dispatch(validateSession());
+    const timer = setInterval(() => dispatch(validateSession()), 20000);
+    return () => clearInterval(timer);
+  }, [dispatch, isAuthenticated]);
 
   if (isBootstrapping) {
     return <SplashAnimation />;
