@@ -58,7 +58,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UserDetails userDetails;
+            try {
+                userDetails = userDetailsService.loadUserByUsername(email);
+            } catch (Exception e) {
+                log.warn("Token refuse pour utilisateur absent ou supprime : {}", email);
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (userDetails.isEnabled() && jwtProvider.isTokenValid(token, email)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(

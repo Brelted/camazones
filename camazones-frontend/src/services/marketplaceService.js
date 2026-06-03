@@ -1,16 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import apiClient from './apiClient';
 import { storage } from './storage';
-import {
-  getRankedProducts as getLocalRankedProducts,
-  independentSellers,
-  shopAccountMap,
-  shops as localShops,
-} from '../data/marketplace';
+import { getProductVisual, getShopVisuals } from '../data/visualAssets';
 
-const MARKETPLACE_CACHE_KEY = '@camazones/marketplace-cache';
-const MARKETPLACE_PUBLISHED_KEY = '@camazones/published-products';
+const MARKETPLACE_CACHE_KEY = '@camazones/wamp-marketplace-cache-v2';
 const NETINFO_TIMEOUT_MS = 1200;
 
 const formatPrice = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
@@ -18,148 +12,13 @@ const imageSource = (url, fallback) => (url ? { uri: url } : fallback);
 const stockLabel = (value) => (Number(value ?? 0) > 0 ? `${value} pieces` : 'En stock');
 const isPremiumShop = (shop) => shop.subscriptionTier === 'PREMIUM' || shop.subscriptionTier === 'MONTHLY';
 
-const localShopByName = localShops.reduce((accumulator, shop) => {
-  accumulator[shop.name.toLowerCase()] = shop;
-  return accumulator;
-}, {});
-
-const localShopById = localShops.reduce((accumulator, shop) => {
-  accumulator[shop.id] = shop;
-  return accumulator;
-}, {});
-
-export const getShopIdForEmail = (email) => shopAccountMap[email?.toLowerCase?.()] ?? null;
-
-const createLocalMarketplaceData = () => ({
-  shops: localShops,
-  rankedProducts: getLocalRankedProducts(),
-});
-
-const ensureCompleteMarketplaceData = (data) => {
-  const existingShopKeys = new Set((data.shops ?? []).map((shop) => `${shop.id ?? ''}:${shop.name ?? ''}`.toLowerCase()));
-  const missingLocalShops = localShops.filter((shop) => !existingShopKeys.has(`${shop.id}:${shop.name}`.toLowerCase()));
-  const existingProductIds = new Set((data.rankedProducts ?? []).map(({ product }) => product.id));
-  const missingRankedProducts = missingLocalShops.flatMap((shop) =>
-    shop.products
-      .filter((product) => !existingProductIds.has(product.id))
-      .map((product) => ({ product, seller: shop, sellerType: 'shop' }))
-  );
-
-  return {
-    ...data,
-    shops: [...(data.shops ?? []), ...missingLocalShops],
-    rankedProducts: [...(data.rankedProducts ?? []), ...missingRankedProducts].sort(
-      (left, right) => Number(right.seller.premium) - Number(left.seller.premium)
-    ),
-  };
-};
-
-const createShortId = (prefix = 'PRD') => `${prefix}${Date.now().toString(36).toUpperCase()}`.replace(/[^A-Z0-9]/g, '').slice(0, 8).padEnd(8, '0');
-
-const fallbackImageFor = (category, shopId) => {
-  const shop = localShopById[shopId];
-  const productPool = shop?.products?.length ? shop.products : getLocalRankedProducts().map((item) => item.product);
-  const normalizedCategory = category?.toLowerCase?.() ?? '';
-  return productPool.find((item) => item.category?.toLowerCase?.() === normalizedCategory)?.image ?? productPool[0]?.image;
-};
-
-const loadPublishedProducts = async () => {
-  try {
-    const serialized = await storage.getItem(MARKETPLACE_PUBLISHED_KEY);
-    return serialized ? JSON.parse(serialized) : [];
-  } catch (error) {
-    return [];
-  }
-};
-
-const persistPublishedProducts = async (products) => {
-  await storage.setItem(MARKETPLACE_PUBLISHED_KEY, JSON.stringify(products.slice(0, 80)));
-};
-
-export const savePublishedProduct = async ({ user, payload }) => {
-  const email = user?.email ?? 'client@camazones.demo';
-  const shopId = getShopIdForEmail(email);
-  const record = {
-    id: createShortId('PRD'),
-    title: payload.title.trim(),
-    category: payload.category.trim(),
-    price: `${Number(payload.price || 0).toLocaleString('fr-FR')} FCFA`,
-    stock: payload.stock?.trim() || 'En stock',
-    description: payload.description.trim(),
-    imageUri: payload.imageUri ?? null,
-    sellerEmail: email,
-    sellerName: `${user?.firstName ?? 'Client'} ${user?.lastName ?? 'Camazones'}`.trim(),
-    city: payload.city?.trim() || 'Douala',
-    shopId,
-    createdAt: new Date().toISOString(),
-  };
-  const current = await loadPublishedProducts();
-  await persistPublishedProducts([record, ...current]);
-  return record;
-};
-
-const mergePublishedProducts = (data, publishedProducts) => {
-  if (!publishedProducts.length) {
-    return data;
-  }
-
-  const publishedIds = new Set(publishedProducts.map((item) => item.id));
-  const nextShops = data.shops.map((shop) => ({
-    ...shop,
-    products: shop.products.filter((product) => !publishedIds.has(product.id)),
-  }));
-  const nextShopById = nextShops.reduce((accumulator, shop) => {
-    accumulator[shop.id] = shop;
-    return accumulator;
-  }, {});
-  const nextRankedProducts = data.rankedProducts.filter(({ product }) => !publishedIds.has(product.id));
-
-  publishedProducts.forEach((record) => {
-    const product = {
-      id: record.id,
-      title: record.title,
-      image: record.imageUri ? { uri: record.imageUri } : fallbackImageFor(record.category, record.shopId),
-      category: record.category,
-      price: record.price,
-      stock: record.stock,
-      description: record.description,
-      premium: false,
-      certified: false,
-      local: true,
-    };
-
-    if (record.shopId && nextShopById[record.shopId]) {
-      nextShopById[record.shopId].products = [product, ...nextShopById[record.shopId].products];
-      nextRankedProducts.push({ product, seller: nextShopById[record.shopId], sellerType: 'shop' });
-      return;
-    }
-
-    const seller = {
-      id: record.sellerEmail,
-      name: record.sellerName,
-      city: record.city,
-      email: record.sellerEmail,
-      accountType: 'independent',
-      certifiedByAp: false,
-      premium: false,
-    };
-    nextRankedProducts.push({ product, seller, sellerType: 'independent' });
-  });
-
-  return {
-    ...data,
-    shops: nextShops,
-    rankedProducts: nextRankedProducts.sort((left, right) => Number(right.seller.premium) - Number(left.seller.premium)),
-  };
+const parseStockQuantity = (value) => {
+  const parsed = Number(String(value ?? '').replace(/[^0-9]/g, ''));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 };
 
 const normalizeProduct = (item, seller, sellerType) => {
-  const fallbackShop = sellerType === 'shop' ? localShopByName[seller.name?.toLowerCase?.()] : null;
-  const fallbackProduct =
-    fallbackShop?.products?.find((product) => product.title?.toLowerCase?.() === item.title?.toLowerCase?.()) ??
-    fallbackShop?.products?.find((product) => product.category?.toLowerCase?.() === item.category?.toLowerCase?.()) ??
-    fallbackShop?.products?.[0];
-  const fallback = fallbackProduct?.image ?? getLocalRankedProducts()[0]?.product?.image;
+  const fallback = getProductVisual({ title: item.title, category: item.category });
   return {
     product: {
       id: String(item.id),
@@ -179,18 +38,19 @@ const normalizeProduct = (item, seller, sellerType) => {
 };
 
 const normalizeShop = (shop, products) => {
-  const fallback = localShopByName[shop.name?.toLowerCase?.()] ?? localShops[0];
+  const fallback = getShopVisuals(shop);
   const seller = {
     id: String(shop.id),
     name: shop.name,
-    city: shop.city ?? fallback.city,
+    email: shop.owner?.email,
+    city: shop.city ?? 'Camazones',
     accountType: 'professional',
     certifiedByAp: Boolean(shop.verified),
     premium: isPremiumShop(shop),
     visibilityRank: isPremiumShop(shop) ? 95 : shop.verified ? 86 : 72,
-    speciality: shop.category ?? fallback.speciality,
-    tagline: shop.description ?? fallback.tagline,
-    logo: imageSource(shop.logoUrl, fallback.logo ?? fallback.cover),
+    speciality: shop.category ?? 'Boutique',
+    tagline: shop.description ?? 'Boutique Camazones active.',
+    logo: imageSource(shop.logoUrl, fallback.logo),
     cover: imageSource(shop.logoUrl, fallback.cover),
     products: [],
   };
@@ -199,11 +59,31 @@ const normalizeShop = (shop, products) => {
     .filter((product) => product.shop?.id === shop.id)
     .map((product) => normalizeProduct(product, seller, 'shop').product);
 
-  if (!seller.products.length) {
-    seller.products = fallback.products;
-  }
-
   return seller;
+};
+
+const fetchMyShop = async () => {
+  try {
+    return await apiClient.get('/shops/mine');
+  } catch (error) {
+    return null;
+  }
+};
+
+export const savePublishedProduct = async ({ payload }) => {
+  const shop = await fetchMyShop();
+  return apiClient.post('/products', {
+    title: payload.title.trim(),
+    description: payload.description.trim(),
+    category: payload.category.trim(),
+    price: Number(payload.price || 0),
+    negotiable: true,
+    stockQuantity: parseStockQuantity(payload.stock),
+    city: payload.city?.trim() || 'Douala',
+    primaryImageUrl: payload.imageUri ?? null,
+    imageUrls: payload.imageUri ? [payload.imageUri] : [],
+    shopId: shop?.id ?? null,
+  });
 };
 
 export const fetchMarketplace = async () => {
@@ -222,6 +102,7 @@ export const fetchMarketplace = async () => {
         product,
         {
           id: product.seller?.id,
+          email: product.seller?.email,
           name: `${product.seller?.firstName ?? 'Vendeur'} ${product.seller?.lastName ?? ''}`.trim(),
           city: product.city ?? 'Camazones',
           certifiedByAp: false,
@@ -231,21 +112,51 @@ export const fetchMarketplace = async () => {
       )
     );
 
-  return ensureCompleteMarketplaceData({
-    shops: shops.length ? shops : localShops,
+  return {
+    shops,
     rankedProducts: [
       ...shops.flatMap((shop) => shop.products.map((product) => ({ product, seller: shop, sellerType: 'shop' }))),
       ...independentProducts,
-      ...independentSellers.flatMap((seller) => seller.products.map((product) => ({ product, seller, sellerType: 'independent' }))),
     ].sort((left, right) => Number(right.seller.premium) - Number(left.seller.premium)),
     syncedAt: new Date().toISOString(),
+  };
+};
+
+export const searchDatabaseProducts = async (query) => {
+  const value = query?.trim?.();
+  if (!value) {
+    return [];
+  }
+  const params = new URLSearchParams({ search: value, limit: '30', page: '1' });
+  const payload = await apiClient.get(`/products?${params.toString()}`);
+  const items = payload?.data ?? [];
+  return items.map((product) => {
+    const seller = product.shop
+      ? {
+          id: product.shop.id,
+          name: product.shop.name,
+          email: product.seller?.email,
+          city: product.city ?? 'Camazones',
+          accountType: 'professional',
+          certifiedByAp: Boolean(product.shop.verified),
+          premium: isPremiumShop(product.shop),
+        }
+      : {
+          id: product.seller?.id,
+          email: product.seller?.email,
+          name: `${product.seller?.firstName ?? 'Vendeur'} ${product.seller?.lastName ?? ''}`.trim(),
+          city: product.city ?? 'Camazones',
+          certifiedByAp: false,
+          premium: false,
+        };
+    return normalizeProduct(product, seller, product.shop ? 'shop' : 'independent');
   });
 };
 
 export const useMarketplaceData = () => {
   const [state, setState] = useState({
-    shops: localShops,
-    rankedProducts: getLocalRankedProducts(),
+    shops: [],
+    rankedProducts: [],
     isLoading: true,
     isOffline: false,
     error: null,
@@ -265,17 +176,19 @@ export const useMarketplaceData = () => {
         if (offline) {
           throw new Error('offline');
         }
-        const baseData = await fetchMarketplace();
-        await storage.setItem(MARKETPLACE_CACHE_KEY, JSON.stringify(baseData));
-        const data = mergePublishedProducts(baseData, await loadPublishedProducts());
+        const data = await fetchMarketplace();
+        await storage.setItem(MARKETPLACE_CACHE_KEY, JSON.stringify(data));
         if (alive) {
           setState({ ...data, isLoading: false, isOffline: false, error: null });
         }
       } catch (error) {
-        const baseData = createLocalMarketplaceData();
-        const data = mergePublishedProducts(baseData, await loadPublishedProducts());
+        const cached = await storage.getItem(MARKETPLACE_CACHE_KEY);
+        if (alive && cached) {
+          setState({ ...JSON.parse(cached), isLoading: false, isOffline: true, error: offline ? null : 'API indisponible, dernier cache WAMP affiche.' });
+          return;
+        }
         if (alive) {
-          setState({ ...data, isLoading: false, isOffline: true, error: offline ? null : 'API indisponible, cache local affiche.' });
+          setState({ shops: [], rankedProducts: [], isLoading: false, isOffline: true, error: offline ? null : 'API WAMP indisponible.' });
         }
       }
     };

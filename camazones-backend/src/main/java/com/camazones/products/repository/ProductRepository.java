@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +20,19 @@ public interface ProductRepository
         extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
 
     Optional<Product> findByIdAndDeletedAtIsNull(UUID id);
+
+    Optional<Product> findFirstBySellerIdAndTitleIgnoreCaseAndDeletedAtIsNull(UUID sellerId, String title);
+
+    List<Product> findBySellerIdAndDeletedAtIsNull(UUID sellerId);
+
+    @Query("""
+            select distinct product
+            from Product product
+            left join product.shop shop
+            where product.seller.id = :userId
+               or shop.owner.id = :userId
+            """)
+    List<Product> findAllLinkedToUser(@Param("userId") UUID userId);
 
     Page<Product> findByShopIdAndDeletedAtIsNullAndStatus(
             UUID shopId, ProductStatus status, Pageable pageable);

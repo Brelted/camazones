@@ -1,13 +1,24 @@
-import React, { useMemo, useState } from 'react';
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+﻿import React, { useMemo, useRef, useState } from 'react';
+import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
+import * as Speech from 'expo-speech';
+import { Image, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, EmptyState, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
-import { categories } from '../../data/marketplace';
-import { useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
+import { categories } from '../../data/visualAssets';
+import { searchDatabaseProducts, useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
+import { getSpeechStatus, transcribeSearchAudio } from '../../services/speechService';
 import { darkPalette, overlay, palette } from '../../theme';
 
 export default function ProductsScreen({ navigation, appSettings }) {
+  const searchInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const recordingRef = useRef(false);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [query, setQuery] = useState('');
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('');
+  const [voiceMatches, setVoiceMatches] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categoryOpen, setCategoryOpen] = useState(false);
   const normalizedQuery = query.trim().toLowerCase();
@@ -30,6 +41,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
       `${product.title} ${product.category} ${product.description} ${seller.name}`.toLowerCase().includes(normalizedQuery)
     );
   }, [categoryMatch, normalizedQuery, rankedProducts]);
+  const visibleProductResults = voiceMatches ?? productResults;
 
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
@@ -37,12 +49,154 @@ export default function ProductsScreen({ navigation, appSettings }) {
   const line = darkMode ? darkPalette.line : overlay.line;
   const surface = darkMode ? darkPalette.surface : palette.surface;
   const t = appSettings?.t ?? ((key) => key);
+  const voiceLanguage = appSettings?.language === 'en' ? 'en-US' : 'fr-FR';
+  const transcriptionLanguage = appSettings?.language === 'en' ? 'en' : 'fr';
 
-  const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
-  const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
+  const changeQuery = (value) => {
+    setQuery(value);
+    setVoiceMatches(null);
+  };
+
+  const runDatabaseVoiceSearch = async (text) => {
+    const cleanText = text?.trim?.();
+    if (!cleanText) {
+      setVoiceMatches([]);
+      setVoiceStatus('Aucun texte reconnu.');
+      return;
+    }
+
+    setQuery(cleanText);
+    setVoiceStatus(`Recherche en base: ${cleanText}`);
+    try {
+      const matches = await searchDatabaseProducts(cleanText);
+      setVoiceMatches(matches);
+      if (matches.length) {
+        setVoiceStatus(`${matches.length} resultat(s) similaire(s) trouve(s) dans la base.`);
+      } else {
+        setVoiceStatus(`Aucun element similaire trouve pour: ${cleanText}`);
+        Speech.speak(`Aucun element similaire trouve pour ${cleanText}`, {
+          language: voiceLanguage,
+          rate: 0.92,
+        });
+      }
+    } catch (error) {
+      setVoiceMatches([]);
+      setVoiceStatus('Recherche en base indisponible. Verifie le backend.');
+    }
+  };
+
+  const explainVoiceHold = () => {
+    if (voiceActive) {
+      return;
+    }
+    Speech.stop();
+    setVoiceStatus('Maintiens le micro pour parler.');
+    Speech.speak('Maintenez le bouton micro pour lancer la recherche vocale.', {
+      language: voiceLanguage,
+      rate: 0.95,
+    });
+  };
+
+  const stopVoiceSearch = async () => {
+    if (!recordingRef.current && !voiceActive) {
+      return;
+    }
+    recordingRef.current = false;
+    setVoiceActive(false);
+    recognitionRef.current?.stop?.();
+    recognitionRef.current = null;
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    try {
+      setVoiceStatus('Transcription en cours...');
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
+      if (!uri) {
+        throw new Error('Audio introuvable.');
+      }
+      const response = await transcribeSearchAudio({ uri, language: transcriptionLanguage });
+      if (response?.text) {
+        await runDatabaseVoiceSearch(response.text);
+      } else {
+        setVoiceStatus('Aucun texte reconnu.');
+      }
+    } catch (error) {
+      searchInputRef.current?.focus?.();
+      setVoiceStatus('Transcription indisponible. Utilise le micro du clavier.');
+      Speech.speak('Transcription indisponible. Utilisez le micro du clavier.', {
+        language: voiceLanguage,
+        rate: 0.92,
+      });
+    }
+  };
+
+  const startVoiceSearch = async () => {
+    Speech.stop();
+    setVoiceActive(true);
+    setVoiceStatus('Micro actif, parle maintenant.');
+    Speech.speak('Recherche vocale active. Parlez maintenant.', {
+      language: voiceLanguage,
+      rate: 0.95,
+    });
+    if (Platform.OS === 'web') {
+      const Recognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
+      if (Recognition) {
+        const recognition = new Recognition();
+        recognitionRef.current = recognition;
+        recognition.lang = voiceLanguage;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onresult = async (event) => {
+          const spoken = event.results?.[0]?.[0]?.transcript;
+          if (spoken) {
+            await runDatabaseVoiceSearch(spoken);
+          }
+        };
+        recognition.onend = () => setVoiceActive(false);
+        recognition.start();
+        return;
+      }
+    }
+
+    try {
+      const status = await getSpeechStatus().catch(() => null);
+      if (status && !status.configured) {
+        throw new Error(status.message || 'Transcription non configuree.');
+      }
+      const permission = await AudioModule.requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error('Micro refuse.');
+      }
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+      await audioRecorder.prepareToRecordAsync();
+      recordingRef.current = true;
+      await audioRecorder.record();
+    } catch (error) {
+      recordingRef.current = false;
+      setVoiceActive(false);
+      searchInputRef.current?.focus?.();
+      setVoiceStatus(error?.message || 'Permission micro refusee ou transcription indisponible.');
+    }
+  };
+
+  const openMessages = (item) => navigation.navigate('Messages', {
+    sellerName: item.seller.name,
+    sellerEmail: item.seller.email,
+    productTitle: item.product.title,
+  });
+  const openPayment = (item) => navigation.navigate('Wallet', {
+    productTitle: item.product.title,
+    productPrice: item.product.price,
+  });
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('globalSearch')}</Text>
@@ -50,7 +204,27 @@ export default function ProductsScreen({ navigation, appSettings }) {
           <Text style={[styles.subtitle, { color: muted }]}>{t('searchSubtitle')}</Text>
         </View>
 
-        <TextInput value={query} onChangeText={setQuery} placeholder={t('searchExample')} style={styles.input} autoCapitalize="none" />
+        <View style={styles.searchRow}>
+          <TextInput inputRef={searchInputRef} value={query} onChangeText={changeQuery} placeholder={t('searchExample')} style={styles.input} autoCapitalize="none" />
+          <Pressable
+            onPress={() => runDatabaseVoiceSearch(query)}
+            style={[styles.searchButton, { backgroundColor: colors.green ?? palette.green }]}
+          >
+            <Text style={[styles.searchButtonText, { color: colors.background }]}>🔎</Text>
+          </Pressable>
+          <Pressable
+            delayLongPress={520}
+            onLongPress={startVoiceSearch}
+            onPressIn={explainVoiceHold}
+            onPressOut={stopVoiceSearch}
+            style={[styles.voiceButton, { backgroundColor: voiceActive ? colors.green ?? palette.green : colors.primary }]}
+          >
+            <Text style={[styles.voiceIcon, { color: colors.background }]}>🎙️</Text>
+          </Pressable>
+        </View>
+        <Text style={[styles.voiceHint, { color: voiceActive ? colors.green ?? palette.green : muted }]}>
+          {voiceStatus || (voiceActive ? 'Micro actif, parlez maintenant.' : 'Appuie puis maintiens le micro pour chercher par voix.')}
+        </Text>
 
         <View style={styles.dropdownWrap}>
           <Pressable
@@ -73,6 +247,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
                     key={category.id}
                     onPress={() => {
                       setSelectedCategory(category.id);
+                      setVoiceMatches(null);
                       setCategoryOpen(false);
                     }}
                     style={[styles.dropdownOption, { backgroundColor: active ? colors.primary : 'transparent' }]}
@@ -101,7 +276,8 @@ export default function ProductsScreen({ navigation, appSettings }) {
         <View style={styles.stack}>
           {shopResults.length ? (
             shopResults.map((shop) => (
-              <Surface key={shop.id} style={[styles.resultCard, { backgroundColor: surface, borderColor: line }]}>
+              <Pressable key={shop.id} onPress={() => navigation.navigate('Shops', { shopId: shop.id })}>
+                <Surface style={[styles.resultCard, { backgroundColor: surface, borderColor: line }]}>
                 <View style={styles.resultTop}>
                   <Image source={shop.logo ?? shop.cover} style={styles.resultImage} resizeMode="cover" />
                   <View style={styles.resultCopy}>
@@ -126,21 +302,25 @@ export default function ProductsScreen({ navigation, appSettings }) {
                   ))}
                   <Text style={[styles.moreText, { color: muted }]}>{shop.products.length} {t('articlesInShop')}</Text>
                 </View>
-              </Surface>
+                </Surface>
+              </Pressable>
             ))
           ) : (
             <EmptyState title={t('noShopFound')} description={t('tryAnotherKeyword')} />
           )}
         </View>
 
-        <SectionHeader title={normalizedQuery ? t('matchingProducts') : t('featuredProducts')} description={t('premiumRanking')} />
+        <SectionHeader
+          title={normalizedQuery ? t('matchingProducts') : t('featuredProducts')}
+          description={voiceMatches ? 'Resultats similaires retournes par la base de donnees.' : t('premiumRanking')}
+        />
         <View style={styles.stack}>
-          {productResults.length ? (
-            productResults.map((item) => (
-              <ProductCard key={item.product.id} item={item} onMessage={() => openMessages(item.seller.name)} onBuy={() => openPayment(item.product.title)} />
+          {visibleProductResults.length ? (
+            visibleProductResults.map((item) => (
+              <ProductCard key={item.product.id} item={item} onMessage={() => openMessages(item)} onBuy={() => openPayment(item)} />
             ))
           ) : (
-            <EmptyState title={t('noProductFound')} description={t('globalSearchKeepsShowing')} />
+            <EmptyState title={voiceMatches ? 'Aucun resultat similaire' : t('noProductFound')} description={voiceMatches ? 'Essaie une expression plus simple ou une autre categorie.' : t('globalSearchKeepsShowing')} />
           )}
         </View>
 
@@ -181,8 +361,42 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 10,
+  },
   input: {
+    flex: 1,
     backgroundColor: palette.surface,
+  },
+  voiceButton: {
+    width: 54,
+    minHeight: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 21,
+  },
+  searchButton: {
+    width: 54,
+    minHeight: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 21,
+  },
+  searchButtonText: {
+    fontSize: 22,
+    lineHeight: 26,
+    fontWeight: '900',
+  },
+  voiceIcon: {
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  voiceHint: {
+    marginTop: -10,
+    fontSize: 12,
+    fontWeight: '800',
   },
   dropdownWrap: {
     gap: 8,

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
+  Platform,
   Pressable,
   StyleSheet,
   Text as NativeText,
@@ -10,20 +11,26 @@ import {
 import { useSelector } from 'react-redux';
 import { darkPalette, overlay, palette, theme } from '../theme';
 
+const fontFamily = Platform.select({
+  ios: 'Avenir Next',
+  android: 'sans-serif',
+  default: 'System',
+});
+
 export function useTheme() {
   return theme;
 }
 
 export function Text({ variant, style, children, ...props }) {
   return (
-    <NativeText style={[variantStyles[variant], style]} {...props}>
+    <NativeText style={[styles.baseText, variantStyles[variant], style]} {...props}>
       {children}
     </NativeText>
   );
 }
 
 export function Surface({ children, style }) {
-  return <View style={style}>{children}</View>;
+  return <View style={[styles.surface, style]}>{children}</View>;
 }
 
 export function HelperText({ visible, children }) {
@@ -126,6 +133,8 @@ export function TextInput({
   editable = true,
   multiline,
   style,
+  inputRef,
+  ...props
 }) {
   const darkMode = useSelector((state) => state.settings?.darkMode);
   const colors = darkMode ? darkPalette : palette;
@@ -136,6 +145,7 @@ export function TextInput({
     <View style={[styles.inputShell, { backgroundColor: colors.surface, borderColor: line }, style]}>
       {label ? <Text style={[styles.inputLabel, { color: muted }]}>{label}</Text> : null}
       <NativeTextInput
+        ref={inputRef}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder ?? label}
@@ -146,6 +156,7 @@ export function TextInput({
         editable={editable}
         multiline={multiline}
         style={[styles.input, { color: colors.text }]}
+        {...props}
       />
     </View>
   );
@@ -168,6 +179,18 @@ const variantStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  baseText: {
+    fontFamily,
+    includeFontPadding: false,
+    letterSpacing: -0.1,
+  },
+  surface: {
+    shadowColor: '#1F1F1F',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 2,
+  },
   loadingDotsWrap: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -202,7 +225,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'transparent',
   },
@@ -223,13 +246,15 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14,
+    fontFamily,
     fontWeight: '900',
+    letterSpacing: -0.1,
   },
   inputShell: {
     minHeight: 58,
     borderWidth: 1,
     borderColor: overlay.line,
-    borderRadius: 8,
+    borderRadius: 18,
     backgroundColor: palette.background,
     paddingHorizontal: 12,
     paddingTop: 7,
@@ -237,6 +262,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     color: overlay.muted,
     fontSize: 11,
+    fontFamily,
     fontWeight: '800',
   },
   input: {
@@ -245,6 +271,7 @@ const styles = StyleSheet.create({
     color: palette.text,
     paddingVertical: 0,
     fontSize: 15,
+    fontFamily,
     fontWeight: '700',
   },
 });

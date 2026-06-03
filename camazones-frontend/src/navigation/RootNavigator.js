@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import * as Speech from 'expo-speech';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AuthScreen from '../screens/auth/AuthScreen';
 import { LoadingDots, Text } from '../components/ui';
-import { darkPalette, overlay, palette, theme } from '../theme';
+import SplashAnimation from '../components/SplashAnimation';
+import { darkPalette, overlay, palette } from '../theme';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
 import { translate } from '../i18n';
 
@@ -16,6 +18,7 @@ const baseTabs = [
 ];
 
 const adminTab = { name: 'Admin', labelKey: 'admin', icon: '🛡️' };
+let welcomeSpokenOnHome = false;
 
 const screenLoaders = {
   Home: () => require('../screens/home/HomeScreen').default,
@@ -97,12 +100,25 @@ export default function RootNavigator() {
     [darkMode, language, activeTheme, dispatch, t]
   );
 
+  useEffect(() => {
+    if (!isAuthenticated || activeName !== 'Home' || welcomeSpokenOnHome) {
+      return undefined;
+    }
+
+    welcomeSpokenOnHome = true;
+    const timer = setTimeout(() => {
+      Speech.speak(language === 'en' ? 'Welcome to Camazones' : 'Bienvenue sur Camazones', {
+        language: language === 'en' ? 'en-US' : 'fr-FR',
+        pitch: 1,
+        rate: 0.92,
+      });
+    }, 550);
+
+    return () => clearTimeout(timer);
+  }, [activeName, isAuthenticated, language]);
+
   if (isBootstrapping) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
-        <LoadingDots color={theme.colors.primary} label="Camazones" />
-      </View>
-    );
+    return <SplashAnimation />;
   }
 
   if (!isAuthenticated) {
@@ -111,6 +127,20 @@ export default function RootNavigator() {
 
   return (
     <View style={[styles.shell, { backgroundColor: activeTheme.background }]}>
+      {activeName !== 'Home' ? (
+        <Pressable
+          onPress={navigation.goBack}
+          style={[
+            styles.backButton,
+            {
+              backgroundColor: darkMode ? darkPalette.surface : palette.card,
+              borderColor: darkMode ? darkPalette.line : overlay.line,
+            },
+          ]}
+        >
+          <Text style={[styles.backButtonText, { color: activeTheme.primary }]}>← Retour</Text>
+        </Pressable>
+      ) : null}
       <View style={styles.body}>
         <ScreenLoader
           name={activeName}
@@ -167,18 +197,37 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
+  backButton: {
+    position: 'absolute',
+    zIndex: 20,
+    top: 12,
+    left: 14,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  backButtonText: {
+    fontSize: 12,
+    fontWeight: '900',
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 88,
+    minHeight: 90,
     flexDirection: 'row',
     paddingHorizontal: 8,
-    paddingTop: 8,
-    paddingBottom: 22,
+    paddingTop: 7,
+    paddingBottom: 24,
     borderTopWidth: 1,
+    shadowColor: '#1F1F1F',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.09,
+    shadowRadius: 18,
+    elevation: 12,
   },
   tab: {
     flex: 1,
@@ -187,8 +236,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   tabIcon: {
-    width: 40,
-    height: 40,
+    width: 41,
+    height: 41,
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',

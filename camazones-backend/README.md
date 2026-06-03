@@ -4,7 +4,7 @@ API REST Spring Boot pour la plateforme Camazones.
 
 ## Stack
 
-- Spring Boot 3.1.5
+- Spring Boot 3.3.5
 - Java 17
 - Maven
 - Spring Web
@@ -35,7 +35,12 @@ src/main/resources/
 - Endpoint de sante disponible.
 - Configuration JWT externalisable.
 - WAMP MySQL configure par defaut.
+- Base autorisee uniquement : WAMP MySQL/MariaDB.
+- Le seed WAMP s'execute seulement si la table `users` est vide.
 - Les inscriptions `/auth/register` sont persistees dans la table `users`.
+- Les conversations sont persistees dans `chat_conversations` et `chat_messages`.
+- Stripe Checkout est configure par `STRIPE_SECRET_KEY`.
+- La transcription vocale est configuree par `OPENAI_API_KEY`.
 - Dependances pretes pour l'auth, les produits, les boutiques et le paiement.
 
 ## Endpoint disponible
@@ -58,6 +63,9 @@ cd C:\Users\Alan\Documents\KEYCE\B2\S2\PT\P4\camazones\camazones-backend
 mvn clean install
 $env:WAMP_DB_USER="root"
 Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
+Copy-Item .env.example .env.local -ErrorAction SilentlyContinue
+notepad .env.local
+powershell -ExecutionPolicy Bypass -File .\scripts\assert-no-forbidden-db.ps1
 mvn spring-boot:run
 ```
 
@@ -79,13 +87,8 @@ jwt.secret=${JWT_SECRET:local-dev-only-secret-minimum-256bits-camazones-2026}
 
 ### Email factures
 
-```powershell
-$env:CAMAZONES_MAIL_ENABLED="true"
-$env:CAMAZONES_MAIL_USERNAME="codex.ess237@gmail.com"
-$env:CAMAZONES_MAIL_FROM="codex.ess237@gmail.com"
-$env:CAMAZONES_MAIL_PASSWORD="<mot_de_passe_ou_app_password_gmail>"
-mvn spring-boot:run
-```
+Le fichier `.env.local` doit contenir `CAMAZONES_MAIL_ENABLED=true`, `CAMAZONES_MAIL_USERNAME`, `CAMAZONES_MAIL_FROM`, `CAMAZONES_MAIL_PASSWORD` et `STRIPE_SECRET_KEY`.
+`CAMAZONES_MAIL_PASSWORD` doit etre un mot de passe d'application Gmail a 16 caracteres.
 
 ## Modules prevus
 

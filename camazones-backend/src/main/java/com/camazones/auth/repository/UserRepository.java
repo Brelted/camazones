@@ -19,6 +19,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(String email);
+
     /**
      * Vérifier si un email est déjà utilisé (pour le register)
      */

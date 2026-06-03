@@ -5,6 +5,7 @@ import com.camazones.admin.entity.CommissionTransaction;
 import com.camazones.admin.repository.CommissionRepository;
 import com.camazones.auth.entity.User;
 import com.camazones.auth.repository.UserRepository;
+import com.camazones.auth.service.AccountDeletionService;
 import com.camazones.products.entity.Product;
 import com.camazones.products.entity.ProductStatus;
 import com.camazones.products.entity.Shop;
@@ -30,15 +31,18 @@ public class AdminService {
     private final ShopRepository shopRepository;
     private final ProductRepository productRepository;
     private final CommissionRepository commissionRepository;
+    private final AccountDeletionService accountDeletionService;
 
     public AdminService(UserRepository userRepository,
                         ShopRepository shopRepository,
                         ProductRepository productRepository,
-                        CommissionRepository commissionRepository) {
+                        CommissionRepository commissionRepository,
+                        AccountDeletionService accountDeletionService) {
         this.userRepository = userRepository;
         this.shopRepository = shopRepository;
         this.productRepository = productRepository;
         this.commissionRepository = commissionRepository;
+        this.accountDeletionService = accountDeletionService;
     }
 
     public AdminDashboardResponse dashboard() {
@@ -64,6 +68,7 @@ public class AdminService {
     public List<AdminUserResponse> users() {
         return userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
                 .stream()
+                .filter(user -> user.getRemovedAt() == null)
                 .map(this::mapUser)
                 .toList();
     }
@@ -105,6 +110,15 @@ public class AdminService {
         User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
         user.setDeletedAt(null);
         return mapUser(userRepository.save(user));
+    }
+
+    @Transactional
+    public void deleteUser(String adminEmail, UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        if (user.getEmail().equalsIgnoreCase(adminEmail)) {
+            throw new AccessDeniedException("Un administrateur ne peut pas se supprimer lui-meme");
+        }
+        accountDeletionService.deleteAccount(user);
     }
 
     @Transactional

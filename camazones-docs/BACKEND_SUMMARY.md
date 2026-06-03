@@ -7,15 +7,14 @@ Le backend est une API REST Spring Boot destinee a servir les donnees de Camazon
 ## Stack
 
 - Java 17
-- Spring Boot 3.1.5
+- Spring Boot 3.3.5
 - Maven
 - Spring Web
 - Spring Security
 - Spring Data JPA
 - Spring Validation
 - JWT avec JJWT
-- H2 en developpement
-- PostgreSQL prevu pour production
+- MySQL/MariaDB WAMP uniquement
 
 ## Etat actuel
 
@@ -25,8 +24,10 @@ Le backend contient le socle technique :
 - Configuration des proprietes JWT.
 - Base URL configuree sous `/api`.
 - Endpoint de sante : `GET /api/health`.
-- Configuration H2 locale.
-- Dependances pretes pour auth, JPA, security, validation et PostgreSQL.
+- Configuration WAMP locale.
+- Dependances pretes pour auth, JPA, security, validation et MySQL.
+- Base autorisee uniquement : WAMP MySQL/MariaDB.
+- Le seed ne tourne que si la table `users` WAMP est vide.
 
 ## Organisation
 
@@ -74,5 +75,5 @@ mvn spring-boot:run
 - Port : `8080`
 - Bind LAN : `0.0.0.0`
 - Context path : `/api`
-- H2 dev : `jdbc:h2:mem:camazones`
+- WAMP : `jdbc:mysql://localhost:3306/camazones`
 - Variable production recommandee : `JWT_SECRET`

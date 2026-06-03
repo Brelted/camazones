@@ -87,7 +87,7 @@ Une fois fini, créer une PR sur GitHub:
 ### Prérequis:
 - Java 17+
 - Maven 3.8+
-- PostgreSQL (ou H2 pour dev)
+- WAMP avec MySQL/MariaDB actif
 
 ### Installation:
 ```bash

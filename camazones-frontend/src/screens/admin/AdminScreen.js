@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text } from '../../components/ui';
 import { SectionHeader } from '../../components/MarketplaceCards';
 import {
   blockAdminProduct,
   blockAdminShop,
   blockAdminUser,
-  createFallbackAdminDashboard,
+  deleteAdminUser,
   fetchAdminDashboard,
   formatAdminMoney,
   unblockAdminProduct,
@@ -44,8 +45,8 @@ export default function AdminScreen({ appSettings }) {
       setDashboard(data);
       setMessage('');
     } catch (error) {
-      setDashboard(createFallbackAdminDashboard());
-      setMessage('API admin indisponible: donnees demo affichees.');
+      setDashboard(null);
+      setMessage('API admin WAMP indisponible. Lance le backend pour afficher les donnees.');
     } finally {
       setRefreshing(false);
     }
@@ -67,13 +68,6 @@ export default function AdminScreen({ appSettings }) {
     ];
   }, [dashboard]);
 
-  const updateLocal = (type, id, blocked) => {
-    setDashboard((current) => ({
-      ...current,
-      [type]: current[type].map((item) => (item.id === id ? { ...item, blocked, status: type === 'products' && blocked ? 'INACTIVE' : item.status } : item)),
-    }));
-  };
-
   const toggle = async (type, item) => {
     const blocked = Boolean(item.blocked);
     const actions = {
@@ -86,14 +80,32 @@ export default function AdminScreen({ appSettings }) {
       await actions[type](item.id);
       await loadDashboard();
     } catch (error) {
-      updateLocal(type, item.id, !blocked);
-      setMessage('Action locale appliquee. Relance le backend pour synchroniser.');
+      setMessage('Action impossible: backend WAMP indisponible.');
     }
+  };
+
+  const deleteUser = (item) => {
+    Alert.alert('Supprimer utilisateur', `Supprimer ${item.email} de la console admin ?`, [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteAdminUser(item.id);
+            await loadDashboard();
+          } catch (error) {
+            setMessage('Suppression impossible: backend WAMP indisponible.');
+          }
+        },
+      },
+    ]);
   };
 
   if (!isAdmin) {
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+        <AnimatedBackdrop colors={colors} darkMode={darkMode} />
         <View style={styles.content}>
           <SectionHeader title="Espace admin" description="Connecte-toi avec admin@camazones.demo pour ouvrir la console." />
         </View>
@@ -103,6 +115,7 @@ export default function AdminScreen({ appSettings }) {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadDashboard} />}
@@ -150,6 +163,7 @@ export default function AdminScreen({ appSettings }) {
                 status={item.blocked ? 'Bloque' : item.verified ? 'Verifie' : 'Actif'}
                 blocked={item.blocked}
                 onToggle={() => toggle('users', item)}
+                onDelete={() => deleteUser(item)}
                 surface={surface}
                 line={line}
                 muted={muted}
@@ -222,7 +236,7 @@ export default function AdminScreen({ appSettings }) {
   );
 }
 
-function AdminItem({ title, meta, status, blocked, onToggle, surface, line, muted, colors }) {
+function AdminItem({ title, meta, status, blocked, onToggle, onDelete, surface, line, muted, colors }) {
   return (
     <Surface style={[styles.itemCard, { backgroundColor: surface, borderColor: line }]}>
       <View style={styles.cardTop}>
@@ -231,15 +245,22 @@ function AdminItem({ title, meta, status, blocked, onToggle, surface, line, mute
           <Text style={[styles.cardMeta, { color: muted }]}>{meta}</Text>
           <Text style={[styles.status, { color: blocked ? colors.orange : colors.green ?? palette.green }]}>{status}</Text>
         </View>
-        <Button
-          mode={blocked ? 'outlined' : 'contained'}
-          compact
-          onPress={onToggle}
-          buttonColor={blocked ? undefined : colors.primary}
-          textColor={blocked ? colors.primary : colors.background}
-        >
-          {blocked ? 'Debloquer' : 'Bloquer'}
-        </Button>
+        <View style={styles.itemActions}>
+          <Button
+            mode={blocked ? 'outlined' : 'contained'}
+            compact
+            onPress={onToggle}
+            buttonColor={blocked ? undefined : colors.primary}
+            textColor={blocked ? colors.primary : colors.background}
+          >
+            {blocked ? 'Debloquer' : 'Bloquer'}
+          </Button>
+          {onDelete ? (
+            <Button mode="outlined" compact onPress={onDelete} textColor={colors.orange ?? palette.orange}>
+              Supprimer
+            </Button>
+          ) : null}
+        </View>
       </View>
     </Surface>
   );
@@ -341,6 +362,10 @@ const styles = StyleSheet.create({
   cardCopy: {
     flex: 1,
     gap: 4,
+  },
+  itemActions: {
+    alignItems: 'flex-end',
+    gap: 8,
   },
   cardTitle: {
     fontSize: 16,

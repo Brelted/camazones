@@ -19,6 +19,7 @@ public class ProductMapper {
 
         ProductResponse.SellerInfo seller = new ProductResponse.SellerInfo(
                 p.getSeller().getId(),
+                p.getSeller().getEmail(),
                 p.getSeller().getFirstName(),
                 p.getSeller().getLastName()
         );
@@ -27,7 +28,9 @@ public class ProductMapper {
                 new ProductResponse.ShopInfo(
                         p.getShop().getId(),
                         p.getShop().getName(),
-                        p.getShop().getLogoUrl()
+                        p.getShop().getLogoUrl(),
+                        p.getShop().isVerified(),
+                        p.getShop().getSubscriptionTier()
                 );
 
         return new ProductResponse(
@@ -43,6 +46,7 @@ public class ProductMapper {
     public ShopResponse toShopResponse(Shop s) {
         ShopResponse.OwnerInfo owner = new ShopResponse.OwnerInfo(
                 s.getOwner().getId(),
+                s.getOwner().getEmail(),
                 s.getOwner().getFirstName(),
                 s.getOwner().getLastName()
         );

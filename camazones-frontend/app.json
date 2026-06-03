@@ -1,4 +1,4 @@
-{
+﻿{
   "expo": {
     "name": "Camazones",
     "slug": "camazones",
@@ -19,7 +19,6 @@
       "assets/favicon.png",
       "assets/brand/*",
       "assets/shops/logos/*",
-      "assets/products/camazone-catalog/*",
       "assets/products/figma-style/*",
       "assets/profiles/*"
     ],
@@ -37,6 +36,15 @@
       "favicon": "./assets/favicon.png"
     },
     "scheme": "camazones",
-    "description": "Une plateforme premium qui connecte vendeurs, boutiques et acheteurs."
+    "description": "Une plateforme premium qui connecte vendeurs, boutiques et acheteurs.",
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Autoriser Camazones a utiliser le microphone pour la recherche vocale.",
+          "recordAudioAndroid": true
+        }
+      ]
+    ]
   }
 }

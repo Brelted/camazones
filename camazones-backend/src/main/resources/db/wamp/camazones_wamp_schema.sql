@@ -13,6 +13,51 @@
 CREATE DATABASE /*!32312 IF NOT EXISTS*/ `camazones` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
 USE `camazones`;
+DROP TABLE IF EXISTS `chat_conversations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_conversations` (
+  `id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `product_title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `updated_at` datetime(6) NOT NULL,
+  `participant_one_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `participant_two_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK4wwtbuq8nn44hncbwptrrepct` (`participant_one_id`),
+  KEY `FKn85y93eh71ssy47stursgls3k` (`participant_two_id`),
+  CONSTRAINT `FK4wwtbuq8nn44hncbwptrrepct` FOREIGN KEY (`participant_one_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKn85y93eh71ssy47stursgls3k` FOREIGN KEY (`participant_two_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `chat_conversations` WRITE;
+/*!40000 ALTER TABLE `chat_conversations` DISABLE KEYS */;
+INSERT INTO `chat_conversations` VALUES ('35710b51-7afe-4b7b-8be5-80d92f23ae03','Sony Xperia Slim','Negociation acceptee','2026-06-02 14:46:58.044842','8f8753fe-cba5-4e73-80e7-e081f388a5ba','620506a3-1ab5-4e21-af47-7d4c909c68be');
+/*!40000 ALTER TABLE `chat_conversations` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `chat_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_messages` (
+  `id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  `text` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `conversation_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sender_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FKqgkanrr90j46564w4ww63jcna` (`conversation_id`),
+  KEY `FKgiqeap8ays4lf684x7m0r2729` (`sender_id`),
+  CONSTRAINT `FKgiqeap8ays4lf684x7m0r2729` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `FKqgkanrr90j46564w4ww63jcna` FOREIGN KEY (`conversation_id`) REFERENCES `chat_conversations` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `chat_messages` WRITE;
+/*!40000 ALTER TABLE `chat_messages` DISABLE KEYS */;
+INSERT INTO `chat_messages` VALUES ('0bffcdbe-b3f0-4c2b-8277-c3b993fe8132','2026-06-02 14:46:17.925744','Parfait, je confirme le paiement maintenant.','35710b51-7afe-4b7b-8be5-80d92f23ae03','8f8753fe-cba5-4e73-80e7-e081f388a5ba'),('67ffb8b8-c07a-41ef-a6b5-3f0d174b4995','2026-06-02 14:46:17.925744','Bonjour Alan, il est neuf avec garantie boutique. Vous proposez combien ?','35710b51-7afe-4b7b-8be5-80d92f23ae03','620506a3-1ab5-4e21-af47-7d4c909c68be'),('7484d1c2-ff8a-479e-a29b-54883bd3a426','2026-06-02 14:46:17.925744','Je peux payer 350 000 FCFA aujourd hui via Camazones Pay.','35710b51-7afe-4b7b-8be5-80d92f23ae03','8f8753fe-cba5-4e73-80e7-e081f388a5ba'),('a0fb9ec5-28cf-4455-a23f-0d01a2f2927f','2026-06-02 14:46:17.925744','Accorde. Sony accepte 350 000 FCFA si paiement aujourd hui.','35710b51-7afe-4b7b-8be5-80d92f23ae03','620506a3-1ab5-4e21-af47-7d4c909c68be'),('edc98b21-33bb-4f5f-bb56-1e4c2b172e61','2026-06-02 14:46:17.925744','Bonjour Sony, je suis Alan. Le Sony Xperia Slim est a 390 000 FCFA, possible de revoir le prix ?','35710b51-7afe-4b7b-8be5-80d92f23ae03','8f8753fe-cba5-4e73-80e7-e081f388a5ba');
+/*!40000 ALTER TABLE `chat_messages` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `commission_transactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -149,6 +194,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `phone_number` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `profile_picture_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `removed_at` datetime(6) DEFAULT NULL,
   `role` enum('ADMIN','BUYER','SELLER') COLLATE utf8mb4_unicode_ci NOT NULL,
   `updated_at` datetime(6) NOT NULL,
   `verification_date` datetime(6) DEFAULT NULL,
@@ -172,4 +218,3 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

@@ -25,6 +25,8 @@
 - Expo Image Manipulator
 - Expo Print
 - Expo Sharing
+- Expo Speech
+- Expo Audio
 
 ## Backend
 
@@ -36,6 +38,11 @@
 - JJWT `0.12.3`
 - MySQL Connector/J
 - WAMP MySQL `3306`
+- Base autorisee uniquement : WAMP MySQL/MariaDB
+- Le controle `camazones-backend/scripts/assert-no-forbidden-db.ps1` doit rester vert.
+- Stripe Checkout par variable `STRIPE_SECRET_KEY`
+- SMTP Gmail via `CAMAZONES_MAIL_USERNAME` et `CAMAZONES_MAIL_PASSWORD`
+- Transcription vocale via `OPENAI_API_KEY`
 
 ## Variables
 
@@ -51,7 +58,11 @@ Backend recommande :
 $env:JWT_SECRET="cle-secrete-production-256-bits-minimum"
 $env:WAMP_DB_USER="root"
 Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
+Copy-Item .env.example .env.local -ErrorAction SilentlyContinue
+notepad .env.local
 ```
+
+`CAMAZONES_MAIL_PASSWORD` doit etre un mot de passe d'application Gmail a 16 caracteres. Un mot de passe Gmail normal provoque `Authentication failed`.
 
 ## Compatibilite
 
@@ -66,15 +77,19 @@ Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
 - Auth JWT.
 - API connectee a la base WAMP MySQL.
 - Inscriptions persistantes dans la table `users`.
-- Cache offline cote app.
+- Conversations persistantes dans `chat_conversations` et `chat_messages`.
+- Cache API WAMP cote app, sans base locale parallele.
 - Vitrines boutiques.
 - Produits boutiques et vendeurs independants.
 - Recherche globale.
 - Badges AP et premium.
-- DM vendeur.
+- DM entre utilisateurs.
 - Profil editable avec photo locale compressee.
 - Mode sombre optionnel persistant.
 - Langue FR/EN persistante.
 - Portefeuille rechargeable.
-- Paiement simule realiste.
+- Paiement Stripe Checkout pour carte et moyens eligibles.
 - Facture PDF partageable.
+- Email de bienvenue automatique a la creation de compte.
+- Recherche vocale: audio mobile, transcription backend, recherche similaire dans la base.
+- Assets figma-style optimises avec produits alimentaires.

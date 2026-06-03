@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import BrandLogo from '../../components/BrandLogo';
 import { Button, HelperText, Surface, Text, TextInput } from '../../components/ui';
 import { translate } from '../../i18n';
@@ -118,6 +119,7 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.hero}>

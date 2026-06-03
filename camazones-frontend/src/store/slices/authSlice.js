@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { AUTH_STORAGE_KEY } from '../../services/apiConfig';
-import { loginRequest, registerRequest } from '../../services/authService';
-import { sendWelcomeEmail } from '../../services/notificationService';
+import { deleteAccountRequest, loginRequest, profileRequest, registerRequest } from '../../services/authService';
 import { storage } from '../../services/storage';
 
 const initialState = {
@@ -80,7 +79,14 @@ export const restoreAuth = () => async (dispatch) => {
 
     if (serializedAuth) {
       const parsedAuth = JSON.parse(serializedAuth);
-      dispatch(authSuccess(parsedAuth));
+      if (!parsedAuth?.token || parsedAuth.token.startsWith('demo-jwt-')) {
+        await storage.removeItem(AUTH_STORAGE_KEY);
+        dispatch(clearAuth());
+        return;
+      }
+
+      const profile = await profileRequest(parsedAuth.token);
+      dispatch(authSuccess({ token: parsedAuth.token, user: profile }));
       return;
     }
 
@@ -104,12 +110,6 @@ export const login = (credentials) => async (dispatch) => {
 
     await storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
     dispatch(authSuccess(authData));
-    if (response?.demo) {
-      sendWelcomeEmail({
-        email: authData.user.email,
-        customerName: `${authData.user.firstName ?? ''} ${authData.user.lastName ?? ''}`.trim() || 'Client Camazones',
-      }).catch(() => {});
-    }
     return authData;
   } catch (error) {
     dispatch(authFailure(getErrorMessage(error)));
@@ -140,6 +140,23 @@ export const register = (credentials) => async (dispatch) => {
 export const logout = () => async (dispatch) => {
   await storage.removeItem(AUTH_STORAGE_KEY);
   dispatch(clearAuth());
+};
+
+export const deleteAccount = () => async (dispatch, getState) => {
+  dispatch(authStart());
+
+  try {
+    const token = getState().auth.token;
+    if (!token) {
+      throw new Error('Session introuvable.');
+    }
+    await deleteAccountRequest(token);
+    await storage.removeItem(AUTH_STORAGE_KEY);
+    dispatch(clearAuth());
+  } catch (error) {
+    dispatch(authFailure(getErrorMessage(error)));
+    throw error;
+  }
 };
 
 export const { authStart, authSuccess, authFailure, authBootstrapComplete, clearAuth } = authSlice.actions;

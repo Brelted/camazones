@@ -32,5 +32,4 @@ const getDefaultApiBaseUrl = () => {
 };
 
 export const API_BASE_URL = cleanUrl(process.env.EXPO_PUBLIC_API_BASE_URL) || getDefaultApiBaseUrl();
-export const USE_DEMO_AUTH = process.env.EXPO_PUBLIC_USE_DEMO_AUTH === 'true';
 export const AUTH_STORAGE_KEY = '@camazones/auth';

@@ -21,6 +21,8 @@ camazones-frontend/dist/
 camazones-frontend/build/
 camazones-frontend/.env
 camazones-frontend/.env.local
+camazones-backend/.env
+camazones-backend/.env.local
 
 # ── Fichiers système ──────────────────────────────────────────
 .DS_Store

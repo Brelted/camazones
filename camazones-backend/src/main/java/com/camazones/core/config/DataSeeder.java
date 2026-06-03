@@ -12,6 +12,8 @@ import com.camazones.products.entity.SubscriptionTier;
 import com.camazones.products.repository.ProductRepository;
 import com.camazones.products.repository.ShopRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
+@Order(1)
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -29,23 +32,26 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final CommissionRepository commissionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final boolean seedEnabled;
 
     public DataSeeder(UserRepository userRepository,
                       ShopRepository shopRepository,
                       ProductRepository productRepository,
                       CommissionRepository commissionRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      @Value("${camazones.seed.enabled:true}") boolean seedEnabled) {
         this.userRepository = userRepository;
         this.shopRepository = shopRepository;
         this.productRepository = productRepository;
         this.commissionRepository = commissionRepository;
         this.passwordEncoder = passwordEncoder;
+        this.seedEnabled = seedEnabled;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (productRepository.count() > 0) {
+        if (!seedEnabled || userRepository.count() > 0) {
             return;
         }
 
@@ -60,6 +66,7 @@ public class DataSeeder implements CommandLineRunner {
         User sikaOwner = createUser("cuisine.sika@camazones.demo", "Cuisine", "Sika", "+237600000107", UserRole.SELLER, false, "Bafoussam");
         User visionOwner = createUser("vision.home@camazones.demo", "Vision", "Home", "+237600000108", UserRole.SELLER, true, "Douala");
         User kidsOwner = createUser("mboa.kids@camazones.demo", "Mboa", "Kids", "+237600000109", UserRole.SELLER, false, "Garoua");
+        User saveursOwner = createUser("saveurs.mboa@camazones.demo", "Saveurs", "Mboa", "+237600000110", UserRole.SELLER, true, "Yaounde");
         User mila = createUser("mila@camazones.demo", "Mila", "Select", "+237600000201", UserRole.SELLER, false, "Douala");
         User alan = createUser("alan.independant@camazones.demo", "Alan", "Independant", "+237600000301", UserRole.SELLER, true, "Douala");
         User sonyOwner = createUser("sony@camazones.demo", "Sony", "Boutique", "+237600000302", UserRole.SELLER, true, "Douala");
@@ -76,6 +83,7 @@ public class DataSeeder implements CommandLineRunner {
         Shop sika = createShop(sikaOwner, "Cuisine Sika", "Ustensiles solides, marmites, mixeurs et accessoires maison.", "Ustensiles cuisine", "Bafoussam", false, SubscriptionTier.FREE);
         Shop vision = createShop(visionOwner, "Vision Home", "Televisions, son, appareils maison et livraison securisee.", "TV et maison", "Douala", true, SubscriptionTier.PREMIUM);
         Shop kids = createShop(kidsOwner, "Mboa Kids", "Vetements enfants, sacs, petits accessoires et articles utiles.", "Famille et enfants", "Garoua", false, SubscriptionTier.FREE);
+        Shop saveurs = createShop(saveursOwner, "Saveurs Mboa", "Plats camerounais, boissons maison et commandes rapides.", "Repas et aliments", "Yaounde", true, SubscriptionTier.FREE);
 
         seedShopProducts(koa, koaOwner, new String[]{"Sac Kaya cuir", "Robe Lina beige", "Sneaker Rouge", "Lunettes Sol", "Montre Line acier", "Chemise Lin creme", "Veste City noire", "Parfum Bois doux", "Ceinture Tressee", "Sandales Nuit"});
         seedShopProducts(talia, taliaOwner, new String[]{"Mini Bag cyan", "Robe Sand", "T-shirt Basic", "Red Runner", "Bracelet Or fin", "Clean Watch", "City Jacket", "Soft Perfume", "Jupe Crepe", "Foulard Satin"});
@@ -87,6 +95,7 @@ public class DataSeeder implements CommandLineRunner {
         seedShopProducts(sika, sikaOwner, new String[]{"Marmite Alu 12L", "Poele Granit", "Set Couteaux", "Mixeur Plus", "Assiettes Ceram", "Verres Clean", "Bouilloire Inox", "Range Epices", "Planche Bambou", "Thermos 1L"});
         seedShopProducts(vision, visionOwner, new String[]{"TV Vision 43 4K", "TV Vision 65 OLED", "Projecteur Mini", "Soundbar Home", "Support TV mural", "Climatiseur 12K", "Ventilateur Pro", "Regulateur Tension", "Frigo Compact", "Camera Interieur"});
         seedShopProducts(kids, kidsOwner, new String[]{"Robe Fille Rose", "Basket School", "Sac Ecole Bleu", "Gourde Inox", "Pyjama Coton", "Casque Mini", "Montre Fun Kids", "Parfum Doux Kids", "Jeu Construction", "Tablette Edu"});
+        seedShopProducts(saveurs, saveursOwner, new String[]{"Ndole maison", "Poulet DG", "Eru plantain", "Poisson braise", "Riz crevettes", "Achu sauce jaune", "Beignets haricots", "Koki plantain", "Jus de bissap", "Attieke poisson"});
 
         createProduct(mila, null, "Watch Line", "Bijoux", "Montre sobre disponible rapidement.", "Douala", 18000, 2, null);
         createProduct(alan, null, "Tablette Alan Clean", "Gadgets", "Tablette tres propre vendue par Alan independant.", "Douala", 65000, 1, null);
@@ -113,17 +122,19 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private Shop createShop(User owner, String name, String description, String category, String city, boolean verified, SubscriptionTier tier) {
-        Shop shop = Shop.builder()
+        Shop shop = shopRepository.findByNameIgnoreCase(name).orElseGet(() -> Shop.builder()
                 .owner(owner)
                 .name(name)
-                .description(description)
-                .category(category)
-                .city(city)
-                .subscriptionTier(tier)
-                .build();
+                .build());
+        shop.setOwner(owner);
+        shop.setDescription(description);
+        shop.setCategory(category);
+        shop.setCity(city);
+        shop.setSubscriptionTier(tier);
         shop.setVerified(verified);
         shop.setRating(new BigDecimal(verified ? "4.8" : "4.3"));
         shop.setTotalReviews(verified ? 128 : 46);
+        shop.setDeletedAt(null);
         return shopRepository.save(shop);
     }
 
@@ -149,6 +160,7 @@ public class DataSeeder implements CommandLineRunner {
         if (value.contains("marmite") || value.contains("poele") || value.contains("couteaux") || value.contains("assiettes") || value.contains("verres") || value.contains("bouilloire") || value.contains("epices") || value.contains("planche") || value.contains("thermos") || value.contains("gourde")) return "Ustensiles";
         if (value.contains("mixeur") || value.contains("blender") || value.contains("climatiseur") || value.contains("ventilateur") || value.contains("frigo")) return "Electromenager";
         if (value.contains("jeu")) return "Jouets";
+        if (value.contains("ndole") || value.contains("poulet") || value.contains("eru") || value.contains("poisson") || value.contains("riz") || value.contains("achu") || value.contains("beignets") || value.contains("koki") || value.contains("bissap") || value.contains("attieke")) return "Alimentation";
         return "Accessoires";
     }
 
@@ -254,6 +266,16 @@ public class DataSeeder implements CommandLineRunner {
             case "Parfum Doux Kids" -> 8000;
             case "Jeu Construction" -> 15000;
             case "Tablette Edu" -> 45000;
+            case "Ndole maison" -> 4500;
+            case "Poulet DG" -> 6500;
+            case "Eru plantain" -> 5000;
+            case "Poisson braise" -> 7500;
+            case "Riz crevettes" -> 5500;
+            case "Achu sauce jaune" -> 5000;
+            case "Beignets haricots" -> 1500;
+            case "Koki plantain" -> 3500;
+            case "Jus de bissap" -> 1000;
+            case "Attieke poisson" -> 6000;
             default -> null;
         };
     }
@@ -280,6 +302,7 @@ public class DataSeeder implements CommandLineRunner {
         if ("Bijoux".equals(category)) return 18000 + (index * 8500);
         if ("Parfums".equals(category)) return 12000 + (index * 7000);
         if ("Electromenager".equals(category)) return 24500 + (index * 9000);
+        if ("Alimentation".equals(category)) return 1500 + (index * 700);
         if ("Ustensiles".equals(category)) return 7500 + (index * 3500);
         if ("Chaussures".equals(category)) return 16000 + (index * 4000);
         if ("Vetements".equals(category)) return 8500 + (index * 4500);
@@ -291,6 +314,17 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private Product createProduct(User seller, Shop shop, String title, String category, String description, String city, int price, int stock, String imageUrl) {
+        Product existing = productRepository.findFirstBySellerIdAndTitleIgnoreCaseAndDeletedAtIsNull(seller.getId(), title).orElse(null);
+        if (existing != null) {
+            existing.setShop(shop);
+            existing.setCategory(category);
+            existing.setDescription(description);
+            existing.setCity(city);
+            existing.setPrice(BigDecimal.valueOf(price));
+            existing.setStockQuantity(stock);
+            return productRepository.save(existing);
+        }
+
         Product product = Product.builder()
                 .seller(seller)
                 .shop(shop)

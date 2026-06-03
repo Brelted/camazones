@@ -6,9 +6,9 @@ import { darkPalette, overlay, palette } from '../theme';
 
 const badgeMeta = {
   ap: { label: 'Reconnu AP', icon: 'AP' },
-  premium: { label: 'Premium', icon: '★' },
-  professional: { label: 'Boutique pro', icon: '◇' },
-  independent: { label: 'Independant', icon: '●' },
+  premium: { label: 'Premium', icon: '⭐' },
+  professional: { label: 'Boutique pro', icon: '🏪' },
+  independent: { label: 'Independant', icon: '👤' },
 };
 
 const useCardTheme = () => {
@@ -303,10 +303,15 @@ const styles = StyleSheet.create({
   },
   productImageWrap: {
     position: 'relative',
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 248, 234, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(31, 31, 31, 0.08)',
   },
   productImage: {
     width: '100%',
-    height: 168,
+    height: 198,
     borderRadius: 15,
     backgroundColor: overlay.soft,
   },

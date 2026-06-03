@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import * as Speech from 'expo-speech';
+import { Alert, Linking, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, SectionHeader } from '../../components/MarketplaceCards';
-import { paymentMethods } from '../../data/marketplace';
+import { paymentMethods } from '../../data/visualAssets';
 import { sendPurchaseReceiptEmail } from '../../services/notificationService';
+import { createStripeCheckoutSession, parseFcfaAmount } from '../../services/paymentService';
 import { exportInvoicePdf } from '../../services/pdfService';
 import { payOrder, rechargeWallet, saveInvoice } from '../../store/slices/walletSlice';
 import { darkPalette, overlay, palette } from '../../theme';
@@ -15,33 +18,74 @@ export default function WalletScreen({ route, appSettings }) {
   const { balance, transactions, lastInvoice } = useSelector((state) => state.wallet);
   const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0].id);
   const [paid, setPaid] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [stripeSession, setStripeSession] = useState(null);
+  const [cardFallbackReady, setCardFallbackReady] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState('10000');
   const [form, setForm] = useState({
-    phone: '+237 6 90 00 00 00',
-    card: '4242 4242 4242 4242',
+    phone: user?.phone ?? user?.phoneNumber ?? '',
+    card: '',
     expiry: '12/28',
-    name: 'ALAN CAMAZONES',
+    cvc: '',
+    name: `${user?.firstName ?? 'ALAN'} ${user?.lastName ?? 'CAMAZONES'}`.trim().toUpperCase(),
   });
 
   const productTitle = route?.params?.productTitle ?? 'Commande Camazones';
+  const negotiatedPrice = parseFcfaAmount(route?.params?.negotiatedPrice);
+  const sellerName = route?.params?.sellerName;
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
   const line = darkMode ? darkPalette.line : overlay.line;
   const surface = darkMode ? darkPalette.surface : overlay.surface;
   const selected = paymentMethods.find((method) => method.id === selectedMethod) ?? paymentMethods[0];
-  const subtotal = 35000;
+  const subtotal = negotiatedPrice || parseFcfaAmount(route?.params?.productPrice) || 35000;
   const delivery = 1500;
   const fees = selectedMethod === 'wallet' ? 0 : 350;
   const total = subtotal + delivery + fees;
   const t = appSettings?.t ?? ((key) => key);
-
   const screenStyle = useMemo(() => [styles.screen, { backgroundColor: colors.background }], [colors.background]);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
-  const changeField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
   const customerName = `${user?.firstName ?? 'Client'} ${user?.lastName ?? 'Camazones'}`.trim();
   const customerEmail = user?.email ?? 'client@camazones.demo';
   const userTransactions = transactions.filter((transaction) => transaction.email === customerEmail);
+
+  useEffect(() => {
+    const userPhone = user?.phone ?? user?.phoneNumber;
+    if (userPhone && !form.phone) {
+      setForm((current) => ({ ...current, phone: userPhone }));
+    }
+  }, [form.phone, user?.phone, user?.phoneNumber]);
+
+  const changeField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+  const formatCardNumber = (value) => value.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim();
+  const formatExpiry = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  };
+  const formatCvc = (value) => value.replace(/\D/g, '').slice(0, 4);
+
+  const validateCardForm = () => {
+    const cardDigits = form.card.replace(/\D/g, '');
+    const expiryParts = form.expiry.split('/');
+    const month = Number(expiryParts[0]);
+    const year = Number(expiryParts[1]);
+    const cvcDigits = form.cvc.replace(/\D/g, '');
+
+    if (!form.name.trim()) {
+      return 'Entre le nom inscrit sur la carte.';
+    }
+    if (cardDigits.length < 13) {
+      return 'Entre un numéro de carte valide.';
+    }
+    if (!month || month < 1 || month > 12 || !year || expiryParts[1]?.length !== 2) {
+      return 'Entre une date valide au format MM/AA.';
+    }
+    if (cvcDigits.length < 3) {
+      return 'Entre le code CVV/CVC.';
+    }
+    return null;
+  };
 
   const recharge = async () => {
     const amount = Number(rechargeAmount.replace(/[^0-9]/g, ''));
@@ -50,7 +94,32 @@ export default function WalletScreen({ route, appSettings }) {
       return;
     }
     await dispatch(rechargeWallet({ amount, label: `Recharge ${selected.label}` }));
-    Alert.alert('Recharge ajoutee', `${money(amount)} ajoute au portefeuille Camazones.`);
+    Alert.alert('Recharge ajoutée', `${money(amount)} ajouté au portefeuille Camazone.`);
+  };
+
+  const completeLocalPayment = async ({ methodLabel = selected.label, transactionId = `CMZ-${Date.now()}`, fromWallet = selectedMethod === 'wallet' } = {}) => {
+    const invoice = {
+      id: transactionId,
+      productTitle: negotiatedPrice ? `${productTitle} - prix négocié` : productTitle,
+      total: money(total),
+      method: methodLabel,
+      customerName,
+      email: customerEmail,
+    };
+    await dispatch(payOrder({ amount: total, label: invoice.productTitle, fromWallet, invoice }));
+    sendPurchaseReceiptEmail({
+      email: customerEmail,
+      customerName,
+      productTitle: invoice.productTitle,
+      total: money(total),
+      method: methodLabel,
+      transactionId: invoice.id,
+    }).catch(() => {});
+    setPaid(true);
+    Speech.speak('Paiement effectué avec succès. Votre reçu est prêt.', {
+      language: appSettings?.language === 'en' ? 'en-US' : 'fr-FR',
+      rate: 0.92,
+    });
   };
 
   const pay = async () => {
@@ -59,24 +128,57 @@ export default function WalletScreen({ route, appSettings }) {
       return;
     }
 
-    const invoice = {
-      id: `CMZ-${Date.now()}`,
-      productTitle,
-      total: money(total),
-      method: selected.label,
-      customerName,
-      email: customerEmail,
-    };
-    await dispatch(payOrder({ amount: total, label: productTitle, fromWallet: selectedMethod === 'wallet', invoice }));
-    await sendPurchaseReceiptEmail({
-      email: customerEmail,
-      customerName,
-      productTitle,
-      total: money(total),
-      method: selected.label,
-      transactionId: invoice.id,
+    if (selectedMethod === 'card') {
+      const cardError = validateCardForm();
+      if (cardError) {
+        Alert.alert('Carte incomplète', cardError);
+        return;
+      }
+
+      setProcessingPayment(true);
+      setCardFallbackReady(false);
+      try {
+        const session = await createStripeCheckoutSession({
+          productTitle,
+          amount: total,
+          customerEmail,
+          customerName,
+        });
+        setStripeSession(session);
+        await Linking.openURL(session.checkoutUrl);
+        Alert.alert('Stripe ouvert', 'Finalise le paiement carte dans Stripe Checkout, puis reviens confirmer le reçu.');
+      } catch (error) {
+        const message = error.response?.data?.message || error.message || 'Stripe indisponible.';
+        if (message.includes('STRIPE_SECRET_KEY') || message.toLowerCase().includes('stripe non configur')) {
+          setCardFallbackReady(true);
+          Alert.alert('Stripe non configuré', 'Ajoute une clé Stripe valide côté backend. Le bouton démo reste disponible pour tester le reçu.');
+        } else {
+          Alert.alert('Stripe indisponible', message);
+        }
+      } finally {
+        setProcessingPayment(false);
+      }
+      return;
+    }
+
+    await completeLocalPayment();
+  };
+
+  const confirmStripePayment = async () => {
+    await completeLocalPayment({
+      methodLabel: 'Stripe Checkout',
+      transactionId: stripeSession?.sessionId ?? `STRIPE-${Date.now()}`,
+      fromWallet: false,
     });
-    setPaid(true);
+  };
+
+  const confirmCardTestPayment = async () => {
+    await completeLocalPayment({
+      methodLabel: 'Carte bancaire test',
+      transactionId: `CARD-${Date.now()}`,
+      fromWallet: false,
+    });
+    setCardFallbackReady(false);
   };
 
   const exportPdf = async () => {
@@ -104,7 +206,7 @@ export default function WalletScreen({ route, appSettings }) {
       id: transaction.id,
       productTitle: transaction.label,
       total: money(Math.abs(transaction.amount)),
-      method: transaction.method ?? 'Camazones Pay',
+      method: transaction.method ?? 'Camazone Pay',
       customerName,
       email: customerEmail,
     };
@@ -121,6 +223,7 @@ export default function WalletScreen({ route, appSettings }) {
 
   return (
     <SafeAreaView style={screenStyle}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('wallet')}</Text>
@@ -135,7 +238,9 @@ export default function WalletScreen({ route, appSettings }) {
             </View>
             <View style={styles.checkoutCopy}>
               <Text style={[styles.checkoutTitle, { color: colors.text }]}>{productTitle}</Text>
-              <Text style={[styles.checkoutMeta, { color: muted }]}>{t('protectedOrder')}</Text>
+              <Text style={[styles.checkoutMeta, { color: muted }]}>
+                {negotiatedPrice ? `Offre acceptée par ${sellerName ?? 'le vendeur'}` : t('protectedOrder')}
+              </Text>
             </View>
             <Badge type="ap" />
           </View>
@@ -146,21 +251,30 @@ export default function WalletScreen({ route, appSettings }) {
             <Row label={t('paymentFees')} value={money(fees)} muted={muted} color={colors.text} />
           </View>
 
+          {negotiatedPrice ? (
+            <View style={[styles.negotiationBox, { backgroundColor: darkMode ? palette.darkSurface : overlay.soft, borderColor: line }]}>
+              <Text style={styles.negotiationIcon}>🤝</Text>
+              <Text style={[styles.negotiationText, { color: colors.text }]}>
+                Le paiement utilise le prix réduit validé dans la discussion.
+              </Text>
+            </View>
+          ) : null}
+
           <View style={[styles.totalRow, { borderTopColor: line }]}>
             <Text style={[styles.totalLabel, { color: muted }]}>{t('totalToPay')}</Text>
             <Text style={[styles.totalValue, { color: colors.text }]}>{money(total)}</Text>
           </View>
 
-          <View style={[styles.balanceBox, { backgroundColor: darkMode ? palette.dark : overlay.green }]}>
+          <View style={[styles.balanceBox, { backgroundColor: darkMode ? palette.dark : overlay.soft }]}>
             <Text style={[styles.balanceLabel, { color: muted }]}>{t('camazonesBalance')}</Text>
-            <Text style={[styles.balanceValue, { color: colors.green ?? palette.green }]}>{money(balance)}</Text>
+            <Text style={[styles.balanceValue, { color: colors.secondary ?? palette.secondary }]}>{money(balance)}</Text>
           </View>
         </Surface>
 
         <SectionHeader title={t('topUpWallet')} description={t('topUpWalletDescription')} />
         <Surface style={[styles.formCard, { backgroundColor: surface, borderColor: line }]}>
           <TextInput label={t('topUpAmount')} value={rechargeAmount} onChangeText={(value) => setRechargeAmount(value.replace(/[^0-9]/g, ''))} keyboardType="number-pad" />
-          <Button mode="contained" onPress={recharge} buttonColor={colors.green ?? palette.green} textColor={colors.background}>
+          <Button mode="contained" onPress={recharge} buttonColor={colors.secondary ?? palette.secondary} textColor={colors.background}>
             {t('recharge')}
           </Button>
         </Surface>
@@ -175,6 +289,8 @@ export default function WalletScreen({ route, appSettings }) {
                 onPress={() => {
                   setSelectedMethod(method.id);
                   setPaid(false);
+                  setStripeSession(null);
+                  setCardFallbackReady(false);
                 }}
                 style={[
                   styles.methodCard,
@@ -203,8 +319,12 @@ export default function WalletScreen({ route, appSettings }) {
           {selectedMethod === 'card' ? (
             <View style={styles.form}>
               <TextInput label={t('cardName')} value={form.name} onChangeText={(value) => changeField('name', value)} autoCapitalize="characters" />
-              <TextInput label={t('cardNumber')} value={form.card} onChangeText={(value) => changeField('card', value)} keyboardType="number-pad" />
-              <TextInput label="Expiration" value={form.expiry} onChangeText={(value) => changeField('expiry', value)} keyboardType="numbers-and-punctuation" />
+              <TextInput label="Numéro de carte" value={form.card} onChangeText={(value) => changeField('card', formatCardNumber(value))} keyboardType="number-pad" placeholder="4242 4242 4242 4242" maxLength={23} />
+              <View style={styles.cardSecurityRow}>
+                <TextInput label="Expiration MM/AA" value={form.expiry} onChangeText={(value) => changeField('expiry', formatExpiry(value))} keyboardType="number-pad" maxLength={5} style={styles.flexInput} />
+                <TextInput label="CVV/CVC" value={form.cvc} onChangeText={(value) => changeField('cvc', formatCvc(value))} keyboardType="number-pad" secureTextEntry maxLength={4} style={styles.flexInput} />
+              </View>
+              <Text style={[styles.providerNote, { color: muted }]}>Paiement sécurisé via Stripe Checkout.</Text>
             </View>
           ) : selectedMethod === 'wallet' ? (
             <View style={styles.form}>
@@ -214,23 +334,45 @@ export default function WalletScreen({ route, appSettings }) {
           ) : (
             <View style={styles.form}>
               <TextInput label={t('mobileMoneyNumber')} value={form.phone} onChangeText={(value) => changeField('phone', value)} keyboardType="phone-pad" />
-              <Text style={[styles.providerNote, { color: muted }]}>Un code OTP sera demande par {selected.label}.</Text>
+              <Text style={[styles.providerNote, { color: muted }]}>Le code OTP sera envoyé sur ce numéro.</Text>
             </View>
           )}
         </Surface>
 
         {paid ? (
-          <Surface style={[styles.successCard, { backgroundColor: overlay.green, borderColor: palette.green }]}>
-            <Text style={styles.successIcon}>✓</Text>
-            <Text style={styles.successTitle}>{t('paymentConfirmed')}</Text>
-            <Text style={styles.successText}>{t('invoiceReady')}</Text>
-            <Button mode="outlined" onPress={exportPdf} textColor={palette.green} style={styles.pdfButton}>
+          <Surface style={[styles.successCard, { backgroundColor: darkMode ? palette.darkSurface : overlay.soft, borderColor: colors.secondary ?? palette.secondary }]}>
+            <Text style={styles.successIcon}>✅</Text>
+            <Text style={[styles.successTitle, { color: colors.text }]}>{t('paymentConfirmed')}</Text>
+            <Text style={[styles.successText, { color: muted }]}>{t('invoiceReady')}</Text>
+            <Button mode="outlined" onPress={exportPdf} textColor={colors.secondary ?? palette.secondary} style={[styles.pdfButton, { borderColor: colors.secondary ?? palette.secondary }]}>
               {t('invoicePdf')}
             </Button>
           </Surface>
         ) : null}
 
-        <Button mode="contained" onPress={pay} buttonColor={colors.primary} textColor={colors.background} contentStyle={styles.buttonContent} style={styles.payButton}>
+        {stripeSession && !paid ? (
+          <Surface style={[styles.successCard, { backgroundColor: darkMode ? palette.darkSurface : overlay.soft, borderColor: line }]}>
+            <Text style={styles.formIcon}>💳</Text>
+            <Text style={[styles.successTitle, { color: colors.text }]}>Stripe Checkout lancé</Text>
+            <Text style={[styles.successText, { color: muted }]}>Confirme ici après validation dans Stripe pour générer le reçu.</Text>
+            <Button mode="contained" onPress={confirmStripePayment} buttonColor={colors.secondary ?? palette.secondary} textColor={colors.background}>
+              Confirmer le reçu Stripe
+            </Button>
+          </Surface>
+        ) : null}
+
+        {cardFallbackReady && !paid ? (
+          <Surface style={[styles.successCard, { backgroundColor: darkMode ? palette.darkSurface : overlay.orange, borderColor: colors.primary }]}>
+            <Text style={styles.formIcon}>💳</Text>
+            <Text style={[styles.successTitle, { color: colors.text }]}>Mode démo carte</Text>
+            <Text style={[styles.successText, { color: muted }]}>Stripe n’est pas actif côté backend. Cette action crée seulement un reçu démo.</Text>
+            <Button mode="contained" onPress={confirmCardTestPayment} buttonColor={colors.primary} textColor={colors.background}>
+              Valider paiement carte test
+            </Button>
+          </Surface>
+        ) : null}
+
+        <Button mode="contained" onPress={pay} loading={processingPayment} buttonColor={colors.primary} textColor={colors.background} contentStyle={styles.buttonContent} style={styles.payButton}>
           Payer {money(total)}
         </Button>
 
@@ -244,12 +386,12 @@ export default function WalletScreen({ route, appSettings }) {
                   <Text style={[styles.transactionDate, { color: muted }]}>{new Date(transaction.at).toLocaleString('fr-FR')}</Text>
                 </View>
                 <View style={styles.transactionRight}>
-                  <Text style={[styles.transactionAmount, { color: transaction.amount > 0 ? palette.green : palette.orange }]}>
+                  <Text style={[styles.transactionAmount, { color: transaction.amount > 0 ? colors.secondary ?? palette.secondary : palette.orange }]}>
                     {money(transaction.amount)}
                   </Text>
                   {transaction.type === 'payment' ? (
-                    <Pressable onPress={() => exportTransactionPdf(transaction)} style={[styles.pdfChip, { borderColor: colors.green ?? palette.green }]}>
-                      <Text style={[styles.pdfChipText, { color: colors.green ?? palette.green }]}>PDF</Text>
+                    <Pressable onPress={() => exportTransactionPdf(transaction)} style={[styles.pdfChip, { borderColor: colors.secondary ?? palette.secondary }]}>
+                      <Text style={[styles.pdfChipText, { color: colors.secondary ?? palette.secondary }]}>PDF</Text>
                     </Pressable>
                   ) : null}
                 </View>
@@ -375,6 +517,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
   },
+  negotiationBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    padding: 11,
+    borderRadius: 15,
+    borderWidth: 1,
+  },
+  negotiationIcon: {
+    fontSize: 20,
+  },
+  negotiationText: {
+    flex: 1,
+    lineHeight: 19,
+    fontWeight: '800',
+  },
   methods: {
     gap: 10,
   },
@@ -422,8 +580,16 @@ const styles = StyleSheet.create({
   form: {
     gap: 10,
   },
+  cardSecurityRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  flexInput: {
+    flex: 1,
+  },
   providerNote: {
     lineHeight: 20,
+    fontWeight: '700',
   },
   successCard: {
     alignItems: 'center',
@@ -433,22 +599,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   successIcon: {
-    color: palette.green,
     fontSize: 24,
     fontWeight: '900',
   },
   successTitle: {
-    color: palette.text,
     fontSize: 17,
     fontWeight: '900',
   },
   successText: {
-    color: overlay.muted,
     textAlign: 'center',
   },
   pdfButton: {
     alignSelf: 'stretch',
-    borderColor: palette.green,
   },
   buttonContent: {
     minHeight: 48,

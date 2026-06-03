@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text } from '../../components/ui';
 import { ShopCard } from '../../components/MarketplaceCards';
-import { categories } from '../../data/marketplace';
+import { categories } from '../../data/visualAssets';
 import { useMarketplaceData } from '../../services/marketplaceService';
 import { darkPalette, overlay, palette } from '../../theme';
 
@@ -18,8 +19,15 @@ export default function HomeScreen({ navigation, appSettings }) {
   const line = darkMode ? darkPalette.line : overlay.line;
   const cardSurface = darkMode ? darkPalette.surface : palette.card;
   const t = appSettings?.t ?? ((key) => key);
-  const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
-  const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
+  const openMessages = (item) => navigation.navigate('Messages', {
+    sellerName: item.seller.name,
+    sellerEmail: item.seller.email,
+    productTitle: item.product.title,
+  });
+  const openPayment = (item) => navigation.navigate('Wallet', {
+    productTitle: item.product.title,
+    productPrice: item.product.price,
+  });
   const trendingItems = useMemo(() => rankedProducts.slice(0, 10), [rankedProducts]);
 
   useEffect(() => {
@@ -41,6 +49,7 @@ export default function HomeScreen({ navigation, appSettings }) {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
           <View style={styles.topGlowGreen} />
@@ -59,7 +68,7 @@ export default function HomeScreen({ navigation, appSettings }) {
           </View>
 
           <Pressable onPress={() => navigation.navigate('Products')} style={[styles.searchBar, { backgroundColor: cardSurface }]}>
-            <Text style={[styles.searchIcon, { color: colors.primary }]}>⌕</Text>
+            <Text style={[styles.searchIcon, { color: colors.primary }]}>🔎</Text>
             <Text style={[styles.searchPlaceholder, { color: muted }]}>{t('searchPlaceholder')}</Text>
           </Pressable>
         </View>
@@ -104,8 +113,8 @@ export default function HomeScreen({ navigation, appSettings }) {
               key={item.product.id}
               item={item}
               appSettings={appSettings}
-              onMessage={() => openMessages(item.seller.name)}
-              onBuy={() => openPayment(item.product.title)}
+              onMessage={() => openMessages(item)}
+              onBuy={() => openPayment(item)}
             />
           ))}
         </ScrollView>
@@ -133,8 +142,8 @@ export default function HomeScreen({ navigation, appSettings }) {
               key={`grid-${item.product.id}`}
               item={item}
               appSettings={appSettings}
-              onMessage={() => openMessages(item.seller.name)}
-              onBuy={() => openPayment(item.product.title)}
+              onMessage={() => openMessages(item)}
+              onBuy={() => openPayment(item)}
             />
           ))}
         </View>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { Provider as ReduxProvider, useDispatch, useSelector } from 'react-redux';
 import store from './src/store';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -9,10 +10,12 @@ import { restoreSettings } from './src/store/slices/settingsSlice';
 import { restoreWallet } from './src/store/slices/walletSlice';
 
 const BOOT_TIMEOUT_MS = 2500;
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Bootstrapper() {
   const dispatch = useDispatch();
   const darkMode = useSelector((state) => state.settings.darkMode);
+  const isBootstrapping = useSelector((state) => state.auth.isBootstrapping);
 
   useEffect(() => {
     let alive = true;
@@ -33,6 +36,12 @@ function Bootstrapper() {
       clearTimeout(bootTimer);
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!isBootstrapping) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [isBootstrapping]);
 
   return (
     <>

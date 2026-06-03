@@ -30,7 +30,7 @@ public class ShopService {
 
     @Transactional
     public ShopResponse createShop(String ownerEmail, CreateShopRequest req) {
-        User owner = userRepository.findByEmail(ownerEmail)
+        User owner = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(ownerEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
         Shop shop = Shop.builder()
@@ -59,7 +59,7 @@ public class ShopService {
     }
 
     public ShopResponse getMyShop(String ownerEmail) {
-        User owner = userRepository.findByEmail(ownerEmail)
+        User owner = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(ownerEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
 
         return shopRepository.findByOwnerIdAndDeletedAtIsNull(owner.getId())

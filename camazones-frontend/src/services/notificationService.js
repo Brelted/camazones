@@ -1,15 +1,9 @@
-import axios from 'axios';
-import { API_BASE_URL } from './apiConfig';
-
-const notificationClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 4500,
-});
+import apiClient from './apiClient';
 
 export const sendPurchaseReceiptEmail = async (payload) => {
   try {
-    await notificationClient.post('/notifications/purchase-receipt', payload);
-    return true;
+    const response = await apiClient.post('/notifications/purchase-receipt', payload);
+    return Boolean(response?.sent);
   } catch (error) {
     return false;
   }
@@ -17,8 +11,8 @@ export const sendPurchaseReceiptEmail = async (payload) => {
 
 export const sendWelcomeEmail = async (payload) => {
   try {
-    await notificationClient.post('/notifications/welcome', payload);
-    return true;
+    const response = await apiClient.post('/notifications/welcome', payload);
+    return Boolean(response?.sent);
   } catch (error) {
     return false;
   }

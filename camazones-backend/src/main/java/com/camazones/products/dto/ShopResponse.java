@@ -19,5 +19,5 @@ public record ShopResponse(
         OwnerInfo        owner,
         LocalDateTime    createdAt
 ) {
-    public record OwnerInfo(UUID id, String firstName, String lastName) {}
+    public record OwnerInfo(UUID id, String email, String firstName, String lastName) {}
 }

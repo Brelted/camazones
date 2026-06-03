@@ -73,6 +73,9 @@ public class User implements UserDetails {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "removed_at")
+    private LocalDateTime removedAt;
+
     // ── Constructeurs ─────────────────────────────────────────────────────
 
     public User() {}
@@ -87,9 +90,9 @@ public class User implements UserDetails {
     @Override public String getPassword()   { return passwordHash; }
     @Override public String getUsername()   { return email; }
     @Override public boolean isAccountNonExpired()   { return true; }
-    @Override public boolean isAccountNonLocked()    { return deletedAt == null; }
+    @Override public boolean isAccountNonLocked()    { return deletedAt == null && removedAt == null; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled()             { return deletedAt == null; }
+    @Override public boolean isEnabled()             { return deletedAt == null && removedAt == null; }
 
     // ── Getters & Setters ─────────────────────────────────────────────────
 
@@ -122,6 +125,8 @@ public class User implements UserDetails {
     public LocalDateTime getUpdatedAt()          { return updatedAt; }
     public LocalDateTime getDeletedAt()          { return deletedAt; }
     public void          setDeletedAt(LocalDateTime v) { this.deletedAt = v; }
+    public LocalDateTime getRemovedAt()          { return removedAt; }
+    public void          setRemovedAt(LocalDateTime v) { this.removedAt = v; }
 
     // ── Builder statique (remplace @Builder de Lombok) ────────────────────
 

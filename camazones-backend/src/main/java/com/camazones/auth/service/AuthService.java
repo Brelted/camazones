@@ -27,22 +27,25 @@ public class AuthService implements UserDetailsService {
     private final JwtProvider     jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AccountDeletionService accountDeletionService;
 
     public AuthService(UserRepository userRepository,
                        JwtProvider jwtProvider,
                        PasswordEncoder passwordEncoder,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       AccountDeletionService accountDeletionService) {
         this.userRepository  = userRepository;
         this.jwtProvider     = jwtProvider;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.accountDeletionService = accountDeletionService;
     }
 
     // ── UserDetailsService ────────────────────────────────────────────────
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Aucun utilisateur avec l'email : " + email));
     }
@@ -69,7 +72,7 @@ public class AuthService implements UserDetailsService {
 
         user = userRepository.save(user);
         log.info("Nouvel utilisateur : {} ({})", user.getEmail(), user.getId());
-        emailService.sendWelcomeEmail(user);
+        emailService.sendWelcomeEmailAsync(user);
 
         return buildResponse(jwtProvider.generateToken(user.getEmail()), user);
     }
@@ -77,7 +80,7 @@ public class AuthService implements UserDetailsService {
     // ── Login ─────────────────────────────────────────────────────────────
 
     public AuthResponse login(LoginRequest req) {
-        User user = userRepository.findByEmail(req.email())
+        User user = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(req.email())
                 .orElseThrow(() -> new BadCredentialsException("Email ou mot de passe incorrect."));
 
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash()))
@@ -93,7 +96,7 @@ public class AuthService implements UserDetailsService {
     // ── Profil ────────────────────────────────────────────────────────────
 
     public UserProfileDto getProfile(String email) {
-        User u = userRepository.findByEmail(email)
+        User u = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable."));
 
         return toProfile(u);
@@ -101,7 +104,7 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public UserProfileDto updateProfile(String email, UpdateProfileRequest req) {
-        User u = userRepository.findByEmail(email)
+        User u = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable."));
 
         if (req.firstName() != null) u.setFirstName(req.firstName());
@@ -117,6 +120,13 @@ public class AuthService implements UserDetailsService {
         if (req.address() != null) u.setAddress(req.address());
 
         return toProfile(userRepository.save(u));
+    }
+
+    @Transactional
+    public void deleteOwnAccount(String email) {
+        User user = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable."));
+        accountDeletionService.deleteAccount(user);
     }
 
     private UserProfileDto toProfile(User u) {

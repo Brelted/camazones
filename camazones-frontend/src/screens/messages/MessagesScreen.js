@@ -1,35 +1,135 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, SectionHeader } from '../../components/MarketplaceCards';
-import { conversations } from '../../data/marketplace';
+import { fetchConversations, mapConversation, sendConversationMessage, startConversation } from '../../services/messageService';
 import { darkPalette, overlay, palette } from '../../theme';
 
-export default function MessagesScreen({ route, appSettings }) {
-  const [selectedId, setSelectedId] = useState(conversations[0]?.id);
+const acceptedWords = ['accepte', 'accepté', 'accord', 'ok', 'valide', 'confirm'];
+
+function extractAcceptedOffer(messages = []) {
+  const latestFirst = [...messages].reverse();
+  for (const message of latestFirst) {
+    const text = String(message?.text ?? '');
+    const normalized = text.toLowerCase();
+    const hasAcceptance = acceptedWords.some((word) => normalized.includes(word));
+    const amountMatch = text.match(/(\d[\d\s.]{2,})\s*(fcfa|xaf)?/i);
+    if (hasAcceptance && amountMatch) {
+      const price = Number(amountMatch[1].replace(/\D/g, ''));
+      if (price > 0) {
+        return { price, text };
+      }
+    }
+  }
+  return null;
+}
+
+export default function MessagesScreen({ navigation, route, appSettings }) {
+  const user = useSelector((state) => state.auth.user);
+  const token = useSelector((state) => state.auth.token);
+  const startedRouteRef = useRef(null);
+  const currentEmail = user?.email;
+  const [conversationList, setConversationList] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [draft, setDraft] = useState('');
-  const [threadMessages, setThreadMessages] = useState(() =>
-    conversations.reduce((accumulator, conversation) => {
-      accumulator[conversation.id] = conversation.messages;
-      return accumulator;
-    }, {})
-  );
+  const [isSending, setIsSending] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [threadMessages, setThreadMessages] = useState({});
+
+  const upsertConversation = (conversation) => {
+    setConversationList((current) => {
+      const exists = current.some((item) => item.id === conversation.id);
+      return exists ? current.map((item) => (item.id === conversation.id ? conversation : item)) : [conversation, ...current];
+    });
+    setThreadMessages((current) => ({ ...current, [conversation.id]: conversation.messages }));
+    setSelectedId(conversation.id);
+  };
+
+  useEffect(() => {
+    let alive = true;
+
+    const loadRemoteConversations = async () => {
+      if (!token) {
+        return;
+      }
+
+      setIsSyncing(true);
+      try {
+        const payload = await fetchConversations();
+        const mapped = payload.map((conversation) => mapConversation(conversation, currentEmail));
+        if (!alive || !mapped.length) {
+          return;
+        }
+        setConversationList(mapped);
+        setThreadMessages(
+          mapped.reduce((accumulator, conversation) => {
+            accumulator[conversation.id] = conversation.messages;
+            return accumulator;
+          }, {})
+        );
+        setSelectedId((current) => mapped.some((conversation) => conversation.id === current) ? current : mapped[0].id);
+      } catch (error) {
+        if (alive) {
+          setConversationList([]);
+          setThreadMessages({});
+          setSelectedId(null);
+        }
+      } finally {
+        if (alive) {
+          setIsSyncing(false);
+        }
+      }
+    };
+
+    loadRemoteConversations();
+    return () => {
+      alive = false;
+    };
+  }, [currentEmail, token]);
 
   useEffect(() => {
     const sellerName = route?.params?.sellerName;
-    const targetConversation = conversations.find((conversation) => conversation.sellerName === sellerName);
+    const sellerEmail = route?.params?.sellerEmail;
+    const productTitle = route?.params?.productTitle;
+    const routeKey = `${sellerEmail ?? sellerName ?? ''}:${productTitle ?? ''}`;
 
+    const targetConversation = conversationList.find(
+      (conversation) =>
+        conversation.sellerEmail?.toLowerCase?.() === sellerEmail?.toLowerCase?.() ||
+        conversation.sellerName === sellerName
+    );
     if (targetConversation) {
       setSelectedId(targetConversation.id);
+      return;
     }
-  }, [route?.params?.sellerName]);
+
+    if (!sellerEmail) {
+      return;
+    }
+
+    if (!token || startedRouteRef.current === routeKey) {
+      return;
+    }
+
+    startedRouteRef.current = routeKey;
+    startConversation({
+      sellerEmail,
+      productTitle,
+      openingMessage: `Bonjour, je suis interesse par ${productTitle ?? 'votre article'}.`,
+    })
+      .then((conversation) => upsertConversation(mapConversation(conversation, currentEmail)))
+      .catch(() => {});
+  }, [conversationList, currentEmail, route?.params?.productTitle, route?.params?.sellerEmail, route?.params?.sellerName, token]);
 
   const selectedConversation = useMemo(
-    () => conversations.find((conversation) => conversation.id === selectedId) ?? conversations[0],
-    [selectedId]
+    () => conversationList.find((conversation) => conversation.id === selectedId) ?? conversationList[0],
+    [conversationList, selectedId]
   );
 
   const messages = threadMessages[selectedConversation?.id] ?? [];
+  const acceptedOffer = useMemo(() => extractAcceptedOffer(messages), [messages]);
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
   const muted = darkMode ? darkPalette.muted : overlay.muted;
@@ -37,35 +137,53 @@ export default function MessagesScreen({ route, appSettings }) {
   const surface = darkMode ? darkPalette.surface : overlay.surface;
   const t = appSettings?.t ?? ((key) => key);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const cleanDraft = draft.trim();
 
     if (!cleanDraft || !selectedConversation) {
       return;
     }
 
-    setThreadMessages((current) => ({
-      ...current,
-      [selectedConversation.id]: [
-        ...(current[selectedConversation.id] ?? []),
-        { id: `${selectedConversation.id}-${Date.now()}`, from: 'buyer', text: cleanDraft },
-      ],
-    }));
-    setDraft('');
+    setIsSending(true);
+    try {
+      const response = await sendConversationMessage(selectedConversation.id, cleanDraft);
+      upsertConversation(mapConversation(response, currentEmail));
+      setDraft('');
+    } catch (error) {
+      Alert.alert('Message non envoye', 'Verifie que le backend est lance puis reessaie.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const payAcceptedOffer = () => {
+    if (!acceptedOffer || !selectedConversation) {
+      return;
+    }
+
+    navigation.navigate('Wallet', {
+      productTitle: selectedConversation.product,
+      productPrice: acceptedOffer.price,
+      negotiatedPrice: acceptedOffer.price,
+      sellerName: selectedConversation.sellerName,
+      conversationId: selectedConversation.id,
+    });
   };
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('sellerDm')}</Text>
           <Text style={[styles.title, { color: colors.text }]}>{t('chatTitle')}</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>{t('chatSubtitle')}</Text>
+          <Text style={[styles.subtitle, { color: muted }]}>{isSyncing ? 'Synchronisation des conversations...' : t('chatSubtitle')}</Text>
         </View>
 
         <SectionHeader title={t('conversations')} description={t('conversationAccess')} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conversationRow}>
-          {conversations.map((conversation) => (
+        {conversationList.length ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conversationRow}>
+            {conversationList.map((conversation) => (
             <Pressable
               key={conversation.id}
               onPress={() => setSelectedId(conversation.id)}
@@ -85,9 +203,15 @@ export default function MessagesScreen({ route, appSettings }) {
               <Text style={[styles.conversationProduct, { color: muted }, selectedId === conversation.id && { color: colors.background }]}>
                 {conversation.product}
               </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : (
+          <Surface style={[styles.emptyCard, { backgroundColor: surface, borderColor: line }]}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>Aucune conversation WAMP</Text>
+            <Text style={[styles.emptyText, { color: muted }]}>Ouvre une boutique ou un produit puis appuie sur DM.</Text>
+          </Surface>
+        )}
 
         {selectedConversation ? (
           <Surface style={[styles.chatPanel, { backgroundColor: surface, borderColor: line }]} elevation={0}>
@@ -111,9 +235,26 @@ export default function MessagesScreen({ route, appSettings }) {
               })}
             </View>
 
+            {acceptedOffer ? (
+              <Surface style={[styles.offerCard, { backgroundColor: darkMode ? palette.darkSurface : overlay.soft, borderColor: colors.primary }]} elevation={0}>
+                <View style={styles.offerTop}>
+                  <Text style={styles.offerIcon}>🤝</Text>
+                  <View style={styles.offerCopy}>
+                    <Text style={[styles.offerTitle, { color: colors.text }]}>Prix négocié accepté</Text>
+                    <Text style={[styles.offerText, { color: muted }]}>
+                      {selectedConversation.sellerName} a validé {acceptedOffer.price.toLocaleString('fr-FR')} FCFA pour cet achat.
+                    </Text>
+                  </View>
+                </View>
+                <Button mode="contained" onPress={payAcceptedOffer} buttonColor={colors.primary} textColor={colors.background}>
+                  Payer ce prix
+                </Button>
+              </Surface>
+            ) : null}
+
             <View style={styles.composer}>
               <TextInput value={draft} onChangeText={setDraft} placeholder={t('writeMessage')} style={styles.input} />
-              <Button mode="contained" onPress={sendMessage} buttonColor={colors.green ?? palette.green} textColor={colors.background}>
+              <Button mode="contained" onPress={sendMessage} loading={isSending} buttonColor={colors.secondary ?? palette.secondary} textColor={colors.background}>
                 {t('send')}
               </Button>
             </View>
@@ -172,6 +313,20 @@ const styles = StyleSheet.create({
   conversationCardActive: {
     borderColor: palette.primary,
     backgroundColor: palette.primary,
+  },
+  emptyCard: {
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  emptyText: {
+    lineHeight: 20,
+    fontWeight: '700',
   },
   conversationTop: {
     flexDirection: 'row',
@@ -266,5 +421,31 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: palette.surface,
+  },
+  offerCard: {
+    gap: 12,
+    padding: 13,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  offerTop: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  offerIcon: {
+    fontSize: 22,
+  },
+  offerCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  offerTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  offerText: {
+    lineHeight: 19,
+    fontWeight: '700',
   },
 });

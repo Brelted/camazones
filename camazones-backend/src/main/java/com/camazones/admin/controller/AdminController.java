@@ -59,6 +59,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.unblockUser(id));
     }
 
+    @DeleteMapping("/users/{id}")
+    ResponseEntity<Void> deleteUser(@AuthenticationPrincipal UserDetails admin, @PathVariable UUID id) {
+        adminService.deleteUser(admin.getUsername(), id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/shops/{id}/block")
     ResponseEntity<AdminShopResponse> blockShop(@PathVariable UUID id) {
         return ResponseEntity.ok(adminService.blockShop(id));

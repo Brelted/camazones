@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
 import { useMarketplaceData, useShopSearch } from '../../services/marketplaceService';
@@ -25,8 +26,15 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
     }
   }, [route?.params?.shopId]);
 
-  const openMessages = (sellerName) => navigation.navigate('Messages', { sellerName });
-  const openPayment = (productTitle) => navigation.navigate('Wallet', { productTitle });
+  const openMessages = (shop, productTitle) => navigation.navigate('Messages', {
+    sellerName: shop.name,
+    sellerEmail: shop.email,
+    productTitle: productTitle ?? shop.products[0]?.title ?? shop.name,
+  });
+  const openPayment = (product) => navigation.navigate('Wallet', {
+    productTitle: product?.title ?? selectedShop?.name,
+    productPrice: product?.price,
+  });
   const sendShopMail = (shop) => {
     const subject = encodeURIComponent(`Contact Camazones - ${shop.name}`);
     const body = encodeURIComponent(`Bonjour ${shop.name},\n\nJe souhaite avoir plus d'informations sur votre boutique Camazones.\n\nMerci.`);
@@ -36,6 +44,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
   if (selectedShop) {
     return (
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+        <AnimatedBackdrop colors={colors} darkMode={darkMode} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Pressable onPress={() => setSelectedShopId(null)} style={styles.backLink}>
             <Text style={[styles.backText, { color: colors.primary }]}>‹ {t('shops')}</Text>
@@ -62,10 +71,10 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
             <Pressable onPress={() => sendShopMail(selectedShop)} style={[styles.action, { backgroundColor: darkMode ? palette.darkSurface : overlay.orange, borderColor: colors.primary }]}>
               <Text style={[styles.actionText, { color: colors.primary }]}>Mail</Text>
             </Pressable>
-            <Pressable onPress={() => openMessages(selectedShop.name)} style={[styles.action, { backgroundColor: colors.green ?? palette.green }]}>
+            <Pressable onPress={() => openMessages(selectedShop)} style={[styles.action, { backgroundColor: colors.green ?? palette.green }]}>
               <Text style={[styles.actionText, { color: colors.background }]}>{t('sellerDm')}</Text>
             </Pressable>
-            <Pressable onPress={() => openPayment(selectedShop.products[0]?.title ?? selectedShop.name)} style={[styles.action, { backgroundColor: colors.primary }]}>
+            <Pressable onPress={() => openPayment(selectedShop.products[0])} style={[styles.action, { backgroundColor: colors.primary }]}>
               <Text style={[styles.actionText, { color: colors.background }]}>{t('buy')}</Text>
             </Pressable>
           </View>
@@ -96,8 +105,8 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
               <ProductCard
                 key={product.id}
                 item={{ product, seller: selectedShop, sellerType: 'shop' }}
-                onMessage={() => openMessages(selectedShop.name)}
-                onBuy={() => openPayment(product.title)}
+                onMessage={() => openMessages(selectedShop, product.title)}
+                onBuy={() => openPayment(product)}
               />
             ))}
           </View>
@@ -108,6 +117,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, { color: colors.secondary }]}>{t('shopZone')}</Text>

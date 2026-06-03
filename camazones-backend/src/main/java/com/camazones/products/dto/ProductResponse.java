@@ -1,6 +1,7 @@
 package com.camazones.products.dto;
 
 import com.camazones.products.entity.ProductStatus;
+import com.camazones.products.entity.SubscriptionTier;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +31,6 @@ public record ProductResponse(
         ShopInfo      shop,
         LocalDateTime createdAt
 ) {
-    public record SellerInfo(UUID id, String firstName, String lastName) {}
-    public record ShopInfo(UUID id, String name, String logoUrl) {}
+    public record SellerInfo(UUID id, String email, String firstName, String lastName) {}
+    public record ShopInfo(UUID id, String name, String logoUrl, boolean verified, SubscriptionTier subscriptionTier) {}
 }

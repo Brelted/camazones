@@ -21,6 +21,8 @@ $env:JAVA_HOME="C:\Users\Alan\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.1
 $env:Path="$env:JAVA_HOME\bin;C:\ProgramData\chocolatey\lib\maven\apache-maven-3.9.16\bin;$env:Path"
 $env:WAMP_DB_USER="root"
 Remove-Item Env:WAMP_DB_PASSWORD -ErrorAction SilentlyContinue
+Copy-Item .env.example .env.local -ErrorAction SilentlyContinue
+notepad .env.local
 mvn spring-boot:run
 ```
 
@@ -28,6 +30,18 @@ Health check :
 
 ```text
 http://localhost:8080/api/health
+```
+
+Diagnostic local sans afficher les secrets :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-local-config.ps1
+```
+
+Controle base autorisee :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\assert-no-forbidden-db.ps1
 ```
 
 ## Lancer le frontend Expo Go
@@ -44,23 +58,33 @@ L'application detecte automatiquement l'IP LAN Expo pour joindre `http://IP_DU_P
 ## Fonctionnalites principales
 
 - Authentification JWT login/register avec restauration de session.
-- Frontend connecte a l'API backend avec cache local et fallback offline.
-- Donnees seedees en base WAMP MySQL au demarrage: boutiques, produits, comptes demo.
+- Frontend connecte a l'API backend avec cache API WAMP uniquement.
+- Base autorisee uniquement : WAMP MySQL/MariaDB.
+- Donnees seedees en base WAMP MySQL uniquement si la table `users` est vide.
+- Le seeder ne recree pas les comptes supprimes si WAMP contient deja des utilisateurs.
 - Les nouvelles inscriptions passent par `/auth/register` et sont enregistrees dans la table `users`.
+- Messages persistants entre utilisateurs via `/messages/conversations`.
+- Paiement carte via Stripe Checkout, configure par `STRIPE_SECRET_KEY`.
+- Email inscription et facture via `.env.local`, sans bloquer l'inscription.
+- Gmail SMTP exige un mot de passe d'application Gmail, pas le mot de passe normal du compte.
 - Zone Boutiques dediee aux vitrines professionnelles uniquement.
 - Recherche globale avec filtre deroulant par categorie et produits correspondants.
+- Recherche vocale par maintien du micro, transcription via `OPENAI_API_KEY`.
+- La recherche vocale lance ensuite une recherche similaire dans la base via `/products?search=`.
 - Carousel horizontal de produits tendance.
+- Catalogue enrichi: tech, vetements, bijoux, parfums, maison, aliments et plats.
 - Profil modifiable avec photo, publication article avec image televersee et historique.
 - Mode sombre optionnel dans le Profil, persistant.
 - Langue FR/EN dans le Profil, persistante.
-- Pay deplace dans le Profil.
+- Jeux accessibles depuis le Profil.
 - Portefeuille Camazone rechargeable avec historique.
-- Paiement Orange Money, MTN MoMo, carte, wallet avec emojis discrets.
+- Paiement Orange Money, MTN MoMo, Stripe Checkout et wallet avec emojis discrets.
 - Export de facture en PDF et partage mobile.
 - Badges AP, premium et etoile visible pour boutiques premium.
 - Console admin pour clients, boutiques, produits, blocages et commissions hebdomadaires.
 - Espace mini-jeux mobile avec Snake et Fruit Slash.
 - Logo Camazone rond avec carte du Cameroun visible au centre.
+- Maquette locale: `camazones-docs/figma-mockup-camazones.html`.
 
 ## Fichiers principaux
 
@@ -74,17 +98,20 @@ Controle la navigation selon auth, onglets, admin, jeux, messages et paiement.
 camazones-frontend/src/screens/auth/AuthScreen.js
 Ecran connexion/inscription, restauration JWT et choix type compte.
 
-camazones-frontend/src/data/marketplace.js
-Catalogue local: boutiques, produits, categories emoji, moyens de paiement et comptes.
+camazones-frontend/src/data/visualAssets.js
+Assets visuels figma-style, categories emoji et moyens de paiement.
 
 camazones-frontend/src/services/marketplaceService.js
-Connexion API marketplace, cache offline, merge des produits publies et upload image local.
+Connexion API marketplace, cache API WAMP et publication produit via `/products`.
 
 camazones-frontend/src/screens/home/HomeScreen.js
 Accueil avec vitrines, carousel automatique et produits mis en avant.
 
 camazones-frontend/src/screens/products/ProductsScreen.js
-Recherche globale, filtre deroulant categorie, boutiques et produits trouves.
+Recherche globale, recherche vocale, filtre deroulant categorie, boutiques et produits trouves.
+
+camazones-frontend/src/components/AnimatedBackdrop.js
+Animation de fond legere reutilisee sur les ecrans principaux.
 
 camazones-frontend/src/screens/seller/SellerScreen.js
 Profil, photo utilisateur, mode sombre, publication article avec image et historique achats.
@@ -95,6 +122,12 @@ Paiement, recharge wallet, methodes Orange Money/MTN/carte/wallet et historique.
 camazones-frontend/src/services/pdfService.js
 Generation et partage des factures PDF signees.
 
+camazones-frontend/src/services/speechService.js
+Envoi audio multipart vers le backend pour transcription vocale.
+
+camazones-frontend/src/services/notificationService.js
+Envoi facture et verification du statut reel d'envoi email.
+
 camazones-frontend/src/components/MarketplaceCards.js
 Cartes boutiques, produits, badges, boutons message/mail/payer.
 
@@ -102,10 +135,22 @@ camazones-frontend/assets/brand/
 Logo rond, logo large et marque Camazone utilises par l'application.
 
 camazones-backend/src/main/java/com/camazones/core/config/DataSeeder.java
-Seed backend: users demo, boutiques, produits, conversations et commissions.
+Seed backend WAMP au premier demarrage uniquement si aucun utilisateur n'existe.
+
+camazones-backend/src/main/java/com/camazones/speech/
+Transcription audio OpenAI et statut de configuration.
+
+camazones-backend/src/main/java/com/camazones/notifications/service/EmailService.java
+Emails de bienvenue et factures, asynchrones avec diagnostic Gmail.
 
 camazones-backend/src/main/resources/db/wamp/camazones_wamp_schema.sql
 Script SQL WAMP/MySQL avec schema, donnees demo et prix synchronises.
+
+camazones-backend/scripts/check-local-config.ps1
+Verifie WAMP, `.env.local`, mot de passe d'application Gmail et `OPENAI_API_KEY` sans afficher les secrets.
+
+camazones-backend/scripts/assert-no-forbidden-db.ps1
+Bloque toute signature de base interdite avant qu'elle revienne dans le projet.
 
 camazones-docs/COMPTES_DEMO.md
 Liste complete des comptes demo et leurs mots de passe.
@@ -125,10 +170,10 @@ Comptes utiles :
 admin@camazones.demo
 alan.independant@camazones.demo
 sony@camazones.demo
-koa@camazones.demo
-talia@camazones.demo
-noma@camazones.demo
-sawa@camazones.demo
+atelier.koa@camazones.demo
+talia.closet@camazones.demo
+studio.noma@camazones.demo
+sawa.deals@camazones.demo
 mila@camazones.demo
 ```
 

@@ -71,14 +71,19 @@ public class ProductService {
 
     @Transactional
     public ProductResponse createProduct(String sellerEmail, CreateProductRequest req) {
-        User seller = userRepository.findByEmail(sellerEmail)
+        User seller = userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull(sellerEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+        var shop = req.shopId() != null
+                ? shopRepository.findByIdAndDeletedAtIsNull(req.shopId()).orElse(null)
+                : null;
+
+        if (shop != null && !shop.getOwner().getEmail().equals(sellerEmail)) {
+            throw new AccessDeniedException("Vous ne pouvez pas publier dans cette boutique");
+        }
 
         Product product = Product.builder()
                 .seller(seller)
-                .shop(req.shopId() != null
-                        ? shopRepository.findByIdAndDeletedAtIsNull(req.shopId()).orElse(null)
-                        : null)
+                .shop(shop)
                 .title(req.title())
                 .description(req.description())
                 .category(req.category())

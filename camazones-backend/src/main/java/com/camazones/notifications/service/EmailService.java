@@ -3,12 +3,14 @@ package com.camazones.notifications.service;
 import com.camazones.auth.entity.User;
 import com.camazones.notifications.dto.PurchaseReceiptRequest;
 import com.camazones.notifications.dto.WelcomeEmailRequest;
+import jakarta.mail.AuthenticationFailedException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -24,35 +26,43 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final boolean enabled;
     private final String from;
+    private final String username;
+    private final String password;
 
     public EmailService(
             JavaMailSender mailSender,
             @Value("${camazones.mail.enabled:false}") boolean enabled,
-            @Value("${camazones.mail.from:}") String from) {
+            @Value("${camazones.mail.from:}") String from,
+            @Value("${spring.mail.username:}") String username,
+            @Value("${spring.mail.password:}") String password) {
         this.mailSender = mailSender;
         this.enabled = enabled;
         this.from = from;
+        this.username = username;
+        this.password = password;
     }
 
-    public void sendWelcomeEmail(User user) {
+    public boolean sendWelcomeEmail(User user) {
         String fullName = displayName(user.getFirstName(), user.getLastName());
         String html = layout(
                 "Bienvenue sur Camazones",
-                "Compte cree avec succes",
+                "Merci de rejoindre Camazones",
                 """
                 <p>Bonjour <strong>%s</strong>,</p>
-                <p>Votre compte Camazones est actif. Vous pouvez maintenant decouvrir les boutiques, discuter avec les vendeurs et payer vos achats en securite.</p>
-                <div class="box">
-                  <p><strong>Email:</strong> %s</p>
-                  <p><strong>Date:</strong> %s</p>
-                </div>
-                <p>Merci de rejoindre le marche certifie Camazones.</p>
-                """.formatted(escape(fullName), escape(user.getEmail()), FORMATTER.format(LocalDateTime.now()))
+                <p>Votre compte est cree avec succes.</p>
+                <p>Merci de rejoindre Camazones, le marche certifie qui rapproche les acheteurs, les vendeurs et les boutiques du Cameroun.</p>
+                <p>Vous pouvez maintenant decouvrir les vitrines, discuter avec les vendeurs et finaliser vos achats en securite.</p>
+                """.formatted(escape(fullName))
         );
-        send(user.getEmail(), "Bienvenue sur Camazones", html);
+        return send(user.getEmail(), "Bienvenue sur Camazones", html);
     }
 
-    public void sendWelcomeEmail(WelcomeEmailRequest request) {
+    @Async
+    public void sendWelcomeEmailAsync(User user) {
+        sendWelcomeEmail(user);
+    }
+
+    public boolean sendWelcomeEmail(WelcomeEmailRequest request) {
         String html = layout(
                 "Bienvenue sur Camazones",
                 "Compte cree avec succes",
@@ -66,10 +76,10 @@ public class EmailService {
                 <p>Merci de rejoindre le marche certifie Camazones.</p>
                 """.formatted(escape(request.customerName()), escape(request.email()), FORMATTER.format(LocalDateTime.now()))
         );
-        send(request.email(), "Bienvenue sur Camazones", html);
+        return send(request.email(), "Bienvenue sur Camazones", html);
     }
 
-    public void sendPurchaseReceipt(PurchaseReceiptRequest request) {
+    public boolean sendPurchaseReceipt(PurchaseReceiptRequest request) {
         String html = layout(
                 "Facture Camazones",
                 "Recu d'achat",
@@ -93,13 +103,33 @@ public class EmailService {
                         FORMATTER.format(LocalDateTime.now())
                 )
         );
-        send(request.email(), "Facture Camazones - " + request.transactionId(), html);
+        return send(request.email(), "Facture Camazones - " + request.transactionId(), html);
     }
 
-    private void send(String to, String subject, String html) {
+    public boolean isConfigured() {
+        return enabled
+                && from != null && !from.isBlank()
+                && username != null && !username.isBlank()
+                && looksLikeGmailAppPassword();
+    }
+
+    public String statusMessage() {
         if (!enabled) {
-            log.info("Email desactive. Sujet '{}' pour {}", subject, to);
-            return;
+            return "SMTP desactive.";
+        }
+        if (from == null || from.isBlank() || username == null || username.isBlank()) {
+            return "SMTP incomplet. Ajoute CAMAZONES_MAIL_USERNAME et CAMAZONES_MAIL_FROM.";
+        }
+        if (!looksLikeGmailAppPassword()) {
+            return "SMTP incomplet. Gmail demande un mot de passe d'application a 16 caracteres.";
+        }
+        return "SMTP configure.";
+    }
+
+    private boolean send(String to, String subject, String html) {
+        if (!enabled || from == null || from.isBlank()) {
+            log.info("Email non configure. Sujet '{}' pour {}", subject, to);
+            return false;
         }
 
         try {
@@ -112,9 +142,31 @@ public class EmailService {
                 helper.setFrom(from);
             }
             mailSender.send(message);
+            log.info("Email envoye a {}: {}", to, subject);
+            return true;
         } catch (Exception error) {
+            if (isAuthenticationError(error)) {
+                log.warn("Email non envoye a {}: authentification Gmail refusee. Utilise un mot de passe d'application Gmail a 16 caracteres.", to);
+                return false;
+            }
             log.warn("Email non envoye a {}: {}", to, error.getMessage());
+            return false;
         }
+    }
+
+    private boolean isAuthenticationError(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof AuthenticationFailedException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private boolean looksLikeGmailAppPassword() {
+        return password != null && password.replaceAll("\\s+", "").length() == 16;
     }
 
     private String layout(String title, String heading, String body) {

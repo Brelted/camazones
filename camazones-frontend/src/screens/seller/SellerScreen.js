@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
+import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
-import { accountTypes, categories, independentSellers } from '../../data/marketplace';
-import { getShopIdForEmail, savePublishedProduct, useMarketplaceData } from '../../services/marketplaceService';
+import { accountTypes, categories } from '../../data/visualAssets';
+import { savePublishedProduct, useMarketplaceData } from '../../services/marketplaceService';
 import { exportInvoicePdf } from '../../services/pdfService';
 import { updateProfileRequest } from '../../services/profileService';
-import { logout } from '../../store/slices/authSlice';
+import { deleteAccount, logout } from '../../store/slices/authSlice';
 import {
   saveProfilePersisted,
   setDarkModePersisted,
@@ -24,10 +25,11 @@ export default function SellerScreen({ navigation, appSettings }) {
   const user = useSelector((state) => state.auth.user);
   const settings = useSelector((state) => state.settings);
   const wallet = useSelector((state) => state.wallet);
-  const { shops } = useMarketplaceData();
+  const { shops, rankedProducts } = useMarketplaceData();
   const [activeType, setActiveType] = useState('professional');
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [productForm, setProductForm] = useState({
     title: '',
@@ -58,14 +60,25 @@ export default function SellerScreen({ navigation, appSettings }) {
   const surface = darkMode ? darkPalette.surface : overlay.surface;
   const isProfessional = activeType === 'professional';
   const profileInitials = `${profile.firstName?.[0] ?? 'C'}${profile.lastName?.[0] ?? 'M'}`.toUpperCase();
-  const ownedShopId = getShopIdForEmail(userEmail);
-  const ownedShop = useMemo(() => shops.find((shop) => shop.id === ownedShopId), [ownedShopId, shops]);
+  const ownedShop = useMemo(() => shops.find((shop) => shop.email?.toLowerCase?.() === userEmail.toLowerCase()), [shops, userEmail]);
   const professionalShops = useMemo(() => {
     if (!ownedShop) {
       return shops.slice(0, 3);
     }
     return [ownedShop, ...shops.filter((shop) => shop.id !== ownedShop.id).slice(0, 2)];
   }, [ownedShop, shops]);
+  const independentSellerGroups = useMemo(() => {
+    const groups = new Map();
+    rankedProducts
+      .filter((item) => item.sellerType === 'independent')
+      .forEach((item) => {
+        const key = item.seller.email ?? item.seller.id ?? item.seller.name;
+        const current = groups.get(key) ?? { ...item.seller, products: [] };
+        current.products.push(item.product);
+        groups.set(key, current);
+      });
+    return Array.from(groups.values());
+  }, [rankedProducts]);
   const t = appSettings?.t ?? ((key) => key);
   const money = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} FCFA`;
   const changeHistory = settings.historyByEmail?.[userEmail] ?? [];
@@ -164,6 +177,31 @@ export default function SellerScreen({ navigation, appSettings }) {
     }
   };
 
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      'Supprimer le compte',
+      'Cette action supprime ton compte et ses donnees liees dans la base. Elle est definitive.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setDeletingAccount(true);
+            try {
+              await dispatch(deleteAccount());
+              Alert.alert('Compte supprime', 'Ton compte a ete retire de la base.');
+            } catch (error) {
+              Alert.alert('Suppression impossible', 'Verifie que le backend est lance puis reessaie.');
+            } finally {
+              setDeletingAccount(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const changeProductField = (field, value) => setProductForm((current) => ({ ...current, [field]: value }));
 
   const pickProductImage = async () => {
@@ -215,6 +253,8 @@ export default function SellerScreen({ navigation, appSettings }) {
         setActiveType('professional');
       }
       Alert.alert('Article publie', ownedShop ? 'Il apparaitra dans ta vitrine et la recherche.' : 'Il apparaitra dans la recherche comme vendeur independant.');
+    } catch (error) {
+      Alert.alert('Publication impossible', 'Verifie que le backend WAMP est lance puis reessaie.');
     } finally {
       setPublishing(false);
     }
@@ -222,6 +262,7 @@ export default function SellerScreen({ navigation, appSettings }) {
 
   return (
     <SafeAreaView style={screenStyle}>
+      <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Surface style={[styles.profileCard, { backgroundColor: surface, borderColor: line }]}>
           <View style={styles.profileTop}>
@@ -314,6 +355,10 @@ export default function SellerScreen({ navigation, appSettings }) {
 
           <Button mode="contained" onPress={() => dispatch(logout())} buttonColor={palette.orange} textColor={palette.background}>
             {t('logout')}
+          </Button>
+
+          <Button mode="outlined" onPress={confirmDeleteAccount} loading={deletingAccount} textColor={palette.orange} style={{ borderColor: palette.orange }}>
+            Supprimer mon compte
           </Button>
         </Surface>
 
@@ -465,16 +510,18 @@ export default function SellerScreen({ navigation, appSettings }) {
           <>
             <SectionHeader title={t('independentSellers')} description={t('independentSellersText')} />
             <View style={styles.stack}>
-              {independentSellers.map((seller) => (
-                <Surface key={seller.id} style={[styles.sellerCard, { backgroundColor: surface, borderColor: line }]}>
+              {independentSellerGroups.length ? independentSellerGroups.map((seller) => (
+                <Surface key={seller.id ?? seller.email ?? seller.name} style={[styles.sellerCard, { backgroundColor: surface, borderColor: line }]}>
                   <View style={styles.profileTop}>
-                    <Image source={seller.avatar} style={styles.sellerPhoto} resizeMode="cover" />
+                    <View style={[styles.sellerPhoto, { backgroundColor: colors.primary }]}>
+                      <Text style={[styles.sellerInitial, { color: colors.background }]}>{seller.name?.slice(0, 1) ?? 'V'}</Text>
+                    </View>
                     <View style={styles.profileCopy}>
                       <Text style={[styles.profileName, { color: colors.text }]}>{seller.name}</Text>
-                      <Text style={[styles.profileMeta, { color: muted }]}>{seller.city} · {t('withoutStorefront')}</Text>
+                      <Text style={[styles.profileMeta, { color: muted }]}>{seller.city} ? {t('withoutStorefront')}</Text>
                     </View>
                   </View>
-                  <Text style={[styles.profileText, { color: muted }]}>{seller.tagline}</Text>
+                  <Text style={[styles.profileText, { color: muted }]}>Vendeur independant synchronise depuis WAMP.</Text>
                   <View style={styles.badgeRow}>
                     <Badge type="independent" />
                     {seller.certifiedByAp ? <Badge type="ap" /> : null}
@@ -484,12 +531,17 @@ export default function SellerScreen({ navigation, appSettings }) {
                     <ProductCard
                       key={item.id}
                       item={{ product: item, seller, sellerType: 'independent' }}
-                      onMessage={() => navigation.navigate('Messages', { sellerName: seller.name })}
-                      onBuy={() => navigation.navigate('Wallet', { productTitle: item.title })}
+                      onMessage={() => navigation.navigate('Messages', { sellerName: seller.name, sellerEmail: seller.email, productTitle: item.title })}
+                      onBuy={() => navigation.navigate('Wallet', { productTitle: item.title, productPrice: item.price })}
                     />
                   ))}
                 </Surface>
-              ))}
+              )) : (
+                <Surface style={[styles.emptyPurchase, { backgroundColor: surface, borderColor: line }]}>
+                  <Text style={[styles.emptyPurchaseTitle, { color: colors.text }]}>Aucun vendeur independant WAMP</Text>
+                  <Text style={[styles.emptyPurchaseText, { color: muted }]}>Publie un produit sans boutique pour le voir ici.</Text>
+                </Surface>
+              )}
             </View>
           </>
         )}
@@ -541,6 +593,12 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 16,
     backgroundColor: overlay.soft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sellerInitial: {
+    fontSize: 19,
+    fontWeight: '900',
   },
   profileCopy: {
     flex: 1,
