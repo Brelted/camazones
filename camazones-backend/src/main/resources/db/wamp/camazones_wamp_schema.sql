@@ -21,6 +21,10 @@ CREATE TABLE `chat_conversations` (
   `product_title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `updated_at` datetime(6) NOT NULL,
+  `negotiated_price` decimal(15,2) DEFAULT NULL,
+  `negotiated_offer_status` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `negotiated_by_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `negotiated_at` datetime(6) DEFAULT NULL,
   `participant_one_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
   `participant_two_id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
@@ -33,7 +37,7 @@ CREATE TABLE `chat_conversations` (
 
 LOCK TABLES `chat_conversations` WRITE;
 /*!40000 ALTER TABLE `chat_conversations` DISABLE KEYS */;
-INSERT INTO `chat_conversations` VALUES ('35710b51-7afe-4b7b-8be5-80d92f23ae03','Sony Xperia Slim','Negociation acceptee','2026-06-02 14:46:58.044842','8f8753fe-cba5-4e73-80e7-e081f388a5ba','620506a3-1ab5-4e21-af47-7d4c909c68be');
+INSERT INTO `chat_conversations` VALUES ('35710b51-7afe-4b7b-8be5-80d92f23ae03','Sony Xperia Slim','Offre envoyee','2026-06-02 14:46:58.044842',350000.00,'SELLER_SENT','sony@camazones.demo','2026-06-02 14:46:58.044842','8f8753fe-cba5-4e73-80e7-e081f388a5ba','620506a3-1ab5-4e21-af47-7d4c909c68be');
 /*!40000 ALTER TABLE `chat_conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `chat_messages`;

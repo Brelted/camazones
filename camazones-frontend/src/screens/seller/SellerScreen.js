@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
@@ -261,7 +261,7 @@ export default function SellerScreen({ navigation, appSettings }) {
   };
 
   return (
-    <SafeAreaView style={screenStyle}>
+    <View style={screenStyle}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Surface style={[styles.profileCard, { backgroundColor: surface, borderColor: line }]}>
@@ -546,7 +546,7 @@ export default function SellerScreen({ navigation, appSettings }) {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

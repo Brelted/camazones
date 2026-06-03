@@ -110,7 +110,7 @@ public class EmailService {
         return enabled
                 && from != null && !from.isBlank()
                 && username != null && !username.isBlank()
-                && looksLikeGmailAppPassword();
+                && password != null && !password.isBlank();
     }
 
     public String statusMessage() {
@@ -120,14 +120,14 @@ public class EmailService {
         if (from == null || from.isBlank() || username == null || username.isBlank()) {
             return "SMTP incomplet. Ajoute CAMAZONES_MAIL_USERNAME et CAMAZONES_MAIL_FROM.";
         }
-        if (!looksLikeGmailAppPassword()) {
-            return "SMTP incomplet. Gmail demande un mot de passe d'application a 16 caracteres.";
+        if (password == null || password.isBlank()) {
+            return "SMTP incomplet. Ajoute CAMAZONES_MAIL_PASSWORD.";
         }
         return "SMTP configure.";
     }
 
     private boolean send(String to, String subject, String html) {
-        if (!enabled || from == null || from.isBlank()) {
+        if (!isConfigured()) {
             log.info("Email non configure. Sujet '{}' pour {}", subject, to);
             return false;
         }
@@ -163,10 +163,6 @@ public class EmailService {
             current = current.getCause();
         }
         return false;
-    }
-
-    private boolean looksLikeGmailAppPassword() {
-        return password != null && password.replaceAll("\\s+", "").length() == 16;
     }
 
     private String layout(String title, String heading, String body) {

@@ -11,6 +11,9 @@ public record ConversationResponse(
         String productTitle,
         String status,
         int unread,
+        Long negotiatedPrice,
+        String negotiatedOfferStatus,
+        String negotiatedByEmail,
         LocalDateTime updatedAt,
         List<MessageResponse> messages
 ) {}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text } from '../../components/ui';
@@ -104,17 +104,17 @@ export default function AdminScreen({ appSettings }) {
 
   if (!isAdmin) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <AnimatedBackdrop colors={colors} darkMode={darkMode} />
         <View style={styles.content}>
           <SectionHeader title="Espace admin" description="Connecte-toi avec admin@camazones.demo pour ouvrir la console." />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -232,7 +232,7 @@ export default function AdminScreen({ appSettings }) {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

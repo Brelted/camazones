@@ -15,6 +15,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,17 @@ public class ChatConversation {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal negotiatedPrice;
+
+    @Column(length = 40)
+    private String negotiatedOfferStatus;
+
+    @Column(length = 255)
+    private String negotiatedByEmail;
+
+    private LocalDateTime negotiatedAt;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> messages = new ArrayList<>();
@@ -99,6 +111,38 @@ public class ChatConversation {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public BigDecimal getNegotiatedPrice() {
+        return negotiatedPrice;
+    }
+
+    public void setNegotiatedPrice(BigDecimal negotiatedPrice) {
+        this.negotiatedPrice = negotiatedPrice;
+    }
+
+    public String getNegotiatedOfferStatus() {
+        return negotiatedOfferStatus;
+    }
+
+    public void setNegotiatedOfferStatus(String negotiatedOfferStatus) {
+        this.negotiatedOfferStatus = negotiatedOfferStatus;
+    }
+
+    public String getNegotiatedByEmail() {
+        return negotiatedByEmail;
+    }
+
+    public void setNegotiatedByEmail(String negotiatedByEmail) {
+        this.negotiatedByEmail = negotiatedByEmail;
+    }
+
+    public LocalDateTime getNegotiatedAt() {
+        return negotiatedAt;
+    }
+
+    public void setNegotiatedAt(LocalDateTime negotiatedAt) {
+        this.negotiatedAt = negotiatedAt;
     }
 
     public List<ChatMessage> getMessages() {

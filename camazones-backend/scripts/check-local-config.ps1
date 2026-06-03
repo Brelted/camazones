@@ -14,7 +14,6 @@ $mysqlOpen = $iar.AsyncWaitHandle.WaitOne(1200, $false)
 if ($mysqlOpen) { try { $client.EndConnect($iar) } catch { $mysqlOpen = $false } }
 $client.Close()
 $mailPassword = $values['CAMAZONES_MAIL_PASSWORD']
-$mailCompact = ($mailPassword -replace '\s', '')
 $stripeSecret = $values['STRIPE_SECRET_KEY']
 $stripeCompact = ($stripeSecret -replace '\s', '')
 $googleKey = $values['GOOGLE_API_KEY']
@@ -23,8 +22,7 @@ $result = [ordered]@{
   EnvLocal = (Test-Path $envPath)
   WampMysql3306 = [bool]$mysqlOpen
   MailUser = [bool]$values['CAMAZONES_MAIL_USERNAME']
-  MailPasswordPresent = [bool]$mailPassword
-  MailPasswordLooksLikeGmailAppPassword = ($mailCompact.Length -eq 16)
+  MailPasswordConfigured = [bool]$mailPassword
   StripeSecretConfigured = ($stripeCompact -like 'sk_test_*' -or $stripeCompact -like 'sk_live_*') -and ($stripeCompact -notlike '*remplacer*')
   OpenAiKeyConfigured = ($values['OPENAI_API_KEY'] -like 'sk-*')
   GoogleSpeechKeyConfigured = ($googleKey -like 'AIza*' -or $geminiKey -like 'AIza*')

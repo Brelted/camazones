@@ -3,7 +3,7 @@ import { API_BASE_URL } from './apiConfig';
 
 const authClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 6000,
+  timeout: 2500,
 });
 
 export const profileRequest = async (token) => {

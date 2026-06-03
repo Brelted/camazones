@@ -1,17 +1,23 @@
 import axios from 'axios';
-import store from '../store';
-import { logout } from '../store/slices/authSlice';
 import { API_BASE_URL, AUTH_STORAGE_KEY } from './apiConfig';
 import { storage } from './storage';
 
+let getAuthToken = () => null;
+let onUnauthorized = async () => {};
+
+export const configureApiClientAuth = ({ getToken, handleUnauthorized } = {}) => {
+  getAuthToken = typeof getToken === 'function' ? getToken : () => null;
+  onUnauthorized = typeof handleUnauthorized === 'function' ? handleUnauthorized : async () => {};
+};
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 7000,
 });
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = store.getState().auth.token;
+    const token = getAuthToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -27,7 +33,7 @@ apiClient.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       await storage.removeItem(AUTH_STORAGE_KEY);
-      store.dispatch(logout());
+      await onUnauthorized();
     }
 
     return Promise.reject(error);

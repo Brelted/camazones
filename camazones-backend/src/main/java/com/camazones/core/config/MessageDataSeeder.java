@@ -11,6 +11,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Component
 @Order(2)
 public class MessageDataSeeder implements CommandLineRunner {
@@ -30,13 +33,19 @@ public class MessageDataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (!seedEnabled || conversationRepository.count() > 0) {
+        if (!seedEnabled) {
             return;
         }
 
         userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull("alan.independant@camazones.demo")
                 .flatMap(alan -> userRepository.findByEmailAndDeletedAtIsNullAndRemovedAtIsNull("sony@camazones.demo").map(sony -> new User[]{alan, sony}))
-                .ifPresent(users -> seedAlanSony(users[0], users[1]));
+                .ifPresent(users -> {
+                    if (conversationRepository.count() == 0) {
+                        seedAlanSony(users[0], users[1]);
+                    } else {
+                        ensureAlanSonyOffer(users[0], users[1]);
+                    }
+                });
     }
 
     private void seedAlanSony(User alan, User sony) {
@@ -44,13 +53,34 @@ public class MessageDataSeeder implements CommandLineRunner {
         conversation.setParticipantOne(alan);
         conversation.setParticipantTwo(sony);
         conversation.setProductTitle("Sony Xperia Slim");
-        conversation.setStatus("Negociation acceptee");
+        conversation.setStatus("Offre envoyee");
+        conversation.setNegotiatedPrice(BigDecimal.valueOf(350000));
+        conversation.setNegotiatedOfferStatus("SELLER_SENT");
+        conversation.setNegotiatedByEmail(sony.getEmail());
+        conversation.setNegotiatedAt(LocalDateTime.now());
         add(conversation, alan, "Bonjour Sony, je suis Alan. Le Sony Xperia Slim est a 390 000 FCFA, possible de revoir le prix ?");
         add(conversation, sony, "Bonjour Alan, il est neuf avec garantie boutique. Vous proposez combien ?");
         add(conversation, alan, "Je peux payer 350 000 FCFA aujourd hui via Camazones Pay.");
-        add(conversation, sony, "Accorde. Sony accepte 350 000 FCFA si paiement aujourd hui.");
+        add(conversation, sony, "Offre vendeur: 350 000 FCFA. Paiement uniquement via Camazones.");
         add(conversation, alan, "Parfait, je confirme le paiement maintenant.");
         conversationRepository.save(conversation);
+    }
+
+    private void ensureAlanSonyOffer(User alan, User sony) {
+        conversationRepository.findExisting(alan.getEmail(), sony.getEmail(), "Sony Xperia Slim")
+                .ifPresent(conversation -> {
+                    conversation.setStatus("Offre envoyee");
+                    conversation.setNegotiatedPrice(BigDecimal.valueOf(350000));
+                    conversation.setNegotiatedOfferStatus("SELLER_SENT");
+                    conversation.setNegotiatedByEmail(sony.getEmail());
+                    conversation.setNegotiatedAt(LocalDateTime.now());
+                    boolean hasOfferMessage = conversation.getMessages().stream()
+                            .anyMatch(message -> message.getText() != null && message.getText().startsWith("Offre vendeur:"));
+                    if (!hasOfferMessage) {
+                        add(conversation, sony, "Offre vendeur: 350 000 FCFA. Paiement uniquement via Camazones.");
+                    }
+                    conversationRepository.save(conversation);
+                });
     }
 
     private void add(ChatConversation conversation, User sender, String text) {

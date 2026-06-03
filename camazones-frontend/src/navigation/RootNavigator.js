@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AuthScreen from '../screens/auth/AuthScreen';
 import { LoadingDots, Text } from '../components/ui';
-import SplashAnimation from '../components/SplashAnimation';
+import SplashAnimation from '../components/SplashAnimation.js';
 import { darkPalette, overlay, palette } from '../theme';
 import { validateSession } from '../store/slices/authSlice';
 import { setDarkModePersisted, setLanguagePersisted } from '../store/slices/settingsSlice';
@@ -113,7 +113,7 @@ export default function RootNavigator() {
         pitch: 1,
         rate: 0.92,
       });
-    }, 550);
+    }, 450);
 
     return () => clearTimeout(timer);
   }, [activeName, isAuthenticated, language]);
@@ -228,11 +228,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabbar: {
-    minHeight: 90,
+    minHeight: 94,
     flexDirection: 'row',
     paddingHorizontal: 8,
-    paddingTop: 7,
-    paddingBottom: 24,
+    paddingTop: 8,
+    paddingBottom: 22,
     borderTopWidth: 1,
     shadowColor: '#1F1F1F',
     shadowOffset: { width: 0, height: -8 },
@@ -247,8 +247,8 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   tabIcon: {
-    width: 41,
-    height: 41,
+    width: 43,
+    height: 43,
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',

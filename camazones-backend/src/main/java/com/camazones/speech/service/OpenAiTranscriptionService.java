@@ -22,7 +22,7 @@ import java.util.Map;
 public class OpenAiTranscriptionService {
 
     private static final String TRANSCRIPTION_URL = "https://api.openai.com/v1/audio/transcriptions";
-    private static final String GEMINI_TRANSCRIPTION_URL = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
+    private static final String GEMINI_TRANSCRIPTION_URL = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String apiKey;
@@ -34,7 +34,7 @@ public class OpenAiTranscriptionService {
             @Value("${camazones.openai.api-key:}") String apiKey,
             @Value("${camazones.openai.transcription-model:gpt-4o-mini-transcribe}") String model,
             @Value("${camazones.google.api-key:}") String googleApiKey,
-            @Value("${camazones.google.transcription-model:gemini-1.5-flash}") String googleModel) {
+            @Value("${camazones.google.transcription-model:gemini-2.5-flash}") String googleModel) {
         this.apiKey = apiKey;
         this.model = model;
         this.googleApiKey = googleApiKey;
@@ -90,18 +90,21 @@ public class OpenAiTranscriptionService {
         String prompt = activeLanguage.toLowerCase().startsWith("en")
                 ? "Transcribe this audio exactly. Return only the spoken search query, no explanation."
                 : "Transcris cet audio exactement. Retourne uniquement la recherche prononcee, sans explication.";
-        String mimeType = audio.getContentType() == null || audio.getContentType().isBlank() ? "audio/m4a" : audio.getContentType();
+        String mimeType = normalizeMimeType(audio.getContentType());
         String base64Audio = Base64.getEncoder().encodeToString(audio.getBytes());
         Map<String, Object> request = Map.of(
                 "contents", List.of(Map.of(
                         "parts", List.of(
                                 Map.of("text", prompt),
-                                Map.of("inlineData", Map.of("mimeType", mimeType, "data", base64Audio))
+                                Map.of("inline_data", Map.of("mime_type", mimeType, "data", base64Audio))
                         )
                 ))
         );
-        String url = String.format(GEMINI_TRANSCRIPTION_URL, googleModel.trim(), googleApiKey.trim());
-        JsonNode response = restTemplate.postForObject(url, request, JsonNode.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", googleApiKey.trim());
+        String url = String.format(GEMINI_TRANSCRIPTION_URL, googleModel.trim());
+        JsonNode response = restTemplate.postForObject(url, new HttpEntity<>(request, headers), JsonNode.class);
         String text = response == null
                 ? ""
                 : response.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
@@ -114,6 +117,17 @@ public class OpenAiTranscriptionService {
 
     private boolean hasValidGoogleApiKey() {
         return googleApiKey != null && googleApiKey.trim().startsWith("AIza");
+    }
+
+    private String normalizeMimeType(String mimeType) {
+        if (mimeType == null || mimeType.isBlank()) {
+            return "audio/mp4";
+        }
+        String value = mimeType.trim().toLowerCase();
+        if (value.equals("audio/x-m4a") || value.equals("audio/m4a")) {
+            return "audio/mp4";
+        }
+        return value;
     }
 
     private HttpEntity<ByteArrayResource> filePart(MultipartFile audio) throws IOException {

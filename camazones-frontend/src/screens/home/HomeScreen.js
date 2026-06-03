@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text } from '../../components/ui';
 import { ShopCard } from '../../components/MarketplaceCards';
@@ -48,7 +48,7 @@ export default function HomeScreen({ navigation, appSettings }) {
   }, [trendingItems.length]);
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.topBar, { backgroundColor: colors.primary }]}>
@@ -161,7 +161,7 @@ export default function HomeScreen({ navigation, appSettings }) {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

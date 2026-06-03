@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import * as Speech from 'expo-speech';
-import { Alert, Linking, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, Surface, Text, TextInput } from '../../components/ui';
@@ -32,6 +32,7 @@ export default function WalletScreen({ route, appSettings }) {
 
   const productTitle = route?.params?.productTitle ?? 'Commande Camazones';
   const negotiatedPrice = parseFcfaAmount(route?.params?.negotiatedPrice);
+  const conversationId = route?.params?.conversationId;
   const sellerName = route?.params?.sellerName;
   const darkMode = Boolean(appSettings?.darkMode);
   const colors = appSettings?.colors ?? palette;
@@ -143,6 +144,7 @@ export default function WalletScreen({ route, appSettings }) {
           amount: total,
           customerEmail,
           customerName,
+          conversationId,
         });
         setStripeSession(session);
         await Linking.openURL(session.checkoutUrl);
@@ -222,7 +224,7 @@ export default function WalletScreen({ route, appSettings }) {
   };
 
   return (
-    <SafeAreaView style={screenStyle}>
+    <View style={screenStyle}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -254,9 +256,7 @@ export default function WalletScreen({ route, appSettings }) {
           {negotiatedPrice ? (
             <View style={[styles.negotiationBox, { backgroundColor: darkMode ? palette.darkSurface : overlay.soft, borderColor: line }]}>
               <Text style={styles.negotiationIcon}>🤝</Text>
-              <Text style={[styles.negotiationText, { color: colors.text }]}>
-                Le paiement utilise le prix réduit validé dans la discussion.
-              </Text>
+              <Text style={[styles.negotiationText, { color: colors.text }]}>Le paiement utilise le prix réduit validé dans la discussion.</Text>
             </View>
           ) : null}
 
@@ -402,7 +402,7 @@ export default function WalletScreen({ route, appSettings }) {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 92,
+    paddingBottom: 112,
     gap: 18,
   },
   header: {

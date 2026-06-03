@@ -9,7 +9,7 @@ import { authBootstrapComplete, restoreAuth } from './src/store/slices/authSlice
 import { restoreSettings } from './src/store/slices/settingsSlice';
 import { restoreWallet } from './src/store/slices/walletSlice';
 
-const BOOT_TIMEOUT_MS = 2500;
+const BOOT_TIMEOUT_MS = 900;
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Bootstrapper() {
@@ -29,7 +29,12 @@ function Bootstrapper() {
       dispatch(restoreSettings()),
       dispatch(restoreWallet()),
       dispatch(restoreAuth()),
-    ]).finally(() => clearTimeout(bootTimer));
+    ]).finally(() => {
+      clearTimeout(bootTimer);
+      if (alive) {
+        dispatch(authBootstrapComplete());
+      }
+    });
 
     return () => {
       alive = false;

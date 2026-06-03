@@ -1,7 +1,7 @@
 ﻿import React, { useMemo, useRef, useState } from 'react';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import * as Speech from 'expo-speech';
-import { Image, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, EmptyState, ProductCard, SectionHeader } from '../../components/MarketplaceCards';
@@ -84,18 +84,6 @@ export default function ProductsScreen({ navigation, appSettings }) {
       setVoiceMatches([]);
       setVoiceStatus('Recherche en base indisponible. Verifie le backend.');
     }
-  };
-
-  const explainVoiceHold = () => {
-    if (voiceActive) {
-      return;
-    }
-    Speech.stop();
-    setVoiceStatus('Maintiens le micro pour parler.');
-    Speech.speak('Maintenez le bouton micro pour lancer la recherche vocale.', {
-      language: voiceLanguage,
-      rate: 0.95,
-    });
   };
 
   const stopVoiceSearch = async () => {
@@ -203,7 +191,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
   });
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -221,8 +209,8 @@ export default function ProductsScreen({ navigation, appSettings }) {
             <Text style={[styles.searchButtonText, { color: colors.background }]}>🔎</Text>
           </Pressable>
           <Pressable
-            onPress={voiceActive ? stopVoiceSearch : startVoiceSearch}
-            onLongPress={explainVoiceHold}
+            onPressIn={startVoiceSearch}
+            onPressOut={stopVoiceSearch}
             style={[styles.voiceButton, { backgroundColor: voiceActive ? colors.green ?? palette.green : colors.primary }]}
           >
             <Text style={[styles.voiceIcon, { color: colors.background }]}>🎙️</Text>
@@ -335,7 +323,7 @@ export default function ProductsScreen({ navigation, appSettings }) {
           <Text style={styles.rankingText}>{t('visibilityRuleText')}</Text>
         </Surface>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

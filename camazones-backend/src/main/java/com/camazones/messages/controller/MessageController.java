@@ -1,6 +1,7 @@
 package com.camazones.messages.controller;
 
 import com.camazones.messages.dto.ConversationResponse;
+import com.camazones.messages.dto.NegotiatedOfferRequest;
 import com.camazones.messages.dto.SendMessageRequest;
 import com.camazones.messages.dto.StartConversationRequest;
 import com.camazones.messages.service.MessageService;
@@ -49,6 +50,14 @@ public class MessageController {
             @PathVariable UUID id,
             @Valid @RequestBody SendMessageRequest request) {
         return ResponseEntity.ok(messageService.sendMessage(user.getUsername(), id, request));
+    }
+
+    @PostMapping("/conversations/{id}/offer")
+    ResponseEntity<ConversationResponse> offer(
+            @AuthenticationPrincipal UserDetails user,
+            @PathVariable UUID id,
+            @Valid @RequestBody NegotiatedOfferRequest request) {
+        return ResponseEntity.ok(messageService.sendNegotiatedOffer(user.getUsername(), id, request));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

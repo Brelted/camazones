@@ -10,6 +10,13 @@ export const mapConversation = (conversation, currentEmail) => ({
   product: displayProduct(conversation.productTitle),
   unread: conversation.unread ?? 0,
   status: conversation.status ?? 'Active',
+  negotiatedOffer: conversation.negotiatedPrice
+    ? {
+        amount: Number(conversation.negotiatedPrice),
+        status: conversation.negotiatedOfferStatus,
+        byEmail: conversation.negotiatedByEmail,
+      }
+    : null,
   messages: (conversation.messages ?? []).map((message) => ({
     id: String(message.id),
     from: message.senderEmail?.toLowerCase?.() === currentEmail?.toLowerCase?.() || message.from === 'me' ? 'buyer' : 'seller',
@@ -30,3 +37,6 @@ export const startConversation = async ({ sellerEmail, productTitle, openingMess
 
 export const sendConversationMessage = async (conversationId, text) =>
   apiClient.post(`/messages/conversations/${conversationId}/messages`, { text });
+
+export const sendNegotiatedOffer = async (conversationId, amount, note) =>
+  apiClient.post(`/messages/conversations/${conversationId}/offer`, { amount, note });

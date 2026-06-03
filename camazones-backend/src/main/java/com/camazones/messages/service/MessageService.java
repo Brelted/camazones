@@ -1,9 +1,11 @@
 package com.camazones.messages.service;
 
 import com.camazones.auth.entity.User;
+import com.camazones.auth.entity.UserRole;
 import com.camazones.auth.repository.UserRepository;
 import com.camazones.messages.dto.ConversationResponse;
 import com.camazones.messages.dto.MessageResponse;
+import com.camazones.messages.dto.NegotiatedOfferRequest;
 import com.camazones.messages.dto.SendMessageRequest;
 import com.camazones.messages.dto.StartConversationRequest;
 import com.camazones.messages.entity.ChatConversation;
@@ -13,6 +15,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -79,6 +83,32 @@ public class MessageService {
         return toResponse(saved, email);
     }
 
+    @Transactional
+    public ConversationResponse sendNegotiatedOffer(String email, UUID conversationId, NegotiatedOfferRequest request) {
+        User sender = findUser(email);
+        ChatConversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation introuvable."));
+
+        if (!isParticipant(conversation, email)) {
+            throw new AccessDeniedException("Conversation non autorisee.");
+        }
+        boolean senderIsConversationSeller = conversation.getParticipantTwo().getEmail().equalsIgnoreCase(sender.getEmail());
+        if (sender.getRole() != UserRole.ADMIN && (sender.getRole() != UserRole.SELLER || !senderIsConversationSeller)) {
+            throw new AccessDeniedException("Seul le vendeur peut envoyer une offre de paiement.");
+        }
+
+        long amount = request.amount();
+        String note = clean(request.note(), "");
+        conversation.setNegotiatedPrice(BigDecimal.valueOf(amount));
+        conversation.setNegotiatedOfferStatus("SELLER_SENT");
+        conversation.setNegotiatedByEmail(sender.getEmail());
+        conversation.setNegotiatedAt(LocalDateTime.now());
+        conversation.setStatus("Offre envoyee");
+        conversation.addMessage(createMessage(sender, "Offre vendeur: " + formatAmount(amount) + " FCFA. " + note));
+        ChatConversation saved = conversationRepository.save(conversation);
+        return toResponse(saved, email);
+    }
+
     private ChatMessage createMessage(User sender, String text) {
         ChatMessage message = new ChatMessage();
         message.setSender(sender);
@@ -110,6 +140,9 @@ public class MessageService {
                 conversation.getProductTitle(),
                 conversation.getStatus(),
                 0,
+                conversation.getNegotiatedPrice() == null ? null : conversation.getNegotiatedPrice().longValue(),
+                conversation.getNegotiatedOfferStatus(),
+                conversation.getNegotiatedByEmail(),
                 conversation.getUpdatedAt(),
                 messages
         );
@@ -135,5 +168,9 @@ public class MessageService {
             return fallback;
         }
         return value.trim();
+    }
+
+    private String formatAmount(long amount) {
+        return String.format("%,d", amount).replace(',', ' ');
     }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Button, LoadingDots, Surface, Text } from '../../components/ui';
 import { darkPalette, overlay, palette } from '../../theme';
@@ -26,7 +26,7 @@ export default function GamesScreen({ navigation, appSettings }) {
   const surface = darkMode ? darkPalette.surface : overlay.surface;
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -73,7 +73,7 @@ export default function GamesScreen({ navigation, appSettings }) {
           )}
         </Surface>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -7,7 +7,7 @@ export const transcribeSearchAudio = async ({ uri, language }) => {
   form.append('audio', {
     uri,
     name: 'voice-search.m4a',
-    type: 'audio/m4a',
+    type: 'audio/mp4',
   });
   if (language) {
     form.append('language', language);

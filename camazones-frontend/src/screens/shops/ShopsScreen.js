@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import AnimatedBackdrop from '../../components/AnimatedBackdrop';
 import { Surface, Text, TextInput } from '../../components/ui';
 import { Badge, ProductCard, SectionHeader, ShopCard } from '../../components/MarketplaceCards';
@@ -43,7 +43,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
 
   if (selectedShop) {
     return (
-      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <AnimatedBackdrop colors={colors} darkMode={darkMode} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Pressable onPress={() => setSelectedShopId(null)} style={styles.backLink}>
@@ -111,12 +111,12 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <AnimatedBackdrop colors={colors} darkMode={darkMode} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -143,7 +143,7 @@ export default function ShopsScreen({ navigation, route, appSettings }) {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
